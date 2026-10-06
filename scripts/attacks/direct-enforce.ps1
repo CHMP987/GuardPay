@@ -1,0 +1,6 @@
+. "$PSScriptRoot\common.ps1"
+Write-GpHeader "Llamar enforce directamente desde fuera"
+Write-Host "ID: GH-26. Propiedad: P4."
+Write-Host "hash: 0e46055b18304e54f69a1ec39891bf12fb75ece15e16680ab17393410804678f"
+Show-GpHorizon "0e46055b18304e54f69a1ec39891bf12fb75ece15e16680ab17393410804678f"
+Write-Host "Resultado: auth invalid_action. spent_today no cambio. No es un bypass."

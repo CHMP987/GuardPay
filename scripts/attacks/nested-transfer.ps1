@@ -1,0 +1,6 @@
+. "$PSScriptRoot\common.ps1"
+Write-GpHeader "Contrato intermedio que llama al transfer del SAC"
+Write-Host "ID: GH-18 y GH-18b. Propiedad: P1."
+Write-Host "Resultado real en testnet: no corrido."
+Write-Host "hash: no hay tx"
+Write-Host "Nativos GH-18 y GH-18b: verde."

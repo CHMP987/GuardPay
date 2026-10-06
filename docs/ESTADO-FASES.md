@@ -46,9 +46,10 @@ Procedimiento escrito el 6 oct 2026 para poder desplegar. Las semillas de prueba
 | P4 | hecho para Android (6 oct). `evidence/architecture/kmp-layers.md`, `evidence/stellar/gateway-live.md` |
 | P5 | 4 pantallas con datos de testnet, probadas en emulador (6 oct) |
 | P6 | Keystore + biometría o PIN; ciclo completo en testnet desde la app, en emulador. GH-01/GH-24 con el código del cliente, no desde el teléfono. `evidence/smart-account/signing.md` |
-| P7 | no iniciado (stub) |
+| P7 | no abierto. Spike B rojo, sin números de un teléfono. La IA queda en NICE. CP-7 sin firmar. |
 | P8 | aviso local sin backend, < 60 s medido en emulador. `evidence/guardian/notification.md` |
-| P9–P10 | no iniciado |
+| P9 | scripts en `scripts/attacks/`. Matriz en `evidence/security/bypass-matrix.md`. GH-28, GH-29, GH-30 y GH-33: no corrido. CP-9 sin firmar. |
+| P10 | README, escenas y `docs/SUBMISSION.md`. Passport no enviado. Entrevistas: no corrido. |
 
 Definition of Done: implementación + unit + integración + seguridad + criterios de aceptación + evidencia. Compilar no cierra una fase.
 
@@ -76,4 +77,8 @@ El teléfono no importa semillas. En el build debug, la app crea las claves de l
 
 6 oct 2026. Solo arreglos: el sello "En Stellar" ya no se parte, un fallo de firma ya no se muestra como error de red (`SigningFailed`) y los textos dicen "huella o PIN" en vez de "passkey". Las escenas 1, 2, 3 y 6 se ensayaron dos veces en emulador contra testnet, con 6 hashes reales y el vídeo de respaldo: `evidence/demo/rehearsal.md`.
 
-La demo usa una cuenta nueva para las claves del Keystore: `CDWPPTDMACOEVMBUHBBTPUW2EEDXY6YVUAOZJFTSGGOBAONCAJ7WGFV6`. Esto responde a la pregunta de T-005 para la parte de la app. Las partes de terminal de las escenas 2 y 6 (P9) siguen sin correr.
+La demo usa una cuenta nueva para las claves del Keystore: `CDWPPTDMACOEVMBUHBBTPUW2EEDXY6YVUAOZJFTSGGOBAONCAJ7WGFV6`. Esto responde a la pregunta de T-005 para la parte de la app.
+
+## P9 y P10 · 6 oct 2026, noche
+
+Los rechazos de terminal están en la cuenta CLI de `deployment.md`, no en la cuenta del emulador. El envío antes de `ready_at` es GH-05. `approve` es GH-16. La segunda regla no tiene transacción: la CLI dice que el subcomando no existe. Escenas 4 y 5: GH-08 y GH-09. Spike B no tiene números de un teléfono, así que la IA queda en NICE y P7 no se abre. CP-3, CP-7 y CP-9 siguen sin firma humana.

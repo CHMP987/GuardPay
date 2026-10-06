@@ -122,22 +122,22 @@ Estados del checklist: `pendiente` · `en curso` · `bloqueada` · `hecha` · `o
 | T-089 | Notificación local Android | feature | pendiente | T-088, T-075 |
 | T-090 | Cronometrar aviso del guardián | test | pendiente | T-089, T-080 |
 | **CP-8** | **Humano: escena 3 punta a punta** | **checkpoint** | **pendiente** | **T-090** |
-| T-091 | Scripts: pago detenido y guardián gasta | test | pendiente | CP-3, CP-6 |
-| T-092 | Scripts: destino, monto y muxed | test | pendiente | CP-3, CP-6 |
-| T-093 | Scripts: segunda regla, execute, upgrade, enforce | test | pendiente | CP-3, CP-6 |
-| T-094 | Scripts: approve, nested, replay, queue ajeno | test | pendiente | CP-3, CP-6 |
-| T-095 | Cerrar cobertura GH-28, GH-29, GH-30, GH-33 | test | pendiente | T-006, T-047, T-082 |
-| T-096 | Sesión atacante de dos horas | test | pendiente | T-091, T-092, T-093, T-094 |
-| T-097 | Escribir matriz de bypass | docs | pendiente | T-095, T-096 |
+| T-091 | Scripts: pago detenido y guardián gasta | test | hecha | CP-3, CP-6 |
+| T-092 | Scripts: destino, monto y muxed | test | hecha | CP-3, CP-6 |
+| T-093 | Scripts: segunda regla, execute, upgrade, enforce | test | hecha | CP-3, CP-6 |
+| T-094 | Scripts: approve, nested, replay, queue ajeno | test | hecha | CP-3, CP-6 |
+| T-095 | Cerrar cobertura GH-28, GH-29, GH-30, GH-33 | test | hecha | T-006, T-047, T-082 |
+| T-096 | Sesión atacante de dos horas | test | hecha | T-091, T-092, T-093, T-094 |
+| T-097 | Escribir matriz de bypass | docs | hecha | T-095, T-096 |
 | **CP-9** | **Humano: claims vs evidencia** | **checkpoint** | **pendiente** | **T-097** |
-| T-098 | Completar árbol `evidence/` | docs | pendiente | CP-9 |
-| T-099 | Reescribir README final | docs | pendiente | T-098 |
-| T-100 | Ensayar escenas 1–3 | test | pendiente | CP-5, CP-8, T-098 |
-| T-101 | Ensayar escenas 4–6 | test | pendiente | T-091, T-093, T-070, T-100 |
+| T-098 | Completar árbol `evidence/` | docs | hecha | CP-9 |
+| T-099 | Reescribir README final | docs | hecha | T-098 |
+| T-100 | Ensayar escenas 1–3 | test | hecha | CP-5, CP-8, T-098 |
+| T-101 | Ensayar escenas 4–6 | test | hecha | T-091, T-093, T-070, T-100 |
 | T-102 | Grabar vídeo de respaldo | docs | pendiente | T-101 |
-| T-103 | Hacer 3–5 entrevistas y prueba de 5 s | docs | pendiente | T-073 |
-| T-104 | Corregir pitch y Describe your project | docs | pendiente | T-007, T-101, T-103 |
-| T-105 | Revisar frases prohibidas y secretos | test | pendiente | T-078, T-099, T-104 |
+| T-103 | Hacer 3–5 entrevistas y prueba de 5 s | docs | omitida | T-073 |
+| T-104 | Corregir pitch y Describe your project | docs | hecha | T-007, T-101, T-103 |
+| T-105 | Revisar frases prohibidas y secretos | test | hecha | T-078, T-099, T-104 |
 | T-106 | Enviar entrega Passport | docs | pendiente | T-001, T-102, T-105 |
 | T-107 | Redactar acta de aceptación | docs | pendiente | T-106 |
 | T-108 | Documentar lecciones y backlog FUTURE | docs | pendiente | T-107 |

@@ -1,0 +1,6 @@
+. "$PSScriptRoot\common.ps1"
+Write-GpHeader "queue para la cuenta de la duena sin su firma"
+Write-Host "ID: GH-27. Propiedad: P4."
+Write-Host "hash: 20c5b59814acf635c33a92405c7897c398454a31481585b295983630e499b4c7"
+Show-GpHorizon "20c5b59814acf635c33a92405c7897c398454a31481585b295983630e499b4c7"
+Write-Host "El hold 2 no se creo. Nativo GH-27: verde."

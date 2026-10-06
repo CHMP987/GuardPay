@@ -1,0 +1,5 @@
+$ErrorActionPreference = "Continue"
+. "$PSScriptRoot\common.ps1"
+Write-GpHeader "Anadir una segunda context rule"
+Write-Host "Propiedad: P5."
+Invoke-GpMissingExport "add_context_rule"
