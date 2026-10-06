@@ -20,10 +20,10 @@ pub struct SpikeAccount;
 
 #[contractimpl]
 impl SpikeAccount {
-    pub fn __constructor(env: Env, owner: Address, policy: Address) {
+    pub fn __constructor(env: Env, owner: Address, policy: Address, install_params: Val) {
         let signers = Vec::from_array(&env, [Signer::Delegated(owner)]);
         let mut policies = Map::new(&env);
-        policies.set(policy, Val::from_void().into());
+        policies.set(policy, install_params);
         add_context_rule(
             &env,
             &ContextRuleType::Default,
@@ -85,7 +85,8 @@ mod tests {
 
         let owner = Address::generate(&env);
         let policy = env.register(InstallStub, ());
-        let account = env.register(SpikeAccount, (owner.clone(), policy.clone()));
+        let install_params = Val::from_void();
+        let account = env.register(SpikeAccount, (owner.clone(), policy.clone(), install_params));
 
         env.as_contract(&account, || {
             assert_eq!(get_context_rules_count(&env), 1);
