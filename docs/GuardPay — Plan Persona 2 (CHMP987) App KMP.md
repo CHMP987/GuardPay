@@ -32,7 +32,7 @@ Estado del entorno comprobado en esta máquina `[FACT]`: JDK 17 instalado; Andro
 - [x] Plugin de Kotlin Multiplatform 262.9437.115-AS cargado (verificado en `idea.log`, 5 oct). Android Studio apunta al SDK existente.
 - [x] **Teléfono Android conectado y autorizado por `adb`:** Samsung Galaxy A54 (SM-A546E), Android 14 (API 34), 7,3 GB de RAM visibles. `[INFERENCE]` Cumple con margen la RAM que necesita Gemma 4 E2B (R4), pero su chip es Exynos 1380, no Snapdragon: las cifras de tok/s del plan no aplican directamente. `[UNVERIFIED]` hasta que Ant corra el Spike B en este teléfono.
 - [ ] Segundo dispositivo para el guardián: otro Android, un emulador, o el iPhone si hay Mac (ver §7).
-- [ ] Leer la demo de smart accounts de `Soneso/kmp-stellar-sdk` v1.14.0. Es la referencia del Spike C.
+- [x] Leer la demo de smart accounts de `Soneso/kmp-stellar-sdk` v1.14.0. Es la referencia del Spike C.
 - [ ] Leer `GuardPay — Propuesta visual.md` §5 (colores), §7 (pantallas), §8 (estados) y §9 (guardián).
 - [x] G3 resuelto (5 oct): **nadie tiene Mac.** iOS se declara en Gradle pero no se compila, y el README lo dice.
 
