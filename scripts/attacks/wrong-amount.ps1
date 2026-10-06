@@ -1,0 +1,8 @@
+. "$PSScriptRoot\common.ps1"
+Write-GpHeader "Cambiar el monto de un hold maduro"
+Write-Host "ID: GH-21. Propiedad: P1."
+Write-Host "Resultado real en testnet de este caso exacto: no corrido."
+Write-Host "hash: no hay tx"
+Write-Host "Nativo gh_21_other_amount_rejected: verde."
+Write-Host "hash citado GH-05: 0ebb4ba4c3db8b2a07dab5ee7d1d25199d0b340495afdcc76fb7e35904e697ed"
+Show-GpHorizon "0ebb4ba4c3db8b2a07dab5ee7d1d25199d0b340495afdcc76fb7e35904e697ed"

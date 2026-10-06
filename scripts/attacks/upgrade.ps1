@@ -1,0 +1,5 @@
+$ErrorActionPreference = "Continue"
+. "$PSScriptRoot\common.ps1"
+Write-GpHeader "Invocar upgrade"
+Write-Host "Propiedad: P5."
+Invoke-GpMissingExport "upgrade"

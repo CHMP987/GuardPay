@@ -82,6 +82,9 @@ Cada fila es un test de `contracts/guardian_hold/tests/must.rs`. Todos `pasa`.
 | GH-28 secuencia 30+20 | — | no corrido. SHOULD. |
 | GH-29 dos pagos en el mismo ledger | — | no corrido. SHOULD. |
 | GH-30 vencimiento / `expires_at` | — | no corrido. T-049 sigue pendiente: T-006 no lo autorizó. |
+| GH-33 passkey | — | no corrido. No hay firmante passkey. |
+
+El cierre P9 de GH-01…GH-33, con los tres estados verde / fallido / no corrido, está en `evidence/security/bypass-matrix.md`. En esta tabla, "pasa" es el verde nativo. Ningún GH de la lista quedó fallido. GH-28, GH-29, GH-30 y GH-33 quedan no corrido.
 | Cancel de la dueña | — | no corrido. Misma razón. |
 
 ## Delta respecto a `docs/INTERFACES.md`

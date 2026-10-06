@@ -1,0 +1,5 @@
+$ErrorActionPreference = "Continue"
+. "$PSScriptRoot\common.ps1"
+Write-GpHeader "Invocar execute"
+Write-Host "Propiedad: P5."
+Invoke-GpMissingExport "execute"

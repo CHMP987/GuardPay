@@ -1,0 +1,8 @@
+. "$PSScriptRoot\common.ps1"
+Write-GpHeader "Cambiar el destino de un hold maduro"
+Write-Host "ID: GH-20. Propiedad: P1."
+Write-Host "Resultado real en testnet de este caso exacto: no corrido."
+Write-Host "hash: no hay tx"
+Write-Host "Nativo gh_20_other_destination_rejected: verde."
+Write-Host "hash citado GH-03: a8664af0b762a69b1eba145b05ffd46d1aab4f7c135572f5a585f4ffb183f492"
+Show-GpHorizon "a8664af0b762a69b1eba145b05ffd46d1aab4f7c135572f5a585f4ffb183f492"

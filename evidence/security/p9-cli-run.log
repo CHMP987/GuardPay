@@ -1,0 +1,198 @@
+
+========== held-after-cancel.sh ==========
+GuardPay ataque: Ejecutar un pago ya detenido
+Activo: SAC de prueba CBUSK46YH5J4CKO6O46UU7QK4O23MTLBYI4WOGVBLDQDRG7OL56US77R. No es el USDC de Circle.
+Cuenta CLI: CDBJMSUIWL3RCA4POESJQSPHUJ4KOMQE7OTFAO27DDAFXKDBXRNTDEZX
+Cuenta de la demo en emulador: CDWPPTDMACOEVMBUHBBTPUW2EEDXY6YVUAOZJFTSGGOBAONCAJ7WGFV6 (hashes aparte)
+ID: GH-08. Propiedad: P2.
+Precondición: la dueña firmó un transfer del hold que el guardián ya canceló.
+Esperado: rechazo. El registro ya no está Retained. Rama: NotAllowed.
+Reejecución firmada: no corrido. No está scripts/.testnet/state.json.
+Resultado real citado (ensayos CLI del 6 oct 2026, no reenviado): error de contrato 3 (NotAllowed).
+hash: 2175e5124b9aeafef0768fb90d8fd333dcbdcb9ac9d3c4a24f1e471241eca92f
+horizon successful=false ledger=5050733 created=2026-10-06T09:00:52Z
+
+========== guardian-transfer.sh ==========
+GuardPay ataque: El guardián intenta transfer desde la cuenta de la dueña hacia sí mismo
+Activo: SAC de prueba CBUSK46YH5J4CKO6O46UU7QK4O23MTLBYI4WOGVBLDQDRG7OL56US77R. No es el USDC de Circle.
+Cuenta CLI: CDBJMSUIWL3RCA4POESJQSPHUJ4KOMQE7OTFAO27DDAFXKDBXRNTDEZX
+Cuenta de la demo en emulador: CDWPPTDMACOEVMBUHBBTPUW2EEDXY6YVUAOZJFTSGGOBAONCAJ7WGFV6 (hashes aparte)
+ID: GH-09. Propiedad: P3. Escena 5.
+Precondición: el payload nombra al guardián. El guardián no está en los firmantes.
+Esperado: rechazo antes de mover el SAC.
+Resultado real citado: UnauthorizedSigner (3016), luego auth invalid_action.
+hash: ef32c3bdd5fc3874858deaa01aff4afe223314a7847bdb73bc3bf894716b10de
+horizon successful=false ledger=5050731 created=2026-10-06T09:00:42Z
+Reejecución firmada: no corrido. No está scripts/.testnet/state.json.
+
+========== wrong-destination.sh ==========
+GuardPay ataque: Cambiar el destino de un hold maduro
+Activo: SAC de prueba CBUSK46YH5J4CKO6O46UU7QK4O23MTLBYI4WOGVBLDQDRG7OL56US77R. No es el USDC de Circle.
+Cuenta CLI: CDBJMSUIWL3RCA4POESJQSPHUJ4KOMQE7OTFAO27DDAFXKDBXRNTDEZX
+Cuenta de la demo en emulador: CDWPPTDMACOEVMBUHBBTPUW2EEDXY6YVUAOZJFTSGGOBAONCAJ7WGFV6 (hashes aparte)
+ID: GH-20. Propiedad: P1.
+Precondición: un hold Retained y maduro. El transfer usa otro destino, fuera de los contactos.
+Esperado: rechazo NotAllowed. Comparación campo a campo.
+Resultado real en testnet de este caso exacto: no corrido.
+hash: no hay tx
+Nativo gh_20_other_destination_rejected: verde (evidence/policies/tests.md).
+Caso cercano en el ledger, GH-03, destino desconocido sin hold, error de contrato 3.
+hash citado GH-03: a8664af0b762a69b1eba145b05ffd46d1aab4f7c135572f5a585f4ffb183f492
+horizon successful=false ledger=5050727 created=2026-10-06T09:00:22Z
+No se reenvía un pago a un contacto: ese carril puede aceptar el monto si cabe en el tope.
+
+========== wrong-amount.sh ==========
+GuardPay ataque: Cambiar el monto de un hold maduro
+Activo: SAC de prueba CBUSK46YH5J4CKO6O46UU7QK4O23MTLBYI4WOGVBLDQDRG7OL56US77R. No es el USDC de Circle.
+Cuenta CLI: CDBJMSUIWL3RCA4POESJQSPHUJ4KOMQE7OTFAO27DDAFXKDBXRNTDEZX
+Cuenta de la demo en emulador: CDWPPTDMACOEVMBUHBBTPUW2EEDXY6YVUAOZJFTSGGOBAONCAJ7WGFV6 (hashes aparte)
+ID: GH-21. Propiedad: P1.
+Precondición: hold Retained y maduro. El transfer cambia el monto.
+Esperado: rechazo. El hold no coincide campo a campo.
+Resultado real en testnet de este caso exacto: no corrido.
+hash: no hay tx
+Nativo gh_21_other_amount_rejected: verde.
+GH-05 es el mismo monto antes de ready_at, error de contrato 7. No es este caso.
+hash citado GH-05: 0ebb4ba4c3db8b2a07dab5ee7d1d25199d0b340495afdcc76fb7e35904e697ed
+horizon successful=false ledger=5050705 created=2026-10-06T08:58:32Z
+
+========== muxed-destination.sh ==========
+GuardPay ataque: Transfer a un destino muxed que no convierte a Address
+Activo: SAC de prueba CBUSK46YH5J4CKO6O46UU7QK4O23MTLBYI4WOGVBLDQDRG7OL56US77R. No es el USDC de Circle.
+Cuenta CLI: CDBJMSUIWL3RCA4POESJQSPHUJ4KOMQE7OTFAO27DDAFXKDBXRNTDEZX
+Cuenta de la demo en emulador: CDWPPTDMACOEVMBUHBBTPUW2EEDXY6YVUAOZJFTSGGOBAONCAJ7WGFV6 (hashes aparte)
+ID: GH-20b. Propiedad: P1.
+Esperado en el contrato: InvalidDestination (8).
+Nativo gh_20b_muxed_destination_rejected: verde.
+❌ error: Account alias "MAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWHF" not Found
+hash: no hay tx
+exit: 1
+La CLI no armó una transacción. El rechazo de conversión dentro de enforce no se volvió a medir en el ledger.
+
+========== approve-transfer-from.sh ==========
+GuardPay ataque: approve y transfer_from
+Activo: SAC de prueba CBUSK46YH5J4CKO6O46UU7QK4O23MTLBYI4WOGVBLDQDRG7OL56US77R. No es el USDC de Circle.
+Cuenta CLI: CDBJMSUIWL3RCA4POESJQSPHUJ4KOMQE7OTFAO27DDAFXKDBXRNTDEZX
+Cuenta de la demo en emulador: CDWPPTDMACOEVMBUHBBTPUW2EEDXY6YVUAOZJFTSGGOBAONCAJ7WGFV6 (hashes aparte)
+ID: GH-16 y GH-15. Propiedad: P4.
+approve esperado: NotAllowed (3). Rama catch-all. No entra en transfer ni en queue.
+hash approve con firma de la dueña: 25b91a394c032af67050b0315e57ccaba1fe77b1d391b2aae32363297dcab434
+horizon successful=false ledger=5050729 created=2026-10-06T09:00:32Z
+transfer_from esperado: sin allowance. Nativo gh_15_transfer_from_rejected: verde.
+❌ error: transaction simulation failed: HostError: Error(Contract, #9)
+
+Event log (newest first):
+   0: [Diagnostic Event] contract:CBUSK46YH5J4CKO6O46UU7QK4O23MTLBYI4WOGVBLDQDRG7OL56US77R, topics:[error, Error(Contract, #9)], data:["not enough allowance to spend", 0, 10000000]
+   1: [Diagnostic Event] topics:[fn_call, CBUSK46YH5J4CKO6O46UU7QK4O23MTLBYI4WOGVBLDQDRG7OL56US77R, transfer_from], data:[GA77MSV4XBYMA24E7IEMWPUY63MQ2YYAQWP5U6QL577RCLFHVNMBS4GL, CDBJMSUIWL3RCA4POESJQSPHUJ4KOMQE7OTFAO27DDAFXKDBXRNTDEZX, GDCL4MPCRHK4D4Q5INJV3TFQ5QIDG3S3IJUOS7QR2O52DSVZ2X3HQGYT, 10000000]
+hash transfer_from: no hay tx
+exit: 1
+
+========== add-rule.sh ==========
+GuardPay ataque: Añadir una segunda context rule
+Activo: SAC de prueba CBUSK46YH5J4CKO6O46UU7QK4O23MTLBYI4WOGVBLDQDRG7OL56US77R. No es el USDC de Circle.
+Cuenta CLI: CDBJMSUIWL3RCA4POESJQSPHUJ4KOMQE7OTFAO27DDAFXKDBXRNTDEZX
+Cuenta de la demo en emulador: CDWPPTDMACOEVMBUHBBTPUW2EEDXY6YVUAOZJFTSGGOBAONCAJ7WGFV6 (hashes aparte)
+ID: GH-13 y GH-25. Propiedad: P5.
+Esperado: la cuenta no exporta add_context_rule. No hay transacción.
+Acción: invoke add_context_rule en la cuenta. El spec publicado no tiene esa función.
+error: unrecognized subcommand 'add_context_rule'
+
+Usage: /usr/local/bin/stellar contract invoke --network testnet --id CDBJMSUIWL3RCA4POESJQSPHUJ4KOMQE7OTFAO27DDAFXKDBXRNTDEZX --source-account GDJ3EJJG6JCIJF5IGR2EMZG72UHAPAMNFE55WLVFVFSQYGXTBYE7AP2Y --send no -- [COMMAND]
+
+For more information, try '--help'.
+hash: no hay tx
+exit: 2
+
+========== execute.sh ==========
+GuardPay ataque: Invocar execute
+Activo: SAC de prueba CBUSK46YH5J4CKO6O46UU7QK4O23MTLBYI4WOGVBLDQDRG7OL56US77R. No es el USDC de Circle.
+Cuenta CLI: CDBJMSUIWL3RCA4POESJQSPHUJ4KOMQE7OTFAO27DDAFXKDBXRNTDEZX
+Cuenta de la demo en emulador: CDWPPTDMACOEVMBUHBBTPUW2EEDXY6YVUAOZJFTSGGOBAONCAJ7WGFV6 (hashes aparte)
+ID: GH-25. Propiedad: P5.
+Esperado: unrecognized subcommand. No hay transacción.
+Acción: invoke execute en la cuenta. El spec publicado no tiene esa función.
+error: unrecognized subcommand 'execute'
+
+Usage: /usr/local/bin/stellar contract invoke --network testnet --id CDBJMSUIWL3RCA4POESJQSPHUJ4KOMQE7OTFAO27DDAFXKDBXRNTDEZX --source-account GDJ3EJJG6JCIJF5IGR2EMZG72UHAPAMNFE55WLVFVFSQYGXTBYE7AP2Y --send no -- [COMMAND]
+
+For more information, try '--help'.
+hash: no hay tx
+exit: 2
+
+========== upgrade.sh ==========
+GuardPay ataque: Invocar upgrade
+Activo: SAC de prueba CBUSK46YH5J4CKO6O46UU7QK4O23MTLBYI4WOGVBLDQDRG7OL56US77R. No es el USDC de Circle.
+Cuenta CLI: CDBJMSUIWL3RCA4POESJQSPHUJ4KOMQE7OTFAO27DDAFXKDBXRNTDEZX
+Cuenta de la demo en emulador: CDWPPTDMACOEVMBUHBBTPUW2EEDXY6YVUAOZJFTSGGOBAONCAJ7WGFV6 (hashes aparte)
+ID: GH-25. Propiedad: P5.
+Esperado: unrecognized subcommand. No hay transacción.
+Acción: invoke upgrade en la cuenta. El spec publicado no tiene esa función.
+error: unrecognized subcommand 'upgrade'
+
+Usage: /usr/local/bin/stellar contract invoke --network testnet --id CDBJMSUIWL3RCA4POESJQSPHUJ4KOMQE7OTFAO27DDAFXKDBXRNTDEZX --source-account GDJ3EJJG6JCIJF5IGR2EMZG72UHAPAMNFE55WLVFVFSQYGXTBYE7AP2Y --send no -- [COMMAND]
+
+For more information, try '--help'.
+hash: no hay tx
+exit: 2
+
+========== direct-enforce.sh ==========
+GuardPay ataque: Llamar enforce directamente desde fuera
+Activo: SAC de prueba CBUSK46YH5J4CKO6O46UU7QK4O23MTLBYI4WOGVBLDQDRG7OL56US77R. No es el USDC de Circle.
+Cuenta CLI: CDBJMSUIWL3RCA4POESJQSPHUJ4KOMQE7OTFAO27DDAFXKDBXRNTDEZX
+Cuenta de la demo en emulador: CDWPPTDMACOEVMBUHBBTPUW2EEDXY6YVUAOZJFTSGGOBAONCAJ7WGFV6 (hashes aparte)
+ID: GH-26. Propiedad: P4.
+Precondición: un tercero invoca guardian_hold.enforce con un transfer a un contacto, dentro del tope.
+Esperado: el ledger rechaza en account.require_auth(). El gasto del día no cambia.
+Resultado real, 2026-10-06T22:31:22Z. Fee payer GC7SNM4SEWEZTPDNXSVUWLTDXVOB7DGKKRQ3OTBTQ75OETUULQZFSFKZ.
+La simulación en modo record aceptó la lista blanca. El envío, con la firma de la cuenta vacía, falló:
+auth invalid_action. __check_auth terminó en UnreachableCodeReached. spent_today siguió en 100000000.
+hash: 0e46055b18304e54f69a1ec39891bf12fb75ece15e16680ab17393410804678f
+horizon successful=false ledger=5060459 created=2026-10-06T22:31:22Z
+Nativo gh_26_direct_enforce_rejected: verde.
+No es un bypass: no hubo escritura del gasto.
+
+========== queue-without-owner.sh ==========
+GuardPay ataque: queue para la cuenta de la dueña sin su firma
+Activo: SAC de prueba CBUSK46YH5J4CKO6O46UU7QK4O23MTLBYI4WOGVBLDQDRG7OL56US77R. No es el USDC de Circle.
+Cuenta CLI: CDBJMSUIWL3RCA4POESJQSPHUJ4KOMQE7OTFAO27DDAFXKDBXRNTDEZX
+Cuenta de la demo en emulador: CDWPPTDMACOEVMBUHBBTPUW2EEDXY6YVUAOZJFTSGGOBAONCAJ7WGFV6 (hashes aparte)
+ID: GH-27. Propiedad: P4.
+Precondición: un tercero llama a hold_registry.queue(cuenta, SAC, destino, monto).
+Esperado: rechazo. queue exige la autorización de la cuenta.
+Resultado real, 2026-10-06T22:26:52Z. Fee payer GC7SNM4SEWEZTPDNXSVUWLTDXVOB7DGKKRQ3OTBTQ75OETUULQZFSFKZ.
+La firma de la cuenta iba vacía. __check_auth terminó en UnreachableCodeReached.
+get_hold del id 2 respondió HoldNotFound (2). list_retained siguió vacío.
+hash: 20c5b59814acf635c33a92405c7897c398454a31481585b295983630e499b4c7
+horizon successful=false ledger=5060405 created=2026-10-06T22:26:52Z
+La semilla del fee payer no está en el repo.
+Nativo gh_27_queue_without_owner_rejected: verde.
+
+========== nested-transfer.sh ==========
+GuardPay ataque: Contrato intermedio que llama al transfer del SAC
+Activo: SAC de prueba CBUSK46YH5J4CKO6O46UU7QK4O23MTLBYI4WOGVBLDQDRG7OL56US77R. No es el USDC de Circle.
+Cuenta CLI: CDBJMSUIWL3RCA4POESJQSPHUJ4KOMQE7OTFAO27DDAFXKDBXRNTDEZX
+Cuenta de la demo en emulador: CDWPPTDMACOEVMBUHBBTPUW2EEDXY6YVUAOZJFTSGGOBAONCAJ7WGFV6 (hashes aparte)
+ID: GH-18 y GH-18b. Propiedad: P1.
+Esperado: la lista blanca rechaza el contrato intermedio (NotAllowed).
+Resultado real en testnet: no corrido.
+hash: no hay tx
+No se desplegó un contrato intermedio. Firmar el árbol exige la semilla de la dueña, y no está en esta máquina.
+Nativos gh_18_nested_contract_rejected y gh_18b_nested_contract_rejected_with_mature_hold: verde.
+
+========== replay.sh ==========
+GuardPay ataque: Replay de una transacción ya ejecutada
+Activo: SAC de prueba CBUSK46YH5J4CKO6O46UU7QK4O23MTLBYI4WOGVBLDQDRG7OL56US77R. No es el USDC de Circle.
+Cuenta CLI: CDBJMSUIWL3RCA4POESJQSPHUJ4KOMQE7OTFAO27DDAFXKDBXRNTDEZX
+Cuenta de la demo en emulador: CDWPPTDMACOEVMBUHBBTPUW2EEDXY6YVUAOZJFTSGGOBAONCAJ7WGFV6 (hashes aparte)
+ID: GH-19. Propiedad: P2.
+Precondición: GH-06 ya aplicó el hold 0 (Executed).
+Acción: reenviar el mismo sobre.
+Esperado: la red no aplica el pago otra vez.
+hash original: 35b807f0d3256aef671d4dff7621377fa1459daeacb64648430b2b5e4360d573
+sobre descargado, successful original = true
+ℹ️  Transaction hash is 35b807f0d3256aef671d4dff7621377fa1459daeacb64648430b2b5e4360d573
+❌ error: transaction submission failed: TxBadSeq
+hash de una tx nueva: no hay tx
+exit: 1
+Firmar de nuevo el mismo transfer (GH-19 parte b) queda no corrido sin la semilla.
+Nativo gh_19_replay_rejected: verde.
