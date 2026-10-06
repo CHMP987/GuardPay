@@ -1,0 +1,17 @@
+[workspace]
+
+[package]
+name = "nested_attack"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[lib]
+crate-type = ["cdylib"]
+doctest = false
+
+[dependencies]
+soroban-sdk = "=28.0.0"
+
+[profile.release]
+overflow-checks = true

@@ -101,11 +101,15 @@ Las 9 están en `screens/` (`01`–`09`). Son **SIMULATED** y las regeneró hoy 
 
 Firmando no tiene captura REAL porque el diálogo del sistema sale en negro. Borrador corresponde a `rN-s2-revisa`.
 
-## No corrido
+## Después de este ensayo
+
+El 6 oct por la tarde, P9 corrió el rechazo inmediato, el pago detenido, el gasto del guardián, `approve` y la segunda regla. Esos hashes están en `scene-2.md`, `scene-4.md`, `scene-5.md` y `scene-6.md`. Son de otra cuenta. Este archivo no se borra.
+
+## No corrido el día del ensayo de la app
 
 - Teléfono físico: todo fue en emulador.
-- Desde la terminal (P9, Ant): el envío inmediato rechazado de la escena 2 y los ataques de la escena 6.
-- Escenas 4 y 5, que son de terminal.
+- Desde la terminal, en este ensayo de la mañana: el envío inmediato de la escena 2 y los ataques de la escena 6. Por la tarde quedaron en `scene-2.md` y `scene-6.md`, en otra cuenta.
+- Escenas 4 y 5, en este ensayo. Por la tarde: `scene-4.md` y `scene-5.md`, en otra cuenta.
 - La IA: hoy es un stub, así que la escena 2 se hizo sin pegar el mensaje sospechoso.
 - Dos dispositivos: la dueña y el guardián están en el mismo emulador.
 - Ensayo con una persona hablando encima: solo se midió la app.
