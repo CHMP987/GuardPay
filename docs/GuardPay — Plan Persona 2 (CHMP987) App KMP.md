@@ -44,7 +44,7 @@ Estado del entorno comprobado en esta máquina `[FACT]`: JDK 17 instalado; Andro
 
 | Bloque | Qué | Salida |
 | --- | --- | --- |
-| Mañana | Esqueleto Gradle KMP: `app/shared` con los paquetes `domain`, `stellar`, `signing` y `ai`; target Android; iOS declarado. `libs.versions.toml` con versiones exactas. | `./gradlew :shared:allTests` corre (aunque esté vacío) |
+| Mañana | Esqueleto Gradle KMP: `app/shared` con los paquetes `domain`, `stellar`, `signing` y `ai`; target Android; iOS declarado. `libs.versions.toml` con versiones exactas. | `./gradlew :app:shared:allTests` corre (aunque esté vacío) |
 | Mañana | Test de arquitectura: falla si `commonMain` importa `android.*`, LiteRT-LM o WebAuthn. | Test verde |
 | Tarde | **Spike C:** firmar un `transfer` en Kotlin con ed25519 contra la cuenta del Spike A de Abraham. Si aún no existe, contra la cuenta de la demo del SDK en testnet. Verificar el digest `sha256(signature_payload ‖ xdr(context_rule_ids))`. | `evidence/stellar/spike-c.md` con el hash REAL, o el escalón de R5 al que se llegó |
 | Noche | **Sync 1** con Abraham y Ant: veredicto del Spike A y congelación de `INTERFACES.md`. | Firmas congeladas |
@@ -102,7 +102,7 @@ Estado del entorno comprobado en esta máquina `[FACT]`: JDK 17 instalado; Andro
 | Fase | Terminado cuando |
 | --- | --- |
 | P1-C | Una firma producida en Kotlin es aceptada por `__check_auth` en testnet, con su hash en `evidence/`, o quedó registrado el escalón de R5 al que se llegó. |
-| P4 | `./gradlew :shared:allTests` verde, y el test de arquitectura también. Ninguna clase que tenga `Signer` o `StellarGateway` recibe `GuardPayAI`. `FakeStellarGateway` queda fuera de producción. |
+| P4 | `./gradlew :app:shared:allTests` verde, y el test de arquitectura también. Ninguna clase que tenga `Signer` o `StellarGateway` recibe `GuardPayAI`. `FakeStellarGateway` queda fuera de producción. |
 | P5 | Las 4 pantallas navegables en Android con datos reales de testnet. Ningún estado se distingue solo por color. Nunca "Retenido" sin registro en la cadena. El guardián no tiene monto, ni "Pagar", ni "Aprobar", ni ajustes. |
 | P6 | Un `transfer` firmado desde el teléfono se ejecuta en testnet, y uno sin la firma de la dueña se rechaza. La clave no sale del Keystore ni aparece en logs. El guardián nunca se añade como firmante. |
 | P8 | Un `queue` en el teléfono de la dueña genera una notificación en el del guardián en menos de 60 s, con el destino leído de la cadena. Capturas y tiempos en `evidence/guardian/notification.md`. |

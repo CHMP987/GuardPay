@@ -1,0 +1,32 @@
+# Exact versions only: never ranges, never "latest".
+# Kotlin, AGP, Compose MP, coroutines and serialization match what
+# com.soneso.stellar:stellar-sdk:1.14.0 itself builds with (its build.gradle.kts
+# and smart-account-demo at tag v1.14.0), so the KMP klibs stay compatible.
+[versions]
+kotlin = "2.2.20"
+agp = "8.12.3"
+compose-multiplatform = "1.9.1"
+stellar-sdk = "1.14.0"
+kotlinx-coroutines = "1.10.2"
+kotlinx-serialization = "1.9.0"
+androidx-activity-compose = "1.8.2"
+android-compileSdk = "35"
+android-targetSdk = "35"
+# Passkeys (SHOULD, GH-33) need API 28+.
+android-minSdk = "28"
+
+[libraries]
+stellar-sdk = { module = "com.soneso.stellar:stellar-sdk", version.ref = "stellar-sdk" }
+kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinx-coroutines" }
+kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "kotlinx-coroutines" }
+kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinx-serialization" }
+androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "androidx-activity-compose" }
+
+[plugins]
+kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
+kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
+kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+compose-multiplatform = { id = "org.jetbrains.compose", version.ref = "compose-multiplatform" }
+android-application = { id = "com.android.application", version.ref = "agp" }
+android-library = { id = "com.android.library", version.ref = "agp" }

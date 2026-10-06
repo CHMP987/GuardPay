@@ -4,9 +4,18 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Repository state
 
-**There is no code yet.** The repo has zero commits; the only content is `docs/` (Spanish-language research, design and planning). There is no build system, no tests and no CI, so there are no commands to run yet. Do not invent build/test commands: when phases land, record the real commands here.
+`docs/` holds the Spanish-language research, design and planning. The only code so far is the **Gradle KMP skeleton** (day 1, Persona 2): root `settings.gradle.kts`, `gradle/libs.versions.toml` (exact versions, aligned with `stellar-sdk` 1.14.0's own build), `app/shared` (packages `domain`, `stellar`, `signing`, `ai`, all stubs so far) and `app/android` (placeholder Compose activity). There are no contracts and no CI yet; when they land, record their real commands here.
 
-Planned toolchain (from the build plan, not yet set up): Rust + `soroban-sdk` 28 targeting `wasm32-unknown-unknown` (`cargo test` for contracts), `stellar-cli` against **Testnet only**, and a Gradle KMP project (`./gradlew :shared:allTests`).
+## Commands
+
+Gradle 8.14.3 via the wrapper, JDK 17, Android SDK path in `local.properties` (gitignored; use forward slashes: `sdk.dir=C:/Users/<you>/AppData/Local/Android/Sdk`).
+
+- `./gradlew :app:shared:allTests`: shared tests (Android unit tests; iOS is declared but not compiled, there is no Mac). It also runs the architecture check.
+- `./gradlew :app:shared:testDebugUnitTest --tests "com.guardpay.shared.domain.LaneTest"`: run a single test class.
+- `./gradlew :app:shared:checkCommonMainArchitecture`: fails if `src/commonMain` imports `android.*`, `androidx.*`, `platform.*`, LiteRT-LM or WebAuthn/passkey APIs.
+- `./gradlew :app:android:assembleDebug`: debug APK in `app/android/build/outputs/apk/debug/`.
+
+Planned, not set up yet: Rust + `soroban-sdk` 28 targeting `wasm32-unknown-unknown` (`cargo test` for contracts) and `stellar-cli` against **Testnet only**.
 
 ## Document authority
 
