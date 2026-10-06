@@ -52,4 +52,4 @@ AI-assisted payment safety + human guardian veto + deterministic on-chain enforc
 
 - G1: is the submission deadline Oct 12 (Passport) or Oct 5 (Luma)?
 - G2: does the OZ pin `b40c5ea` build with soroban-sdk 28?
-- G3: is a Mac available for iOS?
+- G3: is a Mac available for iOS? **Answered Oct 5: no.** iOS target is declared but not compiled; say so in the README.

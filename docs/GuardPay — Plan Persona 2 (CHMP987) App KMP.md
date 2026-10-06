@@ -28,12 +28,12 @@ Construyo la app que usan la dueña y el guardián: el núcleo compartido (`comm
 
 Estado del entorno comprobado en esta máquina `[FACT]`: JDK 17 instalado; Android SDK en `%LOCALAPPDATA%\Android\Sdk` (build-tools, cmake, cmdline-tools).
 
-- [ ] Android Studio con el plugin de Kotlin Multiplatform.
-- [ ] **Teléfono Android físico** con depuración USB. Es el teléfono de la demo y el que usa Ant para el Spike B; acordar si es el mismo o dos.
+- [ ] **Android Studio con el plugin de Kotlin Multiplatform: NO instalado** (verificado el 5 oct: no aparece en el registro ni en disco). Instalarlo es lo primero. El SDK ya trae platform-tools, NDK y las plataformas android-34, 35 y 36.
+- [ ] **Teléfono Android físico:** tengo uno, pero hoy no está conectado (`adb devices` vacío). Activar depuración USB y verificar con `adb devices`. Acordar con Ant si el Spike B usa el mismo teléfono.
 - [ ] Segundo dispositivo para el guardián: otro Android, un emulador, o el iPhone si hay Mac (ver §7).
 - [ ] Leer la demo de smart accounts de `Soneso/kmp-stellar-sdk` v1.14.0. Es la referencia del Spike C.
 - [ ] Leer `GuardPay — Propuesta visual.md` §5 (colores), §7 (pantallas), §8 (estados) y §9 (guardián).
-- [ ] Resolver G3: ¿hay Mac? Si no, iOS se declara en Gradle pero no se compila, y el README lo dice.
+- [x] G3 resuelto (5 oct): **nadie tiene Mac.** iOS se declara en Gradle pero no se compila, y el README lo dice.
 
 ---
 
@@ -133,7 +133,7 @@ Estado del entorno comprobado en esta máquina `[FACT]`: JDK 17 instalado; Andro
 
 ---
 
-## 7. iOS (depende de G3)
+## 7. iOS — G3 = no hay Mac (5 oct)
 
 - **Sin Mac:** `iosMain` existe con sus `actual` y el target se declara. El README dice "no compilado en este entorno"; no se afirma que iOS funcione.
 - **Con Mac + iPhone:** `[RECOMMENDATION]` el iPhone es **el teléfono del guardián**.
@@ -147,5 +147,5 @@ Estado del entorno comprobado en esta máquina `[FACT]`: JDK 17 instalado; Andro
 ## 8. Pendiente de confirmar
 
 - [ ] G1: fecha límite (5 o 12 oct). Lo resuelve Ant en la primera hora del día 1.
-- [ ] G3: ¿hay Mac e iPhone? ¿De quién?
-- [ ] ¿Un teléfono Android o dos? (demo de la dueña + Spike B de Ant + guardián)
+- [x] G3: nadie tiene Mac. Si alguien consigue uno antes del día 4, se aplica la opción "con Mac + iPhone" de §7.
+- [ ] ¿Cuántos teléfonos Android hay? Tengo uno. Para la demo hace falta otro dispositivo para el guardián: un segundo Android (de Abraham o Ant) o un emulador.
