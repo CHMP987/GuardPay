@@ -5,6 +5,7 @@ Pin OpenZeppelin `stellar-contracts` @ `b40c5eaefe6a29f0030f00bd2d730b7a91cce330
 | ID | Veredicto | Comando y salida |
 | --- | --- | --- |
 | A0 | `[FACT]` pasa (exit 0) | Ver abajo |
+| A1 | `[FACT]` pasa (exit 0) | Ver abajo |
 
 ## A0 — digest liga `context_rule_ids`
 
@@ -54,4 +55,33 @@ test smart_account::test::context_rules::do_check_auth_rule_selection_downgrade_
 test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 186 filtered out; finished in 0.16s
 ```
 
-A1, GH-01…GH-33: `no corrido`.
+## A1 — reentrada / recursos R6 (política → registro en `__check_auth`)
+
+Directorio: `spikes/guardian-hold/`
+
+Veredicto R6: **pasa**
+
+CPU (budget `cpu_instruction_cost`): **122372**
+
+I/O (`cost_estimate().resources()`): instructions=90962, mem_bytes=17920, disk_read_entries=0, memory_read_entries=6, write_entries=2, disk_read_bytes=0, write_bytes=164
+
+```
+cargo test --manifest-path spikes/guardian-hold/Cargo.toml -- --nocapture
+```
+
+Salida literal (últimas líneas relevantes; compilación omitida):
+
+```
+     Running unittests src\lib.rs (...)
+
+running 1 test
+A1 CPU instructions (budget): 122372
+A1 memory bytes (budget): 52996
+A1 I/O resources: instructions=90962 mem_bytes=17920 disk_read_entries=0 memory_read_entries=6 write_entries=2 disk_read_bytes=0 write_bytes=164
+A1 veredicto R6: pasa
+test spike_a1::spike_a1_r6_policy_registry_in_check_auth ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+```
+
+GH-01…GH-33: `no corrido`.

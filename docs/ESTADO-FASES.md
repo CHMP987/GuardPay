@@ -17,14 +17,14 @@ Veredicto humano: **GO** a P1. Registrado el 5 oct 2026 a pedido del humano.
 
 P0 sigue **INCOMPLETA**. T-010, T-011, T-012, T-013, T-014 y T-018 no están hechas. `README.md` no existe. Android SDK no está (`ANDROID_HOME` vacío): bloquea la app, no el Spike A.
 
-T-016 está hecha. G2 ya no bloquea T-019. T-019 hecha (A0 digest OZ pasa; ver `evidence/security/spike-a.md`).
+T-016 está hecha. G2 ya no bloquea T-019. T-019 hecha (A0 digest OZ pasa; ver `evidence/security/spike-a.md`). T-020 hecha (A1 R6 veredicto **pasa**; ver misma evidencia).
 
 ## Fases
 
 | Fase | Estado |
 | --- | --- |
 | P0 | INCOMPLETA |
-| P1 Spike A | en curso. A0 `[FACT]` verde (T-019). Siguiente: T-020 (A1). |
+| P1 Spike A | en curso. A0 `[FACT]` verde (T-019). A1 R6 **pasa** (T-020). Siguiente: T-021/T-022. |
 | P2–P10 | no iniciado |
 
 Definition of Done: implementación + unit + integración + seguridad + criterios de aceptación + evidencia. Compilar no cierra una fase.
