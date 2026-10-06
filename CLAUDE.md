@@ -4,15 +4,16 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Repository state
 
-`docs/` holds the Spanish-language research, design and planning. The only code so far is the **Gradle KMP skeleton** (day 1, Persona 2): root `settings.gradle.kts`, `gradle/libs.versions.toml` (exact versions, aligned with `stellar-sdk` 1.14.0's own build), `app/shared` (packages `domain`, `stellar`, `signing`, `ai`, all stubs so far) and `app/android` (placeholder Compose activity). There are no contracts and no CI yet; when they land, record their real commands here.
+`docs/` holds the Spanish-language research, design and planning. The only code so far is the **Gradle KMP skeleton** (day 1, Persona 2): root `settings.gradle.kts`, `gradle/libs.versions.toml` (exact versions, aligned with `stellar-sdk` 1.14.0's own build), `app/shared` (P4 shared core: `domain` with the 9 payment states, transitions and lane prediction; `ai` with the `GuardPayAI` interface, `AnalysisParser` and a stub per platform; `signing` and `stellar` interfaces, provisional until INTERFACES.md; `FakeStellarGateway` lives only in commonTest) and `app/android` (placeholder Compose activity). There are no contracts and no CI yet; when they land, record their real commands here.
 
 ## Commands
 
 Gradle 8.14.3 via the wrapper, JDK 17, Android SDK path in `local.properties` (gitignored; use forward slashes: `sdk.dir=C:/Users/<you>/AppData/Local/Android/Sdk`).
 
-- `./gradlew :app:shared:allTests`: shared tests (Android unit tests; iOS is declared but not compiled, there is no Mac). It also runs the architecture check.
+- `./gradlew :app:shared:allTests`: shared tests (Android unit tests; on Windows the iOS klibs compile but are never linked or run, since there is no Mac). It also runs both architecture checks.
 - `./gradlew :app:shared:testDebugUnitTest --tests "com.guardpay.shared.domain.LaneTest"`: run a single test class.
 - `./gradlew :app:shared:checkCommonMainArchitecture`: fails if `src/commonMain` imports `android.*`, `androidx.*`, `platform.*`, LiteRT-LM or WebAuthn/passkey APIs.
+- `./gradlew :app:shared:checkDependencyGraph`: fails if anything in `ai/` references `signing`/`stellar`, if a production file mentions `GuardPayAI` together with `Signer`/`StellarGateway`, or if a `Fake*` type is used outside tests. Also run by `allTests`.
 - `./gradlew :app:android:assembleDebug`: debug APK in `app/android/build/outputs/apk/debug/`.
 
 Planned, not set up yet: Rust + `soroban-sdk` 28 targeting `wasm32-unknown-unknown` (`cargo test` for contracts) and `stellar-cli` against **Testnet only**.
@@ -61,4 +62,4 @@ AI-assisted payment safety + human guardian veto + deterministic on-chain enforc
 
 - G1: is the submission deadline Oct 12 (Passport) or Oct 5 (Luma)?
 - G2: does the OZ pin `b40c5ea` build with soroban-sdk 28?
-- G3: is a Mac available for iOS? **Answered Oct 5: no.** iOS target is declared but not compiled; say so in the README.
+- G3: is a Mac available for iOS? **Answered Oct 5: no.** iOS klibs compile on Windows, but nothing is linked or run on iOS; say so in the README.

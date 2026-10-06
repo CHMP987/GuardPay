@@ -75,3 +75,48 @@ val checkCommonMainArchitecture by tasks.registering {
 
 tasks.named("check") { dependsOn(checkCommonMainArchitecture) }
 tasks.matching { it.name == "allTests" }.configureEach { dependsOn(checkCommonMainArchitecture) }
+
+// Dependency-graph test: the AI layer never shares a graph with signing or the
+// chain, and the in-memory contract model never ships. Comments are stripped
+// first so KDoc that names a type does not count as a dependency.
+val productionSources = fileTree("src") {
+    include("**/*.kt")
+    exclude("*Test/**")
+}
+val checkDependencyGraph by tasks.registering {
+    group = "verification"
+    description = "Fails if ai/ reaches Signer/StellarGateway, or a fake ships in production."
+    inputs.files(productionSources)
+    doLast {
+        fun code(file: File) = file.readText()
+            .replace(Regex("""/\*[\s\S]*?\*/"""), "")
+            .replace(Regex("""//[^\n]*"""), "")
+        val signingOrChain = listOf(
+            Regex("""com\.guardpay\.shared\.signing"""),
+            Regex("""com\.guardpay\.shared\.stellar"""),
+            Regex("""\bSigner\b"""),
+            Regex("""\bStellarGateway\b"""),
+        )
+        val violations = mutableListOf<String>()
+        productionSources.files.forEach { file ->
+            val path = file.relativeTo(projectDir).invariantSeparatorsPath
+            val src = code(file)
+            val usesSigningOrChain = signingOrChain.any { it.containsMatchIn(src) }
+            if ("/com/guardpay/shared/ai/" in path && usesSigningOrChain) {
+                violations += "$path: ai/ references signing or stellar"
+            }
+            if (Regex("""\bGuardPayAI\b""").containsMatchIn(src) && usesSigningOrChain) {
+                violations += "$path: GuardPayAI shares a file with Signer/StellarGateway"
+            }
+            if (Regex("""\bFake[A-Z]\w*""").containsMatchIn(src)) {
+                violations += "$path: a Fake* type is referenced from production code"
+            }
+        }
+        if (violations.isNotEmpty()) {
+            throw GradleException("Dependency graph violations:\n" + violations.joinToString("\n"))
+        }
+    }
+}
+
+tasks.named("check") { dependsOn(checkDependencyGraph) }
+tasks.matching { it.name == "allTests" }.configureEach { dependsOn(checkDependencyGraph) }
