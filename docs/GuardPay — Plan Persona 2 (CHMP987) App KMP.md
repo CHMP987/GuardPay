@@ -28,7 +28,8 @@ Construyo la app que usan la dueña y el guardián: el núcleo compartido (`comm
 
 Estado del entorno comprobado en esta máquina `[FACT]`: JDK 17 instalado; Android SDK en `%LOCALAPPDATA%\Android\Sdk` (build-tools, cmake, cmdline-tools).
 
-- [ ] **Android Studio con el plugin de Kotlin Multiplatform: NO instalado** (verificado el 5 oct: no aparece en el registro ni en disco). Instalarlo es lo primero. El SDK ya trae platform-tools, NDK y las plataformas android-34, 35 y 36.
+- [x] Android Studio instalado el 5 oct (build 262.9437.185, en `C:Program FilesAndroidAndroid Studio`). Usa el SDK que ya existe en `%LOCALAPPDATA%AndroidSdk`.
+- [ ] Plugin de Kotlin Multiplatform: instalarlo desde el Marketplace de Android Studio.
 - [ ] **Teléfono Android físico:** tengo uno, pero hoy no está conectado (`adb devices` vacío). Activar depuración USB y verificar con `adb devices`. Acordar con Ant si el Spike B usa el mismo teléfono.
 - [ ] Segundo dispositivo para el guardián: otro Android, un emulador, o el iPhone si hay Mac (ver §7).
 - [ ] Leer la demo de smart accounts de `Soneso/kmp-stellar-sdk` v1.14.0. Es la referencia del Spike C.
