@@ -152,6 +152,34 @@ impl HoldRegistry {
             None => panic_with_error!(&env, HoldRegistryError::HoldNotFound),
         }
     }
+
+    /// Read-only scan for the first retained hold matching all four binding fields.
+    pub fn find_retained(
+        env: Env,
+        account: Address,
+        token: Address,
+        destination: Address,
+        amount: i128,
+    ) -> Option<u64> {
+        let id_key = DataKey::NextId(account.clone());
+        let next_id: u64 = env.storage().persistent().get(&id_key).unwrap_or(0);
+        for id in 0..next_id {
+            let key = DataKey::Hold(account.clone(), id);
+            match env.storage().persistent().get::<DataKey, HoldRecord>(&key) {
+                None => return None,
+                Some(record) => {
+                    if record.status == HoldStatus::Retained
+                        && record.token == token
+                        && record.destination == destination
+                        && record.amount == amount
+                    {
+                        return Some(id);
+                    }
+                }
+            }
+        }
+        None
+    }
 }
 
 #[cfg(test)]

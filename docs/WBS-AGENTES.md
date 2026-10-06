@@ -46,7 +46,7 @@ Estados del checklist: `pendiente` · `en curso` · `bloqueada` · `hecha` · `o
 | T-020 | Probar reentrada/recursos R6 (Spike A1) | test | hecha | T-019 |
 | T-021 | Escribir `account` mínimo del spike | feature | hecha | T-020 |
 | T-022 | Escribir `hold_registry` mínimo del spike | feature | hecha | T-020 |
-| T-023 | Escribir `guardian_hold` mínimo del spike | feature | pendiente | T-021, T-022 |
+| T-023 | Escribir `guardian_hold` mínimo del spike | feature | hecha | T-021, T-022 |
 | T-024 | Tests blocker GH-01, GH-13, GH-24, GH-25, GH-26 | test | pendiente | T-023 |
 | T-025 | Tests ciclo GH-04, GH-05, GH-06 | test | pendiente | T-023 |
 | T-026 | Test GH-09 (guardián no gasta) | test | pendiente | T-023 |
