@@ -75,3 +75,16 @@ Deploy y lectura: `scripts/deploy-testnet.ps1` (Windows) y `scripts/read-rules.p
 3. Ejecuta la verificación de esa tarea.
 4. Marca la fila del checklist (`hecha` / `bloqueada` / `omitida`) y el estado en `docs/ESTADO-FASES.md` si la fase cambió.
 5. Commit solo de esos archivos: `T-xxx: descripción`.
+
+## Cursor Cloud specific instructions
+
+La imagen ya trae el toolchain. No lo reinstales ni lo anotes otra vez en `docs/DEPENDENCIES.md`.
+
+- JDK 17: `JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64`. `java` y `javac` apuntan ahí.
+- Rust 1.92.0 con el target `wasm32v1-none`. `stellar` 28.1.0 está en `/usr/local/bin`.
+- Android SDK 35: `ANDROID_HOME=/opt/android-sdk`. Si falta `local.properties` (está en `.gitignore`), escribe `sdk.dir=/opt/android-sdk`. `./gradlew` en git no es ejecutable: `chmod +x ./gradlew` antes de usarlo.
+- No hay servidor ni base de datos. Nada tiene que quedar en marcha.
+- Contratos, sin red: `cargo test --workspace`.
+- App, sin red: `./gradlew :app:shared:jvmTest` (pantallas a 360 dp en `evidence/demo/screens/`) y `./gradlew :app:android:assembleDebug`. `allTests` es el chequeo completo. Los `*LiveTest*` siguen fuera salvo `-PliveTestnet`.
+- iOS no se enlaza: no hay Mac (G3).
+- Emulador: AVD `guardpay_api_35` (API 35, google_apis, x86_64). Arranca con `-accel off -no-window -gpu swiftshader_indirect`. No uses KVM: en esta VM `kvm_arch_vcpu_create` dispara un kernel BUG. El primer arranque tarda varios minutos. Sin `testnet.json` el APK de debug abre en simulación. No corras Gradle y el emulador a la vez: no caben en la RAM.
