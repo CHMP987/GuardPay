@@ -342,7 +342,7 @@ dueña → (opcional) pega el mensaje → Gemma on-device → señales + sugeren
 
 `[RECOMMENDATION]` Tres frentes, cada uno en su carpeta, sincronizados en tres puntos.
 
-| | **Persona 1 — Contratos** | **Persona 2 — App KMP** | **Persona 3 — IA, ataque y entrega** |
+| | **Persona 1 (Abraham) — Contratos** | **Persona 2 (CHMP987) — App KMP** | **Persona 3 (Ant) — IA, ataque y entrega** |
 | --- | --- | --- | --- |
 | Perfil | La más fuerte en Rust y seguridad | La más fuerte en Kotlin/Android | La más versátil; no escribe contratos |
 | Fases | P1-A → P2 → P3 → arreglos de P9 | P1-C → P4 → P5 → P6 → P8 | G1 → P1-B → P7 → P9 → P10 |
@@ -351,9 +351,11 @@ dueña → (opcional) pega el mensaje → Gemma on-device → señales + sugeren
 
 **Por qué la Persona 3 hace los ataques:** quien escribió `enforce` da por obvio lo que un atacante no. Que P9 lo haga alguien que no escribió los contratos es la forma barata de tener una revisión independiente.
 
+**Apoyo cruzado:** Abraham tiene la experiencia en IA local del equipo. Revisa el prompt, el parser y la evaluación de P7 en momentos fuera del camino crítico (noche del día 1 y día 5); Ant sigue siendo la responsable de P7.
+
 ### Calendario (si la fecha límite es el 12 oct)
 
-| Día | Persona 1 | Persona 2 | Persona 3 |
+| Día | Persona 1 (Abraham) | Persona 2 (CHMP987) | Persona 3 (Ant) |
 | --- | --- | --- | --- |
 | 1 | Spike A (reentrada en la 1.ª hora) | Spike C + esqueleto KMP | **G1 en la primera hora** · Spike B |
 | 1 noche | **Sync 1:** veredicto del Spike A · congela `INTERFACES.md` | | |
