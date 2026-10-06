@@ -338,6 +338,40 @@ dueña → (opcional) pega el mensaje → Gemma on-device → señales + sugeren
 
 ---
 
+## Reparto del equipo (3 personas)
+
+`[RECOMMENDATION]` Tres frentes, cada uno en su carpeta, sincronizados en tres puntos.
+
+| | **Persona 1 — Contratos** | **Persona 2 — App KMP** | **Persona 3 — IA, ataque y entrega** |
+| --- | --- | --- | --- |
+| Perfil | La más fuerte en Rust y seguridad | La más fuerte en Kotlin/Android | La más versátil; no escribe contratos |
+| Fases | P1-A → P2 → P3 → arreglos de P9 | P1-C → P4 → P5 → P6 → P8 | G1 → P1-B → P7 → P9 → P10 |
+| Carpetas | `contracts/`, `vendor/`, `scripts/deploy-*` | `app/` salvo `ai/` | `app/.../ai/`, `spikes/ai-bench/`, `scripts/attacks/`, `evidence/`, pitch |
+| Es responsable de | `docs/INTERFACES.md` | `gradle/libs.versions.toml` | `README.md`, `docs/SUBMISSION.md` |
+
+**Por qué la Persona 3 hace los ataques:** quien escribió `enforce` da por obvio lo que un atacante no. Que P9 lo haga alguien que no escribió los contratos es la forma barata de tener una revisión independiente.
+
+### Calendario (si la fecha límite es el 12 oct)
+
+| Día | Persona 1 | Persona 2 | Persona 3 |
+| --- | --- | --- | --- |
+| 1 | Spike A (reentrada en la 1.ª hora) | Spike C + esqueleto KMP | **G1 en la primera hora** · Spike B |
+| 1 noche | **Sync 1:** veredicto del Spike A · congela `INTERFACES.md` | | |
+| 2–3 | P2 contratos + 29 tests | P4 núcleo contra `FakeStellarGateway` | P7 IA en Android · 3–5 entrevistas |
+| 4 | P3 testnet → **Sync 2:** direcciones | P5 UI · cambia al gateway real | prueba de prompt injection · empieza P9 |
+| 5 | arregla lo que encuentre P9 · **apoya P6** | P6 firma + P8 aviso | P9 completo, matriz de bypass |
+| 6 | **Sync 3:** congelación · ensayos · vídeo de respaldo | ídem | ídem |
+| 7 | — | — | P10 entrega |
+
+### Si algo se atrasa
+
+- **El Spike A sale rojo:** los tres paran y deciden el fallback 7.A juntos. Nada de lo demás importa sin él.
+- **La Persona 2 se atrasa** (es el frente con más fases): la Persona 1 toma P6 a partir del día 5, porque la firma es la parte que más se toca con los contratos. Si sigue atrasada, P8 queda en el botón "Actualizar".
+- **El Spike B sale rojo:** la IA pasa a NICE y la Persona 3 adelanta P9 y la demo. Es el frente que mejor absorbe un fallo.
+- **El camino crítico (P0 → P1-A → P2 → P3 → P9 → P10) no se recorta nunca.** Se recortan P5, la passkey, P7, P8 e iOS, en ese orden inverso de importancia.
+
+---
+
 # 6. Critical Technical Risks
 
 | ID | Riesgo | Nivel | Por qué | Mitigación |
