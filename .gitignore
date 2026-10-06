@@ -18,3 +18,10 @@ Thumbs.db
 *.keystore
 .env
 *.secret
+
+# Local pin clone (G2). Not versioned.
+.scratch/
+
+# Contract builds and testnet demo keys. Addresses go in evidence/, not here.
+/target/
+scripts/.testnet/

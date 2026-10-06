@@ -853,7 +853,10 @@ dependencies = [
 name = "guardian_hold"
 version = "0.1.0"
 dependencies = [
+ "account",
+ "hold_registry",
  "soroban-sdk",
+ "stellar-accounts",
 ]
 
 [[package]]
