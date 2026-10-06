@@ -24,4 +24,5 @@ Thumbs.db
 
 # Contract builds and testnet demo keys. Addresses go in evidence/, not here.
 /target/
+scripts/attacks/nested/target/
 scripts/.testnet/
