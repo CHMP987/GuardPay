@@ -33,7 +33,7 @@ Están los 9 estados de pago: Borrador, Firmando, Retenido, Listo para enviar, E
 
 - [FACT] Algún nodo de semántica muestra el texto del estado (por ejemplo "Retenido", "Detenido por Diego", "Rechazado por el contrato").
 - [FACT] Ningún nodo queda fuera del ancho de 360 dp (`boundsInRoot` dentro de 0…720 px).
-- [FACT] Ningún texto visible, `contentDescription` ni texto editable dice "seguro", "protegido" o "verificado" (sin distinguir mayúsculas). Es la versión en ejecución de `checkUiVocabulary`, que solo mira el código fuente.
+- [FACT] Ningún texto visible, `contentDescription` ni texto editable usa, como palabra completa, una de las tres palabras que el plan prohíbe en la interfaz. Es la versión en ejecución de `checkUiVocabulary`, que solo mira el código fuente.
 
 ## Accesibilidad: qué está cubierto y qué no
 

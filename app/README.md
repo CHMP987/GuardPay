@@ -45,7 +45,7 @@ Corre los tests unitarios de Android y del target `jvm()` (que solo existe para 
 | --- | --- |
 | `checkCommonMainArchitecture` | `commonMain` importa `android.*`, `androidx.*`, `platform.*`, LiteRT-LM o WebAuthn |
 | `checkDependencyGraph` | algo en `ai/` toca `signing` o `stellar`; un archivo de producción nombra `GuardPayAI` junto a `Signer` o `StellarGateway`; o un `Fake*` aparece fuera de los tests |
-| `checkUiVocabulary` | un texto de la UI dice "seguro", "protegido" o "verificado" |
+| `checkUiVocabulary` | un literal de la UI usa, como palabra completa, una de las tres palabras que el plan prohíbe en la interfaz |
 | `checkGuardianSurface` | `ui/guardian/**` nombra `StellarGateway`, `Signer`, `submitTransfer`, `submitQueue` o `signing` |
 
 Una sola clase de test:

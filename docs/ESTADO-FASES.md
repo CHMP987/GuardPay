@@ -15,7 +15,7 @@
 
 Veredicto humano: **GO** a P1. Registrado el 5 oct 2026 a pedido del humano.
 
-P0 sigue **INCOMPLETA**. (6 oct: `README.md` ya existe; las demás tareas de P0 no se revisaron.) T-010, T-011, T-012, T-013, T-014 y T-018 no están hechas. `README.md` no existe. Android SDK no está (`ANDROID_HOME` vacío): bloquea la app, no el Spike A.
+P0 sigue **INCOMPLETA**. (6 oct: `README.md` ya existe; las demás tareas de P0 no se revisaron en esta nota.) T-010, T-011, T-012, T-013, T-014 y T-018 no están hechas.
 
 T-016 está hecha. G2 ya no bloquea T-019. T-019 hecha (A0 digest OZ pasa; ver `evidence/security/spike-a.md`). T-020 hecha (A1 R6 veredicto **pasa**; ver misma evidencia).
 
@@ -46,9 +46,10 @@ Procedimiento escrito el 6 oct 2026 para poder desplegar. Las semillas de prueba
 | P4 | hecho para Android (6 oct). `evidence/architecture/kmp-layers.md`, `evidence/stellar/gateway-live.md` |
 | P5 | 4 pantallas con datos de testnet, probadas en emulador (6 oct) |
 | P6 | Keystore + biometría o PIN; ciclo completo en testnet desde la app, en emulador. GH-01/GH-24 con el código del cliente, no desde el teléfono. `evidence/smart-account/signing.md` |
-| P7 | no iniciado (stub) |
+| P7 | no abierto. Spike B rojo, sin números de un teléfono. La IA queda en NICE. CP-7 sin firmar. |
 | P8 | aviso local sin backend, < 60 s medido en emulador. `evidence/guardian/notification.md` |
-| P9–P10 | no iniciado |
+| P9 | matriz de tres cuentas en `evidence/security/bypass-matrix.md`. GH-29, GH-30 y GH-33: no corrido. GH-28 verde solo en la cuenta de ataques y su wasm. CP-9 sin firmar. |
+| P10 | README, escenas y `docs/SUBMISSION.md`. Passport no enviado. Entrevistas: no corrido. Las seis escenas seguidas no se cronometraron. |
 
 Definition of Done: implementación + unit + integración + seguridad + criterios de aceptación + evidencia. Compilar no cierra una fase.
 
@@ -76,4 +77,18 @@ El teléfono no importa semillas. En el build debug, la app crea las claves de l
 
 6 oct 2026. Solo arreglos: el sello "En Stellar" ya no se parte, un fallo de firma ya no se muestra como error de red (`SigningFailed`) y los textos dicen "huella o PIN" en vez de "passkey". Las escenas 1, 2, 3 y 6 se ensayaron dos veces en emulador contra testnet, con 6 hashes reales y el vídeo de respaldo: `evidence/demo/rehearsal.md`.
 
-La demo usa una cuenta nueva para las claves del Keystore: `CDWPPTDMACOEVMBUHBBTPUW2EEDXY6YVUAOZJFTSGGOBAONCAJ7WGFV6`. Esto responde a la pregunta de T-005 para la parte de la app. Las partes de terminal de las escenas 2 y 6 (P9) siguen sin correr.
+La demo usa una cuenta nueva para las claves del Keystore: `CDWPPTDMACOEVMBUHBBTPUW2EEDXY6YVUAOZJFTSGGOBAONCAJ7WGFV6`. Esto responde a la pregunta de T-005 para la parte de la app. Las partes de terminal de las escenas 2 y 6 no se corrieron en esta cuenta.
+
+## Reconciliación P9 · 6 oct 2026
+
+Dos corridas de ataques, dos cuentas, dos wasm. No se mezclaron. No se redesplegó la cuenta publicada ni la del emulador. No se firmó con semillas.
+
+| Cuenta | Wasm de `account` | Qué tiene hash |
+| --- | --- | --- |
+| Publicada `CDBJMSUIWL3RCA4POESJQSPHUJ4KOMQE7OTFAO27DDAFXKDBXRNTDEZX` | `986956ccfd0f134bbbd56dfdcfca1def12f4bf61676ef0efd762c2eafd37cf3b` | Ensayos ★ de la mañana, más `enforce` directo `0e46055b…` y `queue` sin la dueña `20c5b598…`. `execute`, `upgrade` y una segunda regla: no hay tx |
+| Ataques `CC6FFXGGF62OPCRCL4FQLABPUMEGZ6JQ7XVETDJ5MOLWQGNA4SQYPHFP` | `06226b3773107e33572671cd458ed34d4f00bf76f9b6dbc3bf6e84f60f05ea9c` (sin optimizar) | Destino distinto, monto distinto, muxed, contrato intermedio y GH-28. Verde solo para esta cuenta y este wasm |
+| Emulador `CDWPPTDMACOEVMBUHBBTPUW2EEDXY6YVUAOZJFTSGGOBAONCAJ7WGFV6` | `986956ccfd0f134bbbd56dfdcfca1def12f4bf61676ef0efd762c2eafd37cf3b` | Escenas de `rehearsal.md`. No se firmaron ataques |
+
+GH-29, GH-30 y GH-33 siguen no corrido. No hay `expires_at`, ni cancel de la dueña, ni passkey. T-049 no está autorizado. Spike B sigue rojo. P7 no se abre. La IA queda en NICE. Las entrevistas siguen no corrido. Passport no se envió. Los campos del formulario siguen sin contestar. CP-3, CP-7 y CP-9 siguen sin firmar.
+
+Las seis escenas seguidas, en una sola sentada y por debajo de 5 minutos, no se cronometraron.
