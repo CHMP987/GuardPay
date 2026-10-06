@@ -48,7 +48,7 @@ Estados del checklist: `pendiente` · `en curso` · `bloqueada` · `hecha` · `o
 | T-022 | Escribir `hold_registry` mínimo del spike | feature | hecha | T-020 |
 | T-023 | Escribir `guardian_hold` mínimo del spike | feature | hecha | T-021, T-022 |
 | T-024 | Tests blocker GH-01, GH-13, GH-24, GH-25, GH-26 | test | hecha | T-023 |
-| T-025 | Tests ciclo GH-04, GH-05, GH-06 | test | pendiente | T-023 |
+| T-025 | Tests ciclo GH-04, GH-05, GH-06 | test | hecha | T-023 |
 | T-026 | Test GH-09 (guardián no gasta) | test | hecha | T-023 |
 | T-027 | Tests vínculo GH-20…GH-23 | test | hecha | T-023 |
 | T-028 | Documentar Spike A y congelar firmas | docs | pendiente | T-024, T-025, T-026, T-027 |
