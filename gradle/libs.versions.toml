@@ -9,6 +9,8 @@ compose-multiplatform = "1.9.1"
 stellar-sdk = "1.14.0"
 kotlinx-coroutines = "1.10.2"
 kotlinx-serialization = "1.9.0"
+# Already resolved transitively by stellar-sdk 1.14.0; declared so the UI can format ledger times.
+kotlinx-datetime = "0.7.1"
 androidx-activity-compose = "1.8.2"
 android-compileSdk = "35"
 android-targetSdk = "35"
@@ -19,6 +21,7 @@ android-minSdk = "28"
 stellar-sdk = { module = "com.soneso.stellar:stellar-sdk", version.ref = "stellar-sdk" }
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinx-coroutines" }
 kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "kotlinx-coroutines" }
+kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "kotlinx-datetime" }
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinx-serialization" }
 androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "androidx-activity-compose" }
 

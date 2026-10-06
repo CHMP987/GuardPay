@@ -4,18 +4,21 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Repository state
 
-`docs/` holds the Spanish-language research, design and planning. The only code so far is the **Gradle KMP skeleton** (day 1, Persona 2): root `settings.gradle.kts`, `gradle/libs.versions.toml` (exact versions, aligned with `stellar-sdk` 1.14.0's own build), `app/shared` (P4 shared core: `domain` with the 9 payment states, transitions and lane prediction; `ai` with the `GuardPayAI` interface, `AnalysisParser` and a stub per platform; `signing` interface; `stellar` with `StellarGateway`, `FakeStellarGateway` (commonTest only) and the day-3 `KmpStellarGateway` skeleton over stellar-sdk: SCVal decoders, an auth-entry guard that signs only the exact call the app built, and a send/poll classifier. Contract function names live in `ProvisionalAbi.kt` and addresses in `GuardPayNetwork`, both provisional until INTERFACES.md / Sync 2) and `app/android` (placeholder Compose activity). There are no contracts and no CI yet; when they land, record their real commands here.
+`docs/` holds the Spanish-language research, design and planning. The only code so far is the **Gradle KMP skeleton** (day 1, Persona 2): root `settings.gradle.kts`, `gradle/libs.versions.toml` (exact versions, aligned with `stellar-sdk` 1.14.0's own build), `app/shared` (P4 shared core: `domain` with the 9 payment states, transitions and lane prediction; `ai` with the `GuardPayAI` interface, `AnalysisParser` and a stub per platform; `signing` interface; `stellar` with `StellarGateway`, `FakeStellarGateway` (commonTest only) and the day-3 `KmpStellarGateway` skeleton over stellar-sdk: SCVal decoders, an auth-entry guard that signs only the exact call the app built, and a send/poll classifier. Contract function names live in `ProvisionalAbi.kt` and addresses in `GuardPayNetwork`, both provisional until INTERFACES.md / Sync 2; and the day-4 P5 `ui` in Compose Multiplatform, driven by `OwnerSession`/`GuardianSession`, with the guardian screens limited to the `GuardianChain` read + cancel surface) and `app/android` (`src/debug` wires the UI to an in-memory `SimulatedStellarGateway`; `src/release` has null sessions until the testnet contract addresses exist). There are no contracts and no CI yet; when they land, record their real commands here.
 
 ## Commands
 
 Gradle 8.14.3 via the wrapper, JDK 17, Android SDK path in `local.properties` (gitignored; use forward slashes: `sdk.dir=C:/Users/<you>/AppData/Local/Android/Sdk`).
 
-- `./gradlew :app:shared:allTests`: shared tests (Android unit tests; on Windows the iOS klibs compile but are never linked or run, since there is no Mac). It also runs both architecture checks.
+- `./gradlew :app:shared:allTests`: shared tests (Android unit tests plus the test-only `jvm()` target; on Windows the iOS klibs compile but are never linked or run, since there is no Mac). It also runs all four checks below.
+- `./gradlew :app:shared:jvmTest`: JVM tests, including `ScreensAt360Test`, which renders the Compose UI headless at 360 dp and writes PNGs to `evidence/demo/screens/` (through the `gp.screens` system property).
 - `./gradlew :app:shared:testDebugUnitTest --tests "com.guardpay.shared.domain.LaneTest"`: run a single test class.
 - `./gradlew :app:shared:checkCommonMainArchitecture`: fails if `src/commonMain` imports `android.*`, `androidx.*`, `platform.*`, LiteRT-LM or WebAuthn/passkey APIs.
 - `./gradlew :app:shared:checkDependencyGraph`: fails if anything in `ai/` references `signing`/`stellar`, if a production file mentions `GuardPayAI` together with `Signer`/`StellarGateway`, or if a `Fake*` type is used outside tests. Also run by `allTests`.
 - `./gradlew :app:shared:testDebugUnitTest -PliveTestnet --tests "*LiveTest"`: opt-in tests that hit Stellar **Testnet** and FriendBot (keys generated per run, never printed). Without `-PliveTestnet` every `*LiveTest*` is excluded, so `allTests` stays offline.
-- `./gradlew :app:android:assembleDebug`: debug APK in `app/android/build/outputs/apk/debug/`.
+- `./gradlew :app:shared:checkUiVocabulary`: fails if a string literal in `ui/` or `app/android/src` (or an Android `strings*.xml`) says seguro/protegido/verificado as a whole word, ignoring case. Comments are ignored.
+- `./gradlew :app:shared:checkGuardianSurface`: fails if `ui/guardian/**` mentions `StellarGateway`, `Signer`, `submitTransfer`, `submitQueue` or the `signing` package.
+- `./gradlew :app:android:assembleDebug`: debug APK in `app/android/build/outputs/apk/debug/`. `./gradlew :app:android:compileReleaseKotlin` checks the release wiring.
 
 Planned, not set up yet: Rust + `soroban-sdk` 28 targeting `wasm32-unknown-unknown` (`cargo test` for contracts) and `stellar-cli` against **Testnet only**.
 

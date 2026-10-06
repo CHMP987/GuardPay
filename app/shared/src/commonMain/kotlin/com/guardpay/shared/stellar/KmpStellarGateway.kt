@@ -88,6 +88,11 @@ class KmpStellarGateway(
         return ChainDecoders.holds(records, account, network.usdc, guardian)
     }
 
+    // No view function to name yet: OZ's context-rule getters on pin b40c5ea and the
+    // account's exact ABI arrive with INTERFACES.md. Fail loudly instead of guessing.
+    override suspend fun readAccountShape(account: StellarAddress): AccountShape =
+        throw ChainReadException("account shape: no ABI until INTERFACES.md")
+
     private suspend fun view(contract: StellarAddress, function: String, vararg args: SCValXdr): SCValXdr =
         reading("$function on ${contract.short()}") {
             val sim = server.simulateTransaction(buildTx(invoke(contract, function, args.toList()), validUntil = null))

@@ -30,6 +30,13 @@ interface StellarGateway {
     suspend fun readDailySpent(account: StellarAddress): UsdcAmount
     suspend fun readHolds(account: StellarAddress): List<HeldPayment>
 
+    /**
+     * PROVISIONAL (no ABI yet): the account's context rules, signers and policies,
+     * for "Reglas de esta cuenta". Which OZ view functions return them is decided
+     * by INTERFACES.md; until then the real gateway throws [ChainReadException].
+     */
+    suspend fun readAccountShape(account: StellarAddress): AccountShape
+
     /** `HoldRegistry.queue(account, token, destination, amount)`, authorized by the account, signed by the owner. */
     suspend fun submitQueue(account: StellarAddress, intent: PaymentIntent, owner: Signer): SubmitResult
 
@@ -50,6 +57,17 @@ data class AccountRules(
     val holdDurationSeconds: Long,
     /** SHOULD: seconds after readyAt before a matured hold expires; null if none. */
     val expiryWindowSeconds: Long?,
+)
+
+/**
+ * What the account contract itself says about its rules. [signers] are the ed25519
+ * signer keys as G strkeys (see [ed25519AccountId]), so the UI can compare them with
+ * the owner's key and the guardian's address without decoding anything.
+ */
+data class AccountShape(
+    val contextRuleCount: Int,
+    val signers: List<StellarAddress>,
+    val policies: List<StellarAddress>,
 )
 
 sealed interface SubmitResult {

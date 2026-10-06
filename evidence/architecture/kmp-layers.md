@@ -1,4 +1,4 @@
-# Capas KMP: tests de arquitectura y dependencias de `commonMain` (P4, día 3)
+# Capas KMP: tests de arquitectura y dependencias de `commonMain` (P4 día 3, P5 día 4)
 
 | | |
 | --- | --- |
@@ -15,17 +15,27 @@
 | `ai` | `GuardPayAI.analyzeMessage(text): Analysis` y el parser | `domain` |
 | `signing` | `Signer` (firma digests de auth) | nada |
 | `stellar` | `StellarGateway` y `KmpStellarGateway`; decodificadores de cadena, guardia de auth, clasificador de envíos, ABI provisional | `domain`, `signing`, stellar-sdk 1.14.0 |
+| `ui` (día 4) | Compose Multiplatform: tokens, componentes, `OwnerSession` (Entrada, Inicio, Pagar + Revisar, Detalle) y `GuardianSession` (lista, detalle, Detener) | `domain`, `ai`, `signing`, `stellar` |
+| `ui/guardian` | Las pantallas del guardián. Solo ven `GuardianChain`: leer el ledger, las retenciones y los contactos, y `submitCancel` | `domain`; de `stellar` solo los tipos de resultado `SubmitResult` y `SubmissionOutcomeUnknownException` |
 
 `ai` no ve a `signing` ni a `stellar`, y ningún archivo combina `GuardPayAI` con `Signer`/`StellarGateway`. `checkDependencyGraph` lo hace cumplir.
 
+La UI recibe la lectura de la IA como un `MessageReader` (texto → `Analysis`). El código de `ui/` no usa `GuardPayAI` (solo lo nombra un comentario): el cableado vive en `app/android` (`AiWiring.kt`). La lectura nunca toca el formulario (`OwnerSessionTest.theAiReadingNeverTouchesTheForm`).
+
+La app Android cablea la simulación solo en `src/debug` (`SimulatedStellarGateway`, claves aleatorias en memoria). En `src/release` las sesiones son `null` hasta que existan las direcciones de los contratos (Sync 2), así que un build de release no muestra datos inventados.
+
 ## 2. Tests de arquitectura
 
-Las dos tareas cuelgan de `check` y `allTests`.
+Las cuatro tareas cuelgan de `check` y `allTests`.
 
 | Tarea | Regla |
 | --- | --- |
 | `checkCommonMainArchitecture` | `src/commonMain` no importa `android.*`, `androidx.*`, `platform.*`, LiteRT-LM (`com.google.ai.edge.*`, `*litert*`) ni WebAuthn/passkey |
 | `checkDependencyGraph` | `ai/` no referencia `signing`/`stellar`/`Signer`/`StellarGateway`; `GuardPayAI` no comparte archivo con ellos; ningún `Fake*` en código de producción |
+| `checkUiVocabulary` (día 4) | Ningún literal de cadena en `ui/` ni en `app/android/src` (más los `strings*.xml`) dice "seguro", "protegido" o "verificado", sin distinguir mayúsculas. Los comentarios no cuentan, y "Proteges a Laura" pasa porque la regla busca la palabra completa |
+| `checkGuardianSurface` (día 4) | `ui/guardian/**` no menciona `StellarGateway`, `Signer`, `submitTransfer`, `submitQueue` ni el paquete `signing` |
+
+Además, `GuardianSurfaceTest` (jvmTest) comprueba por reflexión que `GuardianChain` declara exactamente `latestLedgerTime`, `readHolds`, `readTrustedContacts` y `submitCancel`.
 
 ### Controles negativos
 
@@ -50,20 +60,55 @@ exit=1
 BUILD SUCCESSFUL in 1s
 ```
 
+Día 4, mismo método. `ui/ZzProbe.kt` contenía un comentario con "seguro" y los literales "Proteges a Laura" y "Tu dinero está PROTEGIDO". `ui/guardian/ZzReach.kt` contenía `import com.guardpay.shared.signing.Signer`. La consola de Windows imprime "está" como `est�`.
+
+```
+=== NEG 3: checkUiVocabulary ===
+Execution failed for task ':app:shared:checkUiVocabulary'.
+> UI strings must not say seguro, protegido or verificado:
+  app/shared/src/commonMain/kotlin/com/guardpay/shared/ui/ZzProbe.kt: "Tu dinero est� PROTEGIDO"
+exit=1
+
+=== NEG 4: checkGuardianSurface ===
+Execution failed for task ':app:shared:checkGuardianSurface'.
+> The guardian UI reaches beyond read + stop:
+  src/commonMain/kotlin/com/guardpay/shared/ui/guardian/ZzReach.kt: \bSigner\b
+  src/commonMain/kotlin/com/guardpay/shared/ui/guardian/ZzReach.kt: com\.guardpay\.shared\.signing
+exit=1
+
+=== POS (archivos borrados) ===
+> Task :app:shared:checkUiVocabulary
+> Task :app:shared:checkGuardianSurface
+BUILD SUCCESSFUL in 1s
+```
+
+El comentario y "Proteges a Laura" no se reportaron: solo cuenta el literal prohibido.
+
 ## 3. Tests unitarios (`./gradlew :app:shared:allTests`)
 
-`BUILD SUCCESSFUL`, **78 tests, 0 fallos, 0 omitidos** (Android unit tests, JVM):
+Día 4: `BUILD SUCCESSFUL`. **105 tests** en `testDebugUnitTest` (Android unit tests) y **119** en `jvmTest`, con 0 fallos y 0 omitidos en ambos. El target `jvm()` existe solo para tests; no hay app de escritorio.
 
-| Suite | Tests |
-| --- | --- |
-| `ai.AnalysisParserTest` | 13 |
-| `domain.LaneTest` | 8 |
-| `domain.PaymentStateTest` | 17 |
-| `domain.ValuesTest` | 7 |
-| `stellar.GatewayFlowTest` (contra `FakeStellarGateway`) | 9 |
-| `stellar.ChainDecodersTest` (parseo de lecturas de cadena) | 14 |
-| `stellar.SubmitClassifierTest` | 5 |
-| `stellar.AuthEntryGuardTest` | 5 |
+| Suite | Android | JVM |
+| --- | --- | --- |
+| `ai.AnalysisParserTest` | 13 | 13 |
+| `domain.LaneTest` | 8 | 8 |
+| `domain.PaymentStateTest` | 17 | 17 |
+| `domain.ValuesTest` | 7 | 7 |
+| `stellar.GatewayFlowTest` (contra `FakeStellarGateway`) | 9 | 9 |
+| `stellar.ChainDecodersTest` (parseo de lecturas de cadena) | 14 | 14 |
+| `stellar.SubmitClassifierTest` | 5 | 5 |
+| `stellar.AuthEntryGuardTest` | 5 | 5 |
+| `ui.ContrastTest` (tabla de contraste de la Propuesta visual) | 4 | 4 |
+| `ui.FormatTest` (montos, horas, direcciones, frases de estado) | 7 | 7 |
+| `ui.OwnerSessionTest` (flujos de la dueña) | 9 | 9 |
+| `ui.GuardianSessionTest` (Detener, atrás) | 4 | 4 |
+| `ui.NavigatorTest` | 3 | 3 |
+| `ui.GuardianSurfaceTest` (reflexión sobre `GuardianChain`) | | 1 |
+| `ui.ScreensAt360Test` (Compose a 360 dp, 9 estados; ver `evidence/demo/screens/`) | | 13 |
+
+El día 3 eran 78 tests; los 27 nuevos de `commonTest` son de `ui`.
+
+`:app:android:assembleDebug` y `:app:android:compileReleaseKotlin` pasan. **No corrido:** la app con esta UI no se ha abierto en un teléfono.
 
 El test vivo de testnet (`KmpStellarGatewayLiveTest`) queda fuera de `allTests` y solo corre con `-PliveTestnet`. Ver `evidence/stellar/gateway-live.md`.
 

@@ -35,5 +35,6 @@ kotlin {
 dependencies {
     implementation(project(":app:shared"))
     implementation(libs.androidx.activity.compose)
-    implementation(compose.material3)
+    implementation(compose.runtime)
+    implementation(compose.foundation)
 }
