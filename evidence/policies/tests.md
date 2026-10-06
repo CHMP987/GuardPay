@@ -79,8 +79,8 @@ Cada fila es un test de `contracts/guardian_hold/tests/must.rs`. Todos `pasa`.
 | Overflow i128 | `overflow_near_i128_max_rejected` | pasa. Tope `i128::MAX`, primer `transfer` de `MAX` pasa, el siguiente de 1 se rechaza. |
 | Persistencia | `persistent_records_survive_ledger_advance` | pasa. Sequence +50000 y timestamp +1000 s (mismo día UTC). El hold sigue Retained y `spent_today` sigue en 10. |
 | Reinicio del día UTC | `daily_window_resets_on_the_next_utc_day` | pasa. Llena el tope (50), el siguiente 1 se rechaza, al día siguiente 1 pasa. Cubre el comportamiento de GH-28 con un solo pago que llena el tope, no la secuencia 30+20. |
-| GH-28 secuencia 30+20 | — | no corrido. SHOULD. |
-| GH-29 dos pagos en el mismo ledger | — | no corrido. SHOULD. |
+| GH-28 secuencia 30+20 | ensayo en la cuenta de ataques de P9, 6 oct 2026 | verde. 30 pasa `70897ef04b1af554587e49766f3e82de9f7f412f2617f370b52d3422c2240b84` (ledger 5059671). 20 pasa `5962c6777a28a1c60cfd24cd7acdc73bb14b2056c53137a4745c07f68feec7d0` (ledger 5059681). El 1 siguiente falla con CapExceeded (5): `76d2683a4238e4e817d936f77570b16c562d3909237d58569befb98b9ddd9f09` (ledger 5059683). Cuenta distinta de `deployment.md`. |
+| GH-29 dos pagos en el mismo ledger | — | no corrido. Dos transferencias de 30 en la cuenta 2 salieron en ledgers seguidos (5059703 y 5059704), no en el mismo. La segunda falló con CapExceeded (5). Eso no cierra GH-29. |
 | GH-30 vencimiento / `expires_at` | — | no corrido. T-049 sigue pendiente: T-006 no lo autorizó. |
 | Cancel de la dueña | — | no corrido. Misma razón. |
 

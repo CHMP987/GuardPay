@@ -46,9 +46,10 @@ Procedimiento escrito el 6 oct 2026 para poder desplegar. Las semillas de prueba
 | P4 | hecho para Android (6 oct). `evidence/architecture/kmp-layers.md`, `evidence/stellar/gateway-live.md` |
 | P5 | 4 pantallas con datos de testnet, probadas en emulador (6 oct) |
 | P6 | Keystore + biometría o PIN; ciclo completo en testnet desde la app, en emulador. GH-01/GH-24 con el código del cliente, no desde el teléfono. `evidence/smart-account/signing.md` |
-| P7 | no iniciado (stub) |
+| P7 | incompleta. Spike B rojo el 6 oct: sin teléfono, sin modelo, sin números. La IA pasa a NICE. No se abre P7. CP-7 no está firmado |
 | P8 | aviso local sin backend, < 60 s medido en emulador. `evidence/guardian/notification.md` |
-| P9–P10 | no iniciado |
+| P9 | ataques del 6 oct en `evidence/security/bypass-matrix.md`. Cuenta distinta de `deployment.md` y de la app: las semillas publicadas no estaban en el clon. Wasm de esa cuenta distinto del publicado. CP-9 no está firmado |
+| P10 | README, `docs/SUBMISSION.md` y escenas escritas. Las seis escenas no se cronometraron juntas. CP-3 sigue del humano |
 
 Definition of Done: implementación + unit + integración + seguridad + criterios de aceptación + evidencia. Compilar no cierra una fase.
 
@@ -76,4 +77,12 @@ El teléfono no importa semillas. En el build debug, la app crea las claves de l
 
 6 oct 2026. Solo arreglos: el sello "En Stellar" ya no se parte, un fallo de firma ya no se muestra como error de red (`SigningFailed`) y los textos dicen "huella o PIN" en vez de "passkey". Las escenas 1, 2, 3 y 6 se ensayaron dos veces en emulador contra testnet, con 6 hashes reales y el vídeo de respaldo: `evidence/demo/rehearsal.md`.
 
-La demo usa una cuenta nueva para las claves del Keystore: `CDWPPTDMACOEVMBUHBBTPUW2EEDXY6YVUAOZJFTSGGOBAONCAJ7WGFV6`. Esto responde a la pregunta de T-005 para la parte de la app. Las partes de terminal de las escenas 2 y 6 (P9) siguen sin correr.
+La demo de la app usa la cuenta del Keystore `CDWPPTDMACOEVMBUHBBTPUW2EEDXY6YVUAOZJFTSGGOBAONCAJ7WGFV6`. Las partes de terminal de las escenas 2, 4, 5 y 6 se corrieron el 6 oct por la tarde, en la cuenta de ataques de `evidence/security/bypass-matrix.md`, no en esta.
+
+## P9 y P10 · 6 oct 2026 (Persona 3)
+
+Los scripts están en `scripts/attacks/`. La matriz y la tabla GH-01…GH-33 están en `evidence/security/bypass-matrix.md`. GH-28 quedó verde en la cuenta de ataques. GH-29, GH-30 y GH-33 quedan no corrido. En las rutas que sí se enviaron, el SAC de prueba no salió hacia un destino fuera de la lista blanca. Otras rutas siguen no corrido. Eso no se escribe como ausencia de bypass.
+
+Spike B está rojo. La IA pasa a NICE. P7 no se abre. Entrevistas T-103: no corrido.
+
+CP-3, CP-7 y CP-9 no están firmados. Los firma un humano.
