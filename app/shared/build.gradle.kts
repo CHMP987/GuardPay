@@ -42,6 +42,13 @@ android {
     }
 }
 
+// Live testnet tests hit the network and FriendBot: opt-in with -PliveTestnet.
+val liveTestnet = project.hasProperty("liveTestnet")
+tasks.withType<Test>().configureEach {
+    inputs.property("liveTestnet", liveTestnet)
+    if (!liveTestnet) exclude("**/*LiveTest*")
+}
+
 // Architecture test: commonMain must compile without Android, iOS, LiteRT-LM or
 // WebAuthn. Fails the build if any of them is imported there.
 val commonMainSources = fileTree("src/commonMain") { include("**/*.kt") }

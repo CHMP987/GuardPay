@@ -16,6 +16,10 @@ import com.guardpay.shared.signing.Signer
  *
  * PROVISIONAL until INTERFACES.md is frozen at Sync 1: argument and return types
  * may change to match the contracts' exact signatures, reads and error codes.
+ *
+ * Reads throw on failure (`ChainReadException`, `ChainDecodeException`); they
+ * never return a guessed value. Submits return a [SubmitResult], except when the
+ * outcome cannot be known: then [SubmissionOutcomeUnknownException].
  */
 interface StellarGateway {
     suspend fun latestLedgerTime(): LedgerTime
@@ -26,10 +30,13 @@ interface StellarGateway {
     suspend fun readDailySpent(account: StellarAddress): UsdcAmount
     suspend fun readHolds(account: StellarAddress): List<HeldPayment>
 
-    /** `HoldRegistry.queue(account, destination, amount)`, signed by the owner. */
+    /** `HoldRegistry.queue(account, token, destination, amount)`, authorized by the account, signed by the owner. */
     suspend fun submitQueue(account: StellarAddress, intent: PaymentIntent, owner: Signer): SubmitResult
 
-    /** `HoldRegistry.cancel(id)`, signed by the guardian (or the owner). */
+    /**
+     * `HoldRegistry.cancel(caller, id)`: caller is the guardian's G account when
+     * [signer] holds the guardian key (classic auth), otherwise the account itself.
+     */
     suspend fun submitCancel(account: StellarAddress, holdId: Long, signer: Signer): SubmitResult
 
     /** `USDC.transfer(account, destination, amount)` authorized by the account, signed by the owner. */
@@ -57,3 +64,13 @@ sealed interface SubmitResult {
     /** The person dismissed the signing prompt. Nothing was sent. */
     data object SigningCancelled : SubmitResult
 }
+
+/**
+ * The transaction was handed to the network and its fate could not be confirmed
+ * (the RPC stopped answering). It may still land. The caller must NOT retry or
+ * report "nothing changed": re-read balance and holds from the chain instead,
+ * since a blind retry could pay twice. PROVISIONAL: may become a [SubmitResult]
+ * variant once INTERFACES.md and the UI states settle it.
+ */
+class SubmissionOutcomeUnknownException(val txHash: TxHash, cause: Throwable?) :
+    Exception("outcome of ${txHash.hex} unknown", cause)
