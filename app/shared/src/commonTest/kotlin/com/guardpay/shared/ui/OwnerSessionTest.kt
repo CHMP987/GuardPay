@@ -153,6 +153,19 @@ class OwnerSessionTest {
     }
 
     @Test
+    fun aBrokenKeyIsNotShownAsANetworkError() = runTest {
+        val r = rig(fake(), this, signer = FakeSigner(ownerKey, breaks = true))
+        r.session.fill(ANA.address, "20")
+        signAndSettle(r.session)
+
+        assertEquals(Screen.Pay, r.nav.current)
+        assertFalse(r.session.ui.value.form.networkError, "retrying cannot fix a broken key")
+        assertEquals(OwnerSession.SIGNING_FAILED, r.session.ui.value.notice)
+        assertTrue(r.session.ui.value.local.isEmpty())
+        assertEquals(usdc(1_000), r.session.ui.value.balance)
+    }
+
+    @Test
     fun networkFailureOffersRetry() = runTest {
         val gw = fake()
         val r = rig(gw, this)

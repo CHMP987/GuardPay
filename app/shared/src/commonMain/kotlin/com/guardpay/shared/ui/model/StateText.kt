@@ -45,7 +45,7 @@ fun phraseFor(
     rejectedAfterStop: Boolean = false,
 ): String = when (state) {
     is PaymentState.Draft -> "Este pago aún no se envió"
-    is PaymentState.Signing -> "Esperando tu passkey…"
+    is PaymentState.Signing -> "Esperando tu huella o PIN…"
     is PaymentState.Held -> {
         val by = if (v.viewer == Party.Guardian) "Puedes detenerlo." else "${v.guardianName} puede detenerlo."
         "Retenido hasta las ${state.hold.readyAt.clock(v.tz)}. $by"

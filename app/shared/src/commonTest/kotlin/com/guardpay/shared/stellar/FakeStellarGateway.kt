@@ -11,6 +11,7 @@ import com.guardpay.shared.domain.TxHash
 import com.guardpay.shared.domain.UsdcAmount
 import com.guardpay.shared.signing.Signer
 import com.guardpay.shared.signing.SigningCancelledException
+import com.guardpay.shared.signing.signWith
 
 /**
  * In-memory stand-in for the three contracts, test-only. It applies the same rules
@@ -111,7 +112,7 @@ class FakeStellarGateway(
 
     private suspend fun submit(signer: Signer, body: () -> SubmitResult): SubmitResult {
         try {
-            signer.signHash(ByteArray(32))
+            signWith(signer, ByteArray(32)) ?: return SubmitResult.SigningFailed
         } catch (e: SigningCancelledException) {
             return SubmitResult.SigningCancelled
         }
@@ -136,9 +137,10 @@ class FakeStellarGateway(
 }
 
 /** Test signer: returns a dummy signature, or "cancels" like a dismissed prompt. */
-class FakeSigner(override val publicKey: ByteArray, var cancels: Boolean = false) : Signer {
+class FakeSigner(override val publicKey: ByteArray, var cancels: Boolean = false, var breaks: Boolean = false) : Signer {
     override suspend fun signHash(digest: ByteArray): ByteArray {
         if (cancels) throw SigningCancelledException()
+        if (breaks) throw IllegalStateException("key invalidated")
         return ByteArray(64)
     }
 }

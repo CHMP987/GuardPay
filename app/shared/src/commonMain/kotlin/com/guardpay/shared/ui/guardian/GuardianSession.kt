@@ -173,6 +173,7 @@ class GuardianSession(
                     )
                     is SubmitResult.NetworkFailure -> base.copy(notice = "No llegó a Stellar. Nada cambió.")
                     SubmitResult.SigningCancelled -> s.copy(phase = GuardianPhase.Idle)
+                    SubmitResult.SigningFailed -> base.copy(notice = "No se pudo firmar en este teléfono. No se envió nada.")
                     null -> base.copy(notice = "No sabemos si llegó a Stellar. Se está leyendo de nuevo.")
                 }
             }

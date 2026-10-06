@@ -71,3 +71,9 @@ CP-3 sigue pendiente. Lo firma un humano después de revisar los hashes.
 ## T-005 · nota del día 5
 
 El teléfono no importa semillas. En el build debug, la app crea las claves de la dueña y del guardián dentro del Keystore de Android. `DeviceProvisioningLiveTest` despliega una cuenta propia para esas direcciones públicas. Las cuentas de `deployment.md`, con semillas en `scripts/.testnet/`, siguen siendo las de los ensayos por CLI. Las dos cosas conviven. Falta decidir cuál usa la demo final.
+
+## Día 6 · congelación (Persona 2)
+
+6 oct 2026. Solo arreglos: el sello "En Stellar" ya no se parte, un fallo de firma ya no se muestra como error de red (`SigningFailed`) y los textos dicen "huella o PIN" en vez de "passkey". Las escenas 1, 2, 3 y 6 se ensayaron dos veces en emulador contra testnet, con 6 hashes reales y el vídeo de respaldo: `evidence/demo/rehearsal.md`.
+
+La demo usa una cuenta nueva para las claves del Keystore: `CDWPPTDMACOEVMBUHBBTPUW2EEDXY6YVUAOZJFTSGGOBAONCAJ7WGFV6`. Esto responde a la pregunta de T-005 para la parte de la app. Las partes de terminal de las escenas 2 y 6 (P9) siguen sin correr.

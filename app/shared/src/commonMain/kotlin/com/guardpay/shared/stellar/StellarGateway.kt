@@ -80,6 +80,12 @@ sealed interface SubmitResult {
 
     /** The person dismissed the signing prompt. Nothing was sent. */
     data object SigningCancelled : SubmitResult
+
+    /**
+     * The device key could not sign (no permission, key invalidated, Keystore error).
+     * Nothing was sent, and retrying will not help: this is not a network failure.
+     */
+    data object SigningFailed : SubmitResult
 }
 
 /**

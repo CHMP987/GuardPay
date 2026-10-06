@@ -67,7 +67,7 @@ fun HomeScreen(session: OwnerSession, onOpen: (PaymentKey) -> Unit) {
                     else -> "$n pagos retenidos"
                 }
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(GpSpace.s8)) {
-                    Body((if (chain) "Reglas activas en Stellar" else "Reglas activas en la simulación") + " · $held")
+                    Body((if (chain) "Reglas activas en Stellar" else "Reglas activas en la simulación") + " · $held", Modifier.weight(1f))
                     if (chain && s.lastReadOk) StellarSeal(null)
                 }
             }
@@ -164,7 +164,7 @@ private fun AccountRulesSection(session: OwnerSession, s: OwnerUi) {
         shape.signers.forEach { a ->
             Body(
                 "Firmante: " + when (a) {
-                    session.ownerId -> "tu passkey"
+                    session.ownerId -> "la clave de este teléfono"
                     guardian -> "tu guardián (${a.short()})"
                     else -> a.short()
                 },

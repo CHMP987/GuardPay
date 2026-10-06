@@ -77,7 +77,7 @@ Se corrieron en `KmpStellarGatewayLiveTest`, run 4 (2026-10-06, 13:36 UTC). Ese 
 | Test | Dónde | Resultado |
 | --- | --- | --- |
 | `KeystoreSignerTest` (5): la firma verifica contra la dirección G con un verificador ed25519 independiente; el mismo alias da la misma clave; `PrivateKey.encoded == null`; solo firma 32 bytes; una clave con autenticación obligatoria no firma si el diálogo se salta | Instrumentado, emulador API 37 con PIN (la condición `isDeviceSecure` se cumplió) | **OK (5 tests)**, 2026-10-06 |
-| `DeviceProvisioningLiveTest`: la cuenta del dispositivo tiene `signers == [owner]` y el guardián no está entre ellos | JVM contra testnet, `-PliveTestnet` | OK al provisionar. La aserción explícita "el guardián no es firmante" se añadió después y **no se ha vuelto a correr** contra la red; la igualdad `== [owner]` ya la implicaba. |
+| `DeviceProvisioningLiveTest`: la cuenta del dispositivo tiene `signers == [owner]` y el guardián no está entre ellos | JVM contra testnet, `-PliveTestnet` | OK al provisionar (día 5). La aserción explícita "el guardián no es firmante" se añadió después. **Corrió contra la red el día 6**, al provisionar la cuenta de la demo `CDWPPTDM…GFV6`: OK (`evidence/demo/rehearsal.md`). |
 | `KmpStellarGatewayLiveTest`: el guardián no es firmante | JVM contra testnet, run 4 | OK |
 | `:app:shared:allTests` (incluye los checks de arquitectura y de grafo) | JVM | 338 tests, 0 fallos, 2026-10-06 tras los cambios del día 5 |
 
@@ -86,7 +86,7 @@ Se corrieron en `KmpStellarGatewayLiveTest`, run 4 (2026-10-06, 13:36 UTC). Ese 
 - [FACT] **No hay ruta de exportación.** `KeystoreSigner` solo expone `publicKey` y `signHash`. La clave privada es una referencia del Keystore y su `encoded` es `null` (test). Nada en el código escribe material privado. `keys.json` y `testnet.json` solo contienen direcciones públicas.
 - [FACT] **Logs.** `HoldWatchService` registra ids de hold y retrasos. `Wiring` registra el tipo de excepción. Ninguno registra claves, firmas ni hashes de firma. Un `println` temporal de depuración en `KmpStellarGateway` se quitó antes de este commit.
 - [FACT] **Cada firma pide a la persona.** El timeout `0` significa autenticación por uso. El test instrumentado muestra que el Keystore rechaza la firma si el diálogo se salta.
-- [FACT] Hallazgo de esta sesión: sin `android.permission.USE_BIOMETRIC` en el manifiesto, `BiometricPrompt` lanza `SecurityException` y la app mostraba "Error de red". Se añadió el permiso. [RECOMMENDATION] `OwnerSession.submit` debería distinguir un fallo de firma de uno de red. Hoy los dos se ven como "Error de red".
+- [FACT] Hallazgo de esta sesión: sin `android.permission.USE_BIOMETRIC` en el manifiesto, `BiometricPrompt` lanza `SecurityException` y la app mostraba "Error de red". Se añadió el permiso. [RECOMMENDATION] `OwnerSession.submit` debería distinguir un fallo de firma de uno de red. **Hecho el día 6:** `SubmitResult.SigningFailed` muestra "No se pudo firmar en este teléfono. No se envió nada." (`OwnerSessionTest.aBrokenKeyIsNotShownAsANetworkError`).
 - **Firma a ciegas.** El diálogo del sistema muestra un título fijo, no el destino, el monto ni la regla. La clave firma un hash. Esto lo mitigan la retención en cadena y la vista del guardián, no la clave. No resuelve al adversario A (ingeniería social).
 - [UNVERIFIED] Que el emulador use un Keystore respaldado por hardware. En el emulador probablemente es software. En un teléfono físico sería TEE o StrongBox, sin probar.
 

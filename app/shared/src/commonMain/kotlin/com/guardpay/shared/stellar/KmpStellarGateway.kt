@@ -9,6 +9,7 @@ import com.guardpay.shared.domain.TxHash
 import com.guardpay.shared.domain.UsdcAmount
 import com.guardpay.shared.signing.Signer
 import com.guardpay.shared.signing.SigningCancelledException
+import com.guardpay.shared.signing.signWith
 import com.guardpay.shared.stellar.ContractAbi.AuthPayload
 import com.guardpay.shared.stellar.ContractAbi.Storage
 import com.ionspin.kotlin.bignum.integer.BigInteger
@@ -236,7 +237,7 @@ class KmpStellarGateway(
             // A hostile RPC could inflate the resource fee to drain the signer's XLM.
             if (tx.fee > MAX_FEE_STROOPS) return SubmitResult.NetworkFailure("fee ${tx.fee} above the cap")
             val txHash = tx.hash()
-            val signature = signer.signHash(txHash)
+            val signature = signWith(signer, txHash) ?: return SubmitResult.SigningFailed
             (tx.signatures as MutableList<DecoratedSignature>).add(DecoratedSignature(signer.publicKey.copyOfRange(28, 32), signature))
             hash = TxHash(tx.hashHex().lowercase())
         } catch (e: SigningCancelledException) {

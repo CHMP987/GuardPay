@@ -27,3 +27,18 @@ interface Signer {
 }
 
 class SigningCancelledException : Exception("signing cancelled by the user")
+
+/**
+ * Signs [hash], or returns null when the key itself failed (permission, invalidated
+ * key, Keystore error) so callers can tell that apart from a network failure.
+ * A dismissed prompt still throws [SigningCancelledException].
+ */
+suspend fun signWith(signer: Signer, hash: ByteArray): ByteArray? = try {
+    signer.signHash(hash)
+} catch (e: SigningCancelledException) {
+    throw e
+} catch (e: kotlin.coroutines.cancellation.CancellationException) {
+    throw e
+} catch (e: Exception) {
+    null
+}

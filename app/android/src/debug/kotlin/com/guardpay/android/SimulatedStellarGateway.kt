@@ -11,6 +11,7 @@ import com.guardpay.shared.domain.TxHash
 import com.guardpay.shared.domain.UsdcAmount
 import com.guardpay.shared.signing.Signer
 import com.guardpay.shared.signing.SigningCancelledException
+import com.guardpay.shared.signing.signWith
 import com.guardpay.shared.stellar.AccountRules
 import com.guardpay.shared.stellar.AccountShape
 import com.guardpay.shared.stellar.StellarGateway
@@ -126,7 +127,7 @@ class SimulatedStellarGateway(
 
     private suspend fun submit(signer: Signer, body: () -> SubmitResult): SubmitResult {
         try {
-            signer.signHash(ByteArray(32))
+            signWith(signer, ByteArray(32)) ?: return SubmitResult.SigningFailed
         } catch (e: SigningCancelledException) {
             return SubmitResult.SigningCancelled
         }

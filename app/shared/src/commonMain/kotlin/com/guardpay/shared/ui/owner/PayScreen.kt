@@ -234,8 +234,9 @@ private fun ReviewSheet(s: OwnerUi, session: OwnerSession, p: LanePrediction) {
             StateChip(ChipModel("Error de red", ChipTone.Neutral, GpIcons.WifiOff))
             Body("No llegó a Stellar. Nada cambió.")
         }
+        if (s.notice == OwnerSession.SIGNING_FAILED) Body(OwnerSession.SIGNING_FAILED)
         val label = when (s.phase) {
-            SigningPhase.WaitingPasskey -> "Esperando tu passkey…"
+            SigningPhase.WaitingPasskey -> "Esperando tu huella o PIN…"
             SigningPhase.Sending -> "Enviando a Stellar…"
             SigningPhase.Idle -> when {
                 s.form.networkError -> "Reintentar"

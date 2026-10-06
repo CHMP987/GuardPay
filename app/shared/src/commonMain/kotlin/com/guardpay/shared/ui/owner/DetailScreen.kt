@@ -192,6 +192,6 @@ fun DetailScreen(session: OwnerSession, key: PaymentKey, onBack: () -> Unit) {
 
 internal fun signLabel(phase: SigningPhase, idle: String) = when (phase) {
     SigningPhase.Idle -> idle
-    SigningPhase.WaitingPasskey -> "Esperando tu passkey…"
+    SigningPhase.WaitingPasskey -> "Esperando tu huella o PIN…"
     SigningPhase.Sending -> "Enviando a Stellar…"
 }

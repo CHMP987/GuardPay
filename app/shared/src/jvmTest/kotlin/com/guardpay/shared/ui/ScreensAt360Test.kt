@@ -161,7 +161,7 @@ class ScreensAt360Test {
         r.owner.fill(STRANGER, "150")
         r.owner.openReview()
         r.owner.sign()
-        shoot(r, "02-firmando", "Esperando tu passkey")
+        shoot(r, "02-firmando", "Esperando tu huella o PIN")
     }
 
     @Test

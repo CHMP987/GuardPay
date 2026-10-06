@@ -1,0 +1,9 @@
+09:42:48 == run r2 scene 1
+09:44:03 scene1 total 48.9 s; after PIN 18.4 s
+09:44:08 == run r2 scene 23
+09:45:42 scene2 total 61.7 s; after PIN 19.8 s
+09:45:42 scene3 notification 0.2 s after Retenido showed
+09:46:33 scene3 from tap on notification 39.3 s; after PIN 9.2 s
+09:46:37 == run r2 scene 6
+09:49:44 == run r2 scene 6
+09:50:25 scene6 total 21.9 s

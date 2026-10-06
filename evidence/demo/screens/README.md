@@ -15,7 +15,7 @@
 | --- | --- | --- |
 | `00-entrada.png` | Entrada (elegir rol) | sesión nueva |
 | `01-borrador.png` | **Borrador**: Pagar con "Con espera" | 150 USDC a una cuenta que no es contacto |
-| `02-firmando.png` | **Firmando…**: "Esperando tu passkey…" | un firmante que nunca responde |
+| `02-firmando.png` | **Firmando…**: "Esperando tu huella o PIN…" | un firmante que nunca responde |
 | `03-retenido.png` | **Retenido** (Detalle) | la dueña firma; el registro crea la retención |
 | `04-listo-para-enviar.png` | **Listo para enviar** | el ledger avanza 120 s |
 | `05-enviado.png` | **Enviado** | la dueña libera tras la madurez |

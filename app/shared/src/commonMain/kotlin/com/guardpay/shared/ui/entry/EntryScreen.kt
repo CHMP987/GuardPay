@@ -38,7 +38,7 @@ fun EntryScreen(simulation: Boolean, onOwner: (() -> Unit)?, onGuardian: (() -> 
     ScreenScaffold(
         top = { if (simulation) SimulationBanner() },
         bottom = {
-            GpButton("Entrar con passkey", onOwner ?: {}, enabled = onOwner != null)
+            GpButton("Entrar a mi cuenta", onOwner ?: {}, enabled = onOwner != null)
             GpButton("Soy guardián de alguien", onGuardian ?: {}, kind = ButtonKind.Secondary, enabled = onGuardian != null)
         },
     ) {

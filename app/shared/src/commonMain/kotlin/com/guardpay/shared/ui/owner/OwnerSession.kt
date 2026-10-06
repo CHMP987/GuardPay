@@ -63,7 +63,7 @@ data class OwnerConfig(
     val ownerMayStop: Boolean = true,
 )
 
-/** The button moment of Firmando…: "Esperando tu passkey…", then "Enviando a Stellar…". */
+/** The button moment of Firmando…: "Esperando tu huella o PIN…", then "Enviando a Stellar…". */
 enum class SigningPhase { Idle, WaitingPasskey, Sending }
 
 /** A payment only this app knows about: a direct transfer it sent, or a refusal it received. */
@@ -297,6 +297,7 @@ class OwnerSession(
         val s = _ui.value
         if (s.formIntent() == null || s.prediction() == null || s.formDestination() == config.account) return
         editForm { it.copy(reviewOpen = true, networkError = false) }
+        if (_ui.value.notice == SIGNING_FAILED) _ui.update { it.copy(notice = null) }
     }
 
     /** System back: true when a sheet was open (it closes, unless a signature is in flight). */
@@ -360,6 +361,7 @@ class OwnerSession(
                 }
                 is SubmitResult.NetworkFailure -> editForm { it.copy(networkError = true) }
                 SubmitResult.SigningCancelled -> Unit
+                SubmitResult.SigningFailed -> _ui.update { it.copy(notice = SIGNING_FAILED) }
                 null -> {
                     _ui.update { it.copy(notice = UNKNOWN_OUTCOME) }
                     leaveForm(Screen.Home, toRoot = true)
@@ -400,6 +402,7 @@ class OwnerSession(
                 is SubmitResult.NetworkFailure ->
                     putExtra(id) { it.copy(overlay = PaymentState.NetworkError(SigningOrigin.Release(hold))) }
                 SubmitResult.SigningCancelled -> Unit
+                SubmitResult.SigningFailed -> _ui.update { it.copy(notice = SIGNING_FAILED) }
                 null -> {
                     _ui.update { it.copy(notice = UNKNOWN_OUTCOME) }
                     refresh()
@@ -436,6 +439,7 @@ class OwnerSession(
                 is SubmitResult.NetworkFailure ->
                     _ui.update { it.copy(stopSheetFor = null, notice = "No llegó a Stellar. Nada cambió.") }
                 SubmitResult.SigningCancelled -> Unit
+                SubmitResult.SigningFailed -> _ui.update { it.copy(stopSheetFor = null, notice = SIGNING_FAILED) }
                 null -> {
                     _ui.update { it.copy(stopSheetFor = null, notice = UNKNOWN_OUTCOME) }
                     refresh()
@@ -490,6 +494,7 @@ class OwnerSession(
 
     companion object {
         /** After [SubmissionOutcomeUnknownException]: never "nada cambió", never a blind retry. */
+        const val SIGNING_FAILED = "No se pudo firmar en este teléfono. No se envió nada."
         const val UNKNOWN_OUTCOME =
             "No sabemos si llegó a Stellar. Antes de intentarlo otra vez, revisa tu saldo y tus pagos: se están leyendo de nuevo."
     }

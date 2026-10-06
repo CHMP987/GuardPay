@@ -33,6 +33,7 @@ Detalle y responsables en `docs/ESTADO-FASES.md`. Toda la evidencia está en `ev
 | P6 Firma | Keystore ed25519 con biometría o PIN; ciclo completo en testnet, en **emulador** | `evidence/smart-account/signing.md` |
 | P7 IA on-device | **no iniciado** (hay un stub) | — |
 | P8 Aviso al guardián | sondeo local sin backend; < 60 s medido en **emulador** | `evidence/guardian/notification.md` |
+| Día 6 (P2 · Persona 2) | escenas 1, 2, 3 y 6 ensayadas dos veces contra testnet, en **emulador**; vídeo de respaldo grabado | `evidence/demo/rehearsal.md` |
 | P9 Adversarial · P10 Entrega | no iniciado | — |
 
 ## Gates
@@ -51,6 +52,7 @@ Detalle y responsables en `docs/ESTADO-FASES.md`. Toda la evidencia está en `ev
 - **Demo en un teléfono.** En el build debug, las claves de la dueña y del guardián están en el mismo teléfono, bajo dos alias del Keystore. En uso real cada persona tiene el suyo. El aviso entre dos teléfonos no se ha probado.
 - **Pruebas en emulador.** Lo de P5, P6 y P8 se corrió en un emulador Android (API 37), no en un teléfono físico.
 - **La IA (P7) aún no existe.** Hoy hay un stub.
+- **Los pagos inmediatos no se releen.** Un pago a un contacto queda en cadena, pero desaparece de "Recientes" si se reinicia la app. Las retenciones sí se vuelven a leer del registro.
 
 ## Construir y probar
 

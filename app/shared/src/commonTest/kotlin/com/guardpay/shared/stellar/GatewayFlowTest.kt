@@ -44,7 +44,7 @@ class GatewayFlowTest {
         is SubmitResult.Confirmed -> PaymentEvent.TransferConfirmed(txHash)
         is SubmitResult.Rejected -> PaymentEvent.ContractRejected(txHash)
         is SubmitResult.NetworkFailure -> PaymentEvent.SubmissionFailed
-        SubmitResult.SigningCancelled -> PaymentEvent.SigningCancelled
+        SubmitResult.SigningCancelled, SubmitResult.SigningFailed -> PaymentEvent.SigningCancelled
     }
 
     private suspend fun FakeStellarGateway.laneFor(intent: PaymentIntent) = predictLane(
