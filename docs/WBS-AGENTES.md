@@ -59,27 +59,27 @@ Estados del checklist: `pendiente` · `en curso` · `bloqueada` · `hecha` · `o
 | T-032 | Firmar `transfer` ed25519 desde Kotlin | feature | pendiente | T-023 |
 | T-033 | Documentar Spike C | docs | pendiente | T-032 |
 | T-034 | Crear workspace Cargo y vendor OZ | setup | hecha | CP-1 |
-| T-035 | Implementar `contracts/account` | feature | pendiente | T-034 |
-| T-036 | Implementar `queue` y clave del registro | feature | pendiente | T-034 |
-| T-037 | Implementar `cancel`, `mark_executed` y lecturas | feature | pendiente | T-036 |
-| T-038 | Implementar `guardian_hold.install` | feature | pendiente | T-034 |
-| T-039 | Implementar `enforce` carril de confianza | feature | pendiente | T-035, T-038 |
-| T-040 | Implementar `enforce` carril retenido | feature | pendiente | T-037, T-038 |
-| T-041 | Implementar `enforce` queue/cancel y rechazo | feature | pendiente | T-036, T-037, T-038 |
-| T-042 | Tests MUST GH-01…03, GH-14, GH-24 | test | pendiente | T-039, T-041 |
-| T-043 | Tests MUST GH-04…08, GH-07b, GH-31 | test | pendiente | T-037, T-040 |
-| T-044 | Tests MUST GH-09, GH-13, GH-25…27, GH-32 | test | pendiente | T-035, T-038, T-041 |
-| T-045 | Tests MUST GH-10…12, GH-15…19, GH-18b | test | pendiente | T-039, T-040, T-041 |
-| T-046 | Tests MUST GH-20…23, GH-20b | test | pendiente | T-040 |
-| T-047 | Grep de seguridad, persistencia y overflow | test | pendiente | T-042, T-043, T-044, T-045, T-046 |
-| T-048 | Escribir revisión manual de lista blanca | docs | pendiente | T-041, T-047 |
+| T-035 | Implementar `contracts/account` | feature | hecha | T-034 |
+| T-036 | Implementar `queue` y clave del registro | feature | hecha | T-034 |
+| T-037 | Implementar `cancel`, `mark_executed` y lecturas | feature | hecha | T-036 |
+| T-038 | Implementar `guardian_hold.install` | feature | hecha | T-034 |
+| T-039 | Implementar `enforce` carril de confianza | feature | hecha | T-035, T-038 |
+| T-040 | Implementar `enforce` carril retenido | feature | hecha | T-037, T-038 |
+| T-041 | Implementar `enforce` queue/cancel y rechazo | feature | hecha | T-036, T-037, T-038 |
+| T-042 | Tests MUST GH-01…03, GH-14, GH-24 | test | hecha | T-039, T-041 |
+| T-043 | Tests MUST GH-04…08, GH-07b, GH-31 | test | hecha | T-037, T-040 |
+| T-044 | Tests MUST GH-09, GH-13, GH-25…27, GH-32 | test | hecha | T-035, T-038, T-041 |
+| T-045 | Tests MUST GH-10…12, GH-15…19, GH-18b | test | hecha | T-039, T-040, T-041 |
+| T-046 | Tests MUST GH-20…23, GH-20b | test | hecha | T-040 |
+| T-047 | Grep de seguridad, persistencia y overflow | test | hecha | T-042, T-043, T-044, T-045, T-046 |
+| T-048 | Escribir revisión manual de lista blanca | docs | hecha | T-041, T-047 |
 | T-049 | Implementar cancel de dueña y `expires_at` | feature | pendiente | T-006, T-037, T-040 |
-| **CP-2** | **Humano: 29 tests MUST + review** | **checkpoint** | **pendiente** | **T-047, T-048** |
-| T-050 | Escribir `deploy-testnet.ps1` | setup | pendiente | CP-2, T-005 |
-| T-051 | Escribir `deploy-testnet.sh` | setup | pendiente | T-050 |
-| T-052 | Escribir `read-rules` | feature | pendiente | T-050 |
-| T-053 | Correr tests ★ en testnet | test | pendiente | T-050 |
-| T-054 | Verificar reglas on-chain | test | pendiente | T-052, T-053 |
+| **CP-2** | **Humano: 29 tests MUST + review** | **checkpoint** | **hecha** | **T-047, T-048** |
+| T-050 | Escribir `deploy-testnet.ps1` | setup | hecha | CP-2, T-005 |
+| T-051 | Escribir `deploy-testnet.sh` | setup | hecha | T-050 |
+| T-052 | Escribir `read-rules` | feature | hecha | T-050 |
+| T-053 | Correr tests ★ en testnet | test | hecha | T-050 |
+| T-054 | Verificar reglas on-chain | test | hecha | T-052, T-053 |
 | **CP-3** | **Humano: hashes REAL de deploy** | **checkpoint** | **pendiente** | **T-054** |
 | T-055 | Bootstrap Gradle KMP | setup | pendiente | CP-0, T-002 |
 | T-056 | Modelar `PaymentState` | feature | pendiente | T-004, T-055 |
