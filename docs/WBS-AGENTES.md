@@ -51,7 +51,7 @@ Estados del checklist: `pendiente` · `en curso` · `bloqueada` · `hecha` · `o
 | T-025 | Tests ciclo GH-04, GH-05, GH-06 | test | hecha | T-023 |
 | T-026 | Test GH-09 (guardián no gasta) | test | hecha | T-023 |
 | T-027 | Tests vínculo GH-20…GH-23 | test | hecha | T-023 |
-| T-028 | Documentar Spike A y congelar firmas | docs | pendiente | T-024, T-025, T-026, T-027 |
+| T-028 | Documentar Spike A y congelar firmas | docs | hecha | T-024, T-025, T-026, T-027 |
 | **CP-1** | **Humano: Spike A GO / REDESIGN** | **checkpoint** | **pendiente** | **T-028** |
 | T-029 | Crear app bench LiteRT-LM | setup | pendiente | CP-0, T-009 |
 | T-030 | Medir Gemma en el teléfono de demo | test | pendiente | T-029 |

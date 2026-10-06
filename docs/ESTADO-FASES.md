@@ -24,7 +24,7 @@ T-016 está hecha. G2 ya no bloquea T-019. T-019 hecha (A0 digest OZ pasa; ver `
 | Fase | Estado |
 | --- | --- |
 | P0 | INCOMPLETA |
-| P1 Spike A | en curso. A0 `[FACT]` verde (T-019). A1 R6 **pasa** (T-020). Siguiente: T-021/T-022. |
+| P1 Spike A | tests documentados en `evidence/security/spike-a.md` (T-028). Veredicto evidencia **GO**. **CP-1** pendiente de un humano. |
 | P2–P10 | no iniciado |
 
 Definition of Done: implementación + unit + integración + seguridad + criterios de aceptación + evidencia. Compilar no cierra una fase.
