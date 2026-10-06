@@ -19,12 +19,21 @@ P0 sigue **INCOMPLETA**. T-010, T-011, T-012, T-013, T-014 y T-018 no están hec
 
 T-016 está hecha. G2 ya no bloquea T-019. T-019 hecha (A0 digest OZ pasa; ver `evidence/security/spike-a.md`). T-020 hecha (A1 R6 veredicto **pasa**; ver misma evidencia).
 
+## CP-1
+
+Veredicto humano: **GO** a contratos de producción. Registrado el 6 oct 2026 a pedido del humano («firma»).
+
+Base: `evidence/security/spike-a.md` (A0, A1 y GH-01, 04, 05, 06, 09, 13, 20, 21, 22, 23, 24, 25, 26 en pasa) y firmas en `docs/INTERFACES.md`. 7.A no está autorizado.
+
+T-034 se puede asignar. No está empezada. El spike no se copia a `contracts/`.
+
 ## Fases
 
 | Fase | Estado |
 | --- | --- |
 | P0 | INCOMPLETA |
-| P1 Spike A | tests documentados en `evidence/security/spike-a.md` (T-028). Veredicto evidencia **GO**. **CP-1** pendiente de un humano. |
-| P2–P10 | no iniciado |
+| P1 Spike A | cerrada. Evidencia GO y CP-1 GO. |
+| P2 | en curso. T-034 hecha (workspace + vendor OZ). |
+| P3–P10 | no iniciado |
 
 Definition of Done: implementación + unit + integración + seguridad + criterios de aceptación + evidencia. Compilar no cierra una fase.

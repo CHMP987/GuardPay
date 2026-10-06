@@ -1,0 +1,249 @@
+use soroban_sdk::{contracttype, panic_with_error, Address, Env, Vec};
+
+use crate::rwa::compliance::{
+    modules::{
+        country_restrict::{emit_country_restricted, emit_country_unrestricted},
+        storage::{country_code, get_irs_country_data_entries},
+        ComplianceModuleError, MODULE_EXTEND_AMOUNT, MODULE_TTL_THRESHOLD,
+    },
+    TransferKind,
+};
+
+#[contracttype]
+#[derive(Clone)]
+pub enum CountryRestrictStorageKey {
+    /// Per-(token, country) restriction membership entry.
+    RestrictedCountry(Address, u32),
+}
+
+// ################## QUERY STATE ##################
+
+/// Returns whether the given country is on the restriction list for `token`.
+///
+/// # Arguments
+///
+/// * `e` - Access to the Soroban environment.
+/// * `token` - The token address.
+/// * `country` - The ISO 3166-1 numeric country code.
+pub fn is_country_restricted(e: &Env, token: &Address, country: u32) -> bool {
+    let key = CountryRestrictStorageKey::RestrictedCountry(token.clone(), country);
+    if e.storage().persistent().has(&key) {
+        e.storage().persistent().extend_ttl(&key, MODULE_TTL_THRESHOLD, MODULE_EXTEND_AMOUNT);
+        true
+    } else {
+        false
+    }
+}
+
+/// Returns `false` if `account` has any restricted country in the IRS for
+/// `token`, and `true` otherwise.
+///
+/// # Arguments
+///
+/// * `e` - Access to the Soroban environment.
+/// * `account` - The account whose country data is checked.
+/// * `token` - The token address.
+///
+/// # Errors
+///
+/// * refer to [`get_irs_country_data_entries`] errors.
+pub fn can_receive(e: &Env, account: &Address, token: &Address) -> bool {
+    let entries = get_irs_country_data_entries(e, token, account);
+    for entry in entries.iter() {
+        if is_country_restricted(e, token, country_code(&entry.country)) {
+            return false;
+        }
+    }
+    true
+}
+
+/// Rejects a transfer whose recipient has a restricted country, by panicking.
+///
+/// Country restriction checks are recipient-based, so the sender and amount
+/// are intentionally ignored. Privileged (forced and recovery) transfers
+/// are exempt from the policy, and no bookkeeping exists in this module,
+/// so they pass through untouched.
+///
+/// # Arguments
+///
+/// * `e` - Access to the Soroban environment.
+/// * `to` - The recipient address.
+/// * `kind` - Who initiated the transfer and under what authority.
+/// * `token` - The token address.
+///
+/// # Errors
+///
+/// * [`ComplianceModuleError::CountryRestricted`] - When the recipient has a
+///   restricted country and the transfer is not privileged.
+/// * refer to [`can_receive`] errors.
+pub fn on_transfer(e: &Env, to: &Address, kind: &TransferKind, token: &Address) {
+    match kind {
+        TransferKind::Forced | TransferKind::Recovery => return,
+        TransferKind::Standard | TransferKind::Delegated(_) => {}
+    }
+    if !can_receive(e, to, token) {
+        panic_with_error!(e, ComplianceModuleError::CountryRestricted);
+    }
+}
+
+/// Rejects a mint whose recipient has a restricted country, by panicking.
+///
+/// # Arguments
+///
+/// * `e` - Access to the Soroban environment.
+/// * `to` - The recipient address.
+/// * `token` - The token address.
+///
+/// # Errors
+///
+/// * [`ComplianceModuleError::CountryRestricted`] - When the recipient has a
+///   restricted country.
+/// * refer to [`can_receive`] errors.
+pub fn on_created(e: &Env, to: &Address, token: &Address) {
+    if !can_receive(e, to, token) {
+        panic_with_error!(e, ComplianceModuleError::CountryRestricted);
+    }
+}
+
+// ################## CHANGE STATE ##################
+
+/// Records a country as restricted in persistent storage.
+///
+/// # Arguments
+///
+/// * `e` - Access to the Soroban environment.
+/// * `token` - The token address.
+/// * `country` - The ISO 3166-1 numeric country code to restrict.
+///
+/// # Security Warning
+///
+/// This helper performs no authorization checks.
+pub fn set_country_restricted(e: &Env, token: &Address, country: u32) {
+    let key = CountryRestrictStorageKey::RestrictedCountry(token.clone(), country);
+    e.storage().persistent().set(&key, &());
+}
+
+/// Removes a country from the restriction list in persistent storage.
+///
+/// # Arguments
+///
+/// * `e` - Access to the Soroban environment.
+/// * `token` - The token address.
+/// * `country` - The ISO 3166-1 numeric country code to unrestrict.
+///
+/// # Security Warning
+///
+/// This helper performs no authorization checks.
+pub fn remove_country_restricted(e: &Env, token: &Address, country: u32) {
+    e.storage()
+        .persistent()
+        .remove(&CountryRestrictStorageKey::RestrictedCountry(token.clone(), country));
+}
+
+/// Adds a country to the restriction list for `token`. If `country` is
+/// already restricted, the call is a no-op (no event emitted, no error
+/// raised).
+///
+/// # Arguments
+///
+/// * `e` - Access to the Soroban environment.
+/// * `token` - The token address.
+/// * `country` - The ISO 3166-1 numeric country code to restrict.
+///
+/// # Events
+///
+/// * topics - `["country_restricted", token: Address]`
+/// * data - `[country: u32]`
+///
+/// # Security Warning
+///
+/// This helper performs no authorization checks.
+pub fn add_country_restriction(e: &Env, token: &Address, country: u32) {
+    if !is_country_restricted(e, token, country) {
+        set_country_restricted(e, token, country);
+        emit_country_restricted(e, token, country);
+    }
+}
+
+/// Removes a country from the restriction list for `token`. If `country` is
+/// not currently restricted, the call is a no-op (no event emitted, no error
+/// raised).
+///
+/// # Arguments
+///
+/// * `e` - Access to the Soroban environment.
+/// * `token` - The token address.
+/// * `country` - The ISO 3166-1 numeric country code to unrestrict.
+///
+/// # Events
+///
+/// * topics - `["country_unrestricted", token: Address]`
+/// * data - `[country: u32]`
+///
+/// # Security Warning
+///
+/// This helper performs no authorization checks.
+pub fn remove_country_restriction(e: &Env, token: &Address, country: u32) {
+    if is_country_restricted(e, token, country) {
+        remove_country_restricted(e, token, country);
+        emit_country_unrestricted(e, token, country);
+    }
+}
+
+/// Adds multiple countries to the restriction list in a single call. Entries
+/// that are already restricted are silently skipped (no event emitted, no
+/// error raised).
+///
+/// # Arguments
+///
+/// * `e` - Access to the Soroban environment.
+/// * `token` - The token address.
+/// * `countries` - The country codes to restrict.
+///
+/// # Events
+///
+/// For each country newly added to the restriction list:
+/// * topics - `["country_restricted", token: Address]`
+/// * data - `[country: u32]`
+///
+/// # Security Warning
+///
+/// This helper performs no authorization checks.
+///
+/// Each `(token, country)` pair lives in its own persistent entry, so the
+/// caller must size `countries` to stay within the per-transaction network
+/// limits — see <https://lab.stellar.org/network-limits>.
+pub fn batch_restrict_countries(e: &Env, token: &Address, countries: &Vec<u32>) {
+    for country in countries.iter() {
+        add_country_restriction(e, token, country);
+    }
+}
+
+/// Removes multiple countries from the restriction list in a single call.
+/// Entries that are not currently restricted are silently skipped (no event
+/// emitted, no error raised).
+///
+/// # Arguments
+///
+/// * `e` - Access to the Soroban environment.
+/// * `token` - The token address.
+/// * `countries` - The country codes to unrestrict.
+///
+/// # Events
+///
+/// For each country removed from the restriction list:
+/// * topics - `["country_unrestricted", token: Address]`
+/// * data - `[country: u32]`
+///
+/// # Security Warning
+///
+/// This helper performs no authorization checks.
+///
+/// Each `(token, country)` pair lives in its own persistent entry, so the
+/// caller must size `countries` to stay within the per-transaction network
+/// limits — see <https://lab.stellar.org/network-limits>.
+pub fn batch_unrestrict_countries(e: &Env, token: &Address, countries: &Vec<u32>) {
+    for country in countries.iter() {
+        remove_country_restriction(e, token, country);
+    }
+}

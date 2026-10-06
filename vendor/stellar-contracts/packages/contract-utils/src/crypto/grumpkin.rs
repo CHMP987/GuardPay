@@ -1,0 +1,420 @@
+//! Grumpkin affine point arithmetic over Soroban's BN254 scalar field.
+//!
+//! Grumpkin is the prime-order elliptic curve `y² = x³ - 17` defined over
+//! `F_r`, the scalar field of BN254. Because Grumpkin's base field equals
+//! BN254's scalar field, every coordinate operation reduces to a `Bn254Fr`
+//! host call (CAP-80: `bn254_fr_{add, sub, mul, inv}`).
+//!
+//! This module exposes:
+//!
+//! * [`Grumpkin::add`], [`Grumpkin::sub`], [`Grumpkin::neg`], [`Grumpkin::mul`]
+//!   — affine point arithmetic with full identity handling. Every point input
+//!   is validated at entry: the canonical identity encoding is accepted as `O`,
+//!   any other input must be a canonical on-curve point, and violations panic
+//!   with [`CryptoError::InvalidPoint`].
+//! * [`Grumpkin::is_on_curve`], [`Grumpkin::is_not_identity`],
+//!   [`Grumpkin::is_canonical_point`], [`Grumpkin::is_canonical_field`] —
+//!   non-panicking validation helpers for trust boundaries that need to accept
+//!   or reject foreign bytes with a domain-specific error (e.g. user-supplied
+//!   public keys) before they reach this API.
+//! * [`Grumpkin::identity`] — the encoded point at infinity, `(0, 0)` over 64
+//!   bytes.
+//! * [`Grumpkin::generator`] — the canonical Barretenberg generator `G` used by
+//!   the Pedersen commitment scheme.
+//!
+//! # Encoding
+//!
+//! A [`Point`] is a `BytesN<64>` laid out as `be_bytes(x) || be_bytes(y)`, each
+//! coordinate a canonical 32-byte big-endian `Bn254Fr` representative. The
+//! identity is the all-zero encoding `(0, 0)` and is handled as a special case
+//! in arithmetic. Real curve points cannot share this encoding because
+//! `0² ≠ 0³ - 17 (mod r)`.
+//!
+//! The Soroban host reduces non-canonical `Bn254Fr` encodings modulo `r`
+//! instead of rejecting them, so distinct byte strings can decode to the same
+//! coordinates (e.g. `be(r) || be(r)` decodes to `(0, 0)`). The arithmetic
+//! entry points therefore reject any non-canonical encoding before decoding;
+//! within that validated domain every logical point has exactly one byte
+//! encoding and byte comparison decides point equality.
+
+use soroban_sdk::{crypto::bn254::Bn254Fr, panic_with_error, BytesN, Env, U256};
+
+use crate::crypto::error::CryptoError;
+
+/// Affine encoding of a Grumpkin point as a 64-byte value.
+///
+/// Layout: `be_bytes(x) || be_bytes(y)`, each a canonical 32-byte `Bn254Fr`
+/// representative. The all-zero encoding represents the identity (point at
+/// infinity).
+pub type Point = BytesN<64>;
+
+/// Canonical byte encoding of the identity element (point at infinity).
+const IDENTITY_BYTES: [u8; 64] = [0u8; 64];
+
+/// BN254 scalar field order `r` in big-endian bytes — the canonical upper
+/// bound on a coordinate's 32-byte representative.
+const BN254_FR_MODULUS_BE: [u8; 32] = [
+    0x30, 0x64, 0x4e, 0x72, 0xe1, 0x31, 0xa0, 0x29, 0xb8, 0x50, 0x45, 0xb6, 0x81, 0x81, 0x58, 0x5d,
+    0x28, 0x33, 0xe8, 0x48, 0x79, 0xb9, 0x70, 0x91, 0x43, 0xe1, 0xf5, 0x93, 0xf0, 0x00, 0x00, 0x01,
+];
+
+/// Canonical Barretenberg Grumpkin generator `G`. Encoded as `be(x) || be(y)`
+/// over 64 bytes.
+///
+/// - `x = 0x083e7911d835097629f0067531fc15cafd79a89beecb39903f69572c636f4a5a`
+/// - `y = 0x1a7f5efaad7f315c25a918f30cc8d7333fccab7ad7c90f14de81bcc528f9935d`
+const GENERATOR_BYTES: [u8; 64] = [
+    // x
+    0x08, 0x3e, 0x79, 0x11, 0xd8, 0x35, 0x09, 0x76, 0x29, 0xf0, 0x06, 0x75, 0x31, 0xfc, 0x15, 0xca,
+    0xfd, 0x79, 0xa8, 0x9b, 0xee, 0xcb, 0x39, 0x90, 0x3f, 0x69, 0x57, 0x2c, 0x63, 0x6f, 0x4a, 0x5a,
+    // y
+    0x1a, 0x7f, 0x5e, 0xfa, 0xad, 0x7f, 0x31, 0x5c, 0x25, 0xa9, 0x18, 0xf3, 0x0c, 0xc8, 0xd7, 0x33,
+    0x3f, 0xcc, 0xab, 0x7a, 0xd7, 0xc9, 0x0f, 0x14, 0xde, 0x81, 0xbc, 0xc5, 0x28, 0xf9, 0x93, 0x5d,
+];
+
+/// Grumpkin point arithmetic over `Bn254Fr`.
+///
+/// The arithmetic entry points ([`Self::add`], [`Self::sub`], [`Self::neg`],
+/// [`Self::mul`]) validate every point input once at entry: the canonical
+/// identity encoding is accepted as `O`, any other input must be a canonical
+/// on-curve point, and violations panic with [`CryptoError::InvalidPoint`].
+/// Intermediate results are on the curve by construction and are not
+/// re-validated.
+///
+/// [`Self::is_on_curve`], [`Self::is_canonical_point`],
+/// [`Self::is_canonical_field`] and [`Self::is_not_identity`] remain available
+/// as non-panicking checks for trust boundaries that need to accept or reject
+/// foreign bytes with a domain-specific error (e.g. user-supplied public keys
+/// without an accompanying soundness proof) before they reach this API.
+pub struct Grumpkin;
+
+impl Grumpkin {
+    /// Returns the encoded identity element (the point at infinity).
+    ///
+    /// # Arguments
+    ///
+    /// * `e` - Access to the Soroban environment.
+    pub fn identity(e: &Env) -> Point {
+        BytesN::from_array(e, &IDENTITY_BYTES)
+    }
+
+    /// Returns the canonical Barretenberg Grumpkin generator `G`.
+    ///
+    /// This is the same `G` used by Barretenberg's Pedersen commitment scheme
+    /// and is the curve generator referenced by the noir/UltraHonk circuits
+    /// that consume this library's outputs. It differs from ark-grumpkin's
+    /// default generator: callers cross-validating against ark-grumpkin must
+    /// construct an `ArkPoint` from the documented `(x, y)` instead of using
+    /// `ArkProj::generator()`.
+    ///
+    /// # Arguments
+    ///
+    /// * `e` - Access to the Soroban environment.
+    pub fn generator(e: &Env) -> Point {
+        BytesN::from_array(e, &GENERATOR_BYTES)
+    }
+
+    /// Returns `true` iff `p` is the canonical identity encoding (the
+    /// all-zero 64 bytes).
+    ///
+    /// The decision is made on raw bytes and is only meaningful for canonical
+    /// encodings: a non-canonical encoding whose coordinates reduce to `(0,
+    /// 0)` modulo `r` (e.g. `be(r) || be(r)`) returns `false`. The arithmetic
+    /// entry points reject such encodings with
+    /// [`CryptoError::InvalidPoint`] instead of treating them as the
+    /// identity.
+    ///
+    /// # Arguments
+    ///
+    /// * `p` - The point to check.
+    pub fn is_identity(p: &Point) -> bool {
+        p.to_array() == IDENTITY_BYTES
+    }
+
+    /// Returns `true` iff `p` is not the identity.
+    ///
+    /// # Arguments
+    ///
+    /// * `p` - The point to check.
+    pub fn is_not_identity(p: &Point) -> bool {
+        !Self::is_identity(p)
+    }
+
+    /// Returns `true` iff `f` is a canonical 32-byte big-endian `Bn254Fr`
+    /// representative, i.e. its value as a 256-bit big-endian integer is
+    /// strictly less than the field modulus `r`.
+    ///
+    /// Required at any trust boundary that feeds bytes to the Soroban host's
+    /// `Bn254Fr` deserialiser. The host's `bn254_fr_from_u256val` (and the
+    /// SDK's `Bn254Fr::from_bytes` that wraps it) accepts any 32-byte
+    /// representative and silently reduces values `≥ r` modulo `r` rather
+    /// than rejecting them, so multiple distinct byte strings deserialise to
+    /// the same field element. Callers that persist or emit raw bytes (event
+    /// data, on-chain commitments) must enforce canonicality themselves to
+    /// keep state and events byte-unique per logical value.
+    ///
+    /// # Arguments
+    ///
+    /// * `f` - The 32-byte field representative.
+    pub fn is_canonical_field(f: &BytesN<32>) -> bool {
+        is_canonical_coord(&f.to_array())
+    }
+
+    /// Returns `true` iff both coordinates of `p` are canonical 32-byte
+    /// big-endian `Bn254Fr` representatives. See [`Self::is_canonical_field`]
+    /// for the rationale and host-deserialiser caveat.
+    ///
+    /// Performs no on-curve or non-identity check; combine with
+    /// [`Self::is_on_curve`] / [`Self::is_not_identity`] when those are also
+    /// required.
+    ///
+    /// # Arguments
+    ///
+    /// * `p` - The 64-byte point encoding.
+    pub fn is_canonical_point(p: &Point) -> bool {
+        let bytes = p.to_array();
+        is_canonical_coord(&bytes[..32]) && is_canonical_coord(&bytes[32..])
+    }
+
+    /// Returns `true` iff `(x, y)` satisfies Grumpkin's curve equation
+    /// `y² ≡ x³ - 17 (mod r)` **and** each coordinate is a canonical
+    /// `Bn254Fr` representative (`< r` as a 32-byte big-endian integer).
+    ///
+    /// The canonical-range check is required for byte equality on validated
+    /// points to be sound: without it, the same logical point `(x, y)` has
+    /// multiple distinct encodings (e.g. `be(x) || be(y)` and
+    /// `be(x + r) || be(y)`), all of which `Bn254Fr::from_bytes` reduces to
+    /// the same value, breaking uniqueness checks keyed on the raw bytes.
+    ///
+    /// The identity encoding `(0, 0)` returns `false`: `0² ≠ -17 (mod r)`. To
+    /// admit `O` as a valid group element, combine this with
+    /// [`Self::is_identity`] at the call site.
+    ///
+    /// # Arguments
+    ///
+    /// * `e` - Access to the Soroban environment.
+    /// * `p` - The point to validate.
+    pub fn is_on_curve(e: &Env, p: &Point) -> bool {
+        if !Self::is_canonical_point(p) {
+            return false;
+        }
+        let (x, y) = Self::coordinates(e, p);
+        let lhs = y.clone() * y;
+        let rhs = x.clone() * x.clone() * x - fr_from_u32(e, 17);
+        lhs == rhs
+    }
+
+    /// Returns `-p`. For non-identity `p = (x, y)`, this is `(x, -y mod r)`;
+    /// `-O = O`.
+    ///
+    /// # Arguments
+    ///
+    /// * `e` - Access to the Soroban environment.
+    /// * `p` - The point to negate.
+    ///
+    /// # Errors
+    ///
+    /// * [`CryptoError::InvalidPoint`] - When `p` is neither the canonical
+    ///   identity encoding nor a canonical on-curve point.
+    pub fn neg(e: &Env, p: &Point) -> Point {
+        Self::require_valid_point(e, p);
+        Self::neg_unchecked(e, p)
+    }
+
+    /// Returns `p1 + p2` on Grumpkin.
+    ///
+    /// Distinguishes the five cases of affine short-Weierstrass addition:
+    ///
+    /// 1. `p1 = O` → `p2`.
+    /// 2. `p2 = O` → `p1`.
+    /// 3. `x1 = x2` and `y1 = -y2 (mod r)` → `O` (inverse case). This must be
+    ///    detected before the generic case, otherwise `x1 - x2 = 0` forces a
+    ///    division by zero in the slope formula. It also subsumes the
+    ///    two-torsion edge case `y = 0`, since then `y = -y` and `p = -p`.
+    /// 4. `p1 = p2` → doubling with slope `λ_dbl = 3·x1² / (2·y1)`.
+    /// 5. Otherwise (generic) → slope `λ_add = (y2 - y1) / (x2 - x1)`.
+    ///
+    /// # Arguments
+    ///
+    /// * `e` - Access to the Soroban environment.
+    /// * `p1` - The first summand.
+    /// * `p2` - The second summand.
+    ///
+    /// # Errors
+    ///
+    /// * [`CryptoError::InvalidPoint`] - When `p1` or `p2` is neither the
+    ///   canonical identity encoding nor a canonical on-curve point.
+    pub fn add(e: &Env, p1: &Point, p2: &Point) -> Point {
+        Self::require_valid_point(e, p1);
+        Self::require_valid_point(e, p2);
+        Self::add_unchecked(e, p1, p2)
+    }
+
+    /// Returns `p1 - p2 = p1 + (-p2)`. Subtraction of a point from itself
+    /// returns `O` via the inverse case in [`Self::add`].
+    ///
+    /// # Arguments
+    ///
+    /// * `e` - Access to the Soroban environment.
+    /// * `p1` - The minuend.
+    /// * `p2` - The subtrahend.
+    ///
+    /// # Errors
+    ///
+    /// * [`CryptoError::InvalidPoint`] - When `p1` or `p2` is neither the
+    ///   canonical identity encoding nor a canonical on-curve point.
+    pub fn sub(e: &Env, p1: &Point, p2: &Point) -> Point {
+        Self::require_valid_point(e, p1);
+        Self::require_valid_point(e, p2);
+        Self::add_unchecked(e, p1, &Self::neg_unchecked(e, p2))
+    }
+
+    /// Returns `scalar · p` on Grumpkin via double-and-add.
+    ///
+    /// Handles edges cleanly: `0 · p = O` for any `p`, and `scalar · O = O`
+    /// for any `scalar`.
+    ///
+    /// # Arguments
+    ///
+    /// * `e` - Access to the Soroban environment.
+    /// * `p` - The base point.
+    /// * `scalar` - The scalar multiplier. Sized for the on-chain consumers'
+    ///   needs (token amounts and similar bounded quantities); off-chain
+    ///   provers typically use larger scalars and should pre-compute on the
+    ///   prover side rather than calling this function.
+    ///
+    /// # Errors
+    ///
+    /// * [`CryptoError::InvalidPoint`] - When `p` is neither the canonical
+    ///   identity encoding nor a canonical on-curve point.
+    pub fn mul(e: &Env, p: &Point, scalar: u128) -> Point {
+        Self::require_valid_point(e, p);
+        if scalar == 0 || Self::is_identity(p) {
+            return Self::identity(e);
+        }
+        let mut k = scalar;
+        let mut result = Self::identity(e);
+        let mut base = p.clone();
+        while k > 0 {
+            if k & 1 == 1 {
+                result = Self::add_unchecked(e, &result, &base);
+            }
+            k >>= 1;
+            if k > 0 {
+                base = Self::add_unchecked(e, &base, &base);
+            }
+        }
+        result
+    }
+
+    /// Encodes `(x, y)` as a 64-byte [`Point`].
+    ///
+    /// # Arguments
+    ///
+    /// * `e` - Access to the Soroban environment.
+    /// * `x` - The x-coordinate as a `Bn254Fr` element.
+    /// * `y` - The y-coordinate as a `Bn254Fr` element.
+    pub fn from_xy(e: &Env, x: &Bn254Fr, y: &Bn254Fr) -> Point {
+        let mut bytes = [0u8; 64];
+        bytes[..32].copy_from_slice(&x.to_bytes().to_array());
+        bytes[32..].copy_from_slice(&y.to_bytes().to_array());
+        BytesN::from_array(e, &bytes)
+    }
+
+    /// Decodes `(x, y)` from a 64-byte [`Point`].
+    ///
+    /// Performs no validation: non-canonical coordinates are reduced modulo
+    /// `r` by the host deserialiser. See [`Self::is_canonical_field`].
+    ///
+    /// # Arguments
+    ///
+    /// * `e` - Access to the Soroban environment.
+    /// * `p` - The encoded point to decode.
+    pub fn coordinates(e: &Env, p: &Point) -> (Bn254Fr, Bn254Fr) {
+        let bytes = p.to_array();
+        let mut x = [0u8; 32];
+        let mut y = [0u8; 32];
+        x.copy_from_slice(&bytes[..32]);
+        y.copy_from_slice(&bytes[32..]);
+        (
+            Bn254Fr::from_bytes(BytesN::from_array(e, &x)),
+            Bn254Fr::from_bytes(BytesN::from_array(e, &y)),
+        )
+    }
+
+    /// Panics with [`CryptoError::InvalidPoint`] unless `p` is the canonical
+    /// identity encoding or a canonical on-curve point.
+    fn require_valid_point(e: &Env, p: &Point) {
+        if !Self::is_identity(p) && !Self::is_on_curve(e, p) {
+            panic_with_error!(e, CryptoError::InvalidPoint);
+        }
+    }
+
+    /// [`Self::neg`] without input validation. `p` must be the canonical
+    /// identity encoding or a canonical on-curve point.
+    fn neg_unchecked(e: &Env, p: &Point) -> Point {
+        if Self::is_identity(p) {
+            return p.clone();
+        }
+        let (x, y) = Self::coordinates(e, p);
+        let neg_y = fr_zero(e) - y;
+        Self::from_xy(e, &x, &neg_y)
+    }
+
+    /// [`Self::add`] without input validation. Both inputs must be the
+    /// canonical identity encoding or canonical on-curve points. Keeps
+    /// chained operations on intermediate results — which are on the curve by
+    /// construction — free of redundant validation.
+    fn add_unchecked(e: &Env, p1: &Point, p2: &Point) -> Point {
+        if Self::is_identity(p1) {
+            return p2.clone();
+        }
+        if Self::is_identity(p2) {
+            return p1.clone();
+        }
+
+        let (x1, y1) = Self::coordinates(e, p1);
+        let (x2, y2) = Self::coordinates(e, p2);
+
+        if x1 == x2 {
+            let neg_y2 = fr_zero(e) - y2.clone();
+            if y1 == neg_y2 {
+                return Self::identity(e);
+            }
+            // Doubling: y1 = y2 (and y1 ≠ 0, since y1 = -y1 ⇒ y1 = 0 is caught
+            // above as the inverse case).
+            let three = fr_from_u32(e, 3);
+            let two = fr_from_u32(e, 2);
+            let num = three * (x1.clone() * x1.clone());
+            let denom = two * y1.clone();
+            let lambda = num * denom.inv();
+            // x3 = λ² - 2·x1
+            let x3 = lambda.clone() * lambda.clone() - x1.clone() - x1.clone();
+            // y3 = λ·(x1 - x3) - y1
+            let y3 = lambda * (x1 - x3.clone()) - y1;
+            return Self::from_xy(e, &x3, &y3);
+        }
+
+        // Generic case: distinct x-coordinates.
+        let lambda = (y2 - y1.clone()) * (x2.clone() - x1.clone()).inv();
+        let x3 = lambda.clone() * lambda.clone() - x1.clone() - x2;
+        let y3 = lambda * (x1 - x3.clone()) - y1;
+        Self::from_xy(e, &x3, &y3)
+    }
+}
+
+fn fr_zero(e: &Env) -> Bn254Fr {
+    Bn254Fr::from_u256(U256::from_u32(e, 0))
+}
+
+fn fr_from_u32(e: &Env, v: u32) -> Bn254Fr {
+    Bn254Fr::from_u256(U256::from_u32(e, v))
+}
+
+/// Returns `true` iff `coord` is a canonical 32-byte big-endian `Bn254Fr`
+/// representative, i.e. lexicographically less than the field modulus `r`.
+/// Lexicographic byte comparison on fixed-width 32-byte big-endian arrays
+/// coincides with numeric comparison.
+fn is_canonical_coord(coord: &[u8]) -> bool {
+    coord < &BN254_FR_MODULUS_BE[..]
+}

@@ -1,0 +1,241 @@
+use soroban_sdk::{contracttype, panic_with_error, Address, Env};
+
+use crate::rwa::{
+    emit_claim_topics_and_issuers_set, emit_identity_registry_storage_set,
+    identity_registry_storage::IdentityRegistryStorageClient,
+    identity_verification::{
+        claim_issuer::ClaimIssuerClient,
+        claim_topics_and_issuers::ClaimTopicsAndIssuersClient,
+        identity_claims::{generate_claim_id, Claim, IdentityClaimsClient},
+    },
+    RWAError,
+};
+
+/// Storage keys for the data associated with `RWA` token
+#[contracttype]
+pub enum IdentityVerifierStorageKey {
+    /// Claim Topics and Issuers contract address
+    ClaimTopicsAndIssuers,
+    /// Identity Registry Storage contract address
+    IdentityRegistryStorage,
+}
+
+/// Returns the Claim Topics and Issuers contract linked to the token.
+///
+/// # Arguments
+///
+/// * `e` - Access to the Soroban environment.
+///
+/// # Errors
+///
+/// * [`RWAError::ClaimTopicsAndIssuersNotSet`] - When the claim topics and
+///   issuers contract is not set.
+pub fn claim_topics_and_issuers(e: &Env) -> Address {
+    e.storage()
+        .instance()
+        .get(&IdentityVerifierStorageKey::ClaimTopicsAndIssuers)
+        .unwrap_or_else(|| panic_with_error!(e, RWAError::ClaimTopicsAndIssuersNotSet))
+}
+
+/// Returns the Identity Registry Storage contract linked to the token.
+///
+/// # Arguments
+///
+/// * `e` - Access to the Soroban environment.
+///
+/// # Errors
+///
+/// * [`RWAError::IdentityRegistryStorageNotSet`] - When the identity registry
+///   storage contract is not set.
+pub fn identity_registry_storage(e: &Env) -> Address {
+    e.storage()
+        .instance()
+        .get(&IdentityVerifierStorageKey::IdentityRegistryStorage)
+        .unwrap_or_else(|| panic_with_error!(e, RWAError::IdentityRegistryStorageNotSet))
+}
+
+/// Verifies that the identity of an user address has the required valid
+/// claims.
+///
+/// The account is resolved to its identity contract through the configured
+/// identity registry storage; for every required claim topic, the identity
+/// contract must hold a claim from one of the topic's trusted issuers, and
+/// that issuer is queried live for the claim's validity.
+///
+/// # Arguments
+///
+/// * `e` - Access to the Soroban environment.
+/// * `account` - The account to verify.
+///
+/// # Errors
+///
+/// * [`RWAError::IdentityVerificationFailed`] - When the identity of the
+///   account cannot be verified.
+///
+/// # Notes
+///
+/// The claim topics and issuers contract is the single source of truth for
+/// what is required, and the configuration is enforced exactly as declared.
+/// Two empty states follow from this, and both are by design:
+///
+/// * No claim topics registered: nothing is required, so every account that
+///   resolves to an identity passes.
+/// * A claim topic with no trusted issuers: the requirement is declared, but
+///   nobody is trusted to attest it. There is no candidate claim to look for,
+///   so the topic is skipped instead of failing every account. Trusted issuers
+///   can only be added for topics that already exist, so every topic goes
+///   through this state during setup, and returns to it when its last issuer is
+///   removed.
+///
+/// A topic is therefore enforced from the moment its first issuer is trusted
+/// until its last issuer is removed. The registry is not validated for
+/// completeness here; keeping every required topic backed by at least one
+/// trusted issuer is the operator's responsibility. This differs from the
+/// T-REX reference implementation, which rejects every account while a
+/// required topic has no trusted issuers. Accounts without a registered
+/// identity fail regardless of configuration.
+pub fn verify_identity(e: &Env, account: &Address) {
+    let irs_addr = identity_registry_storage(e);
+    let irs_client = IdentityRegistryStorageClient::new(e, &irs_addr);
+
+    let identity_addr = irs_client.stored_identity(account);
+    let identity_client = IdentityClaimsClient::new(e, &identity_addr);
+
+    let cti_addr = claim_topics_and_issuers(e);
+    let cti_client = ClaimTopicsAndIssuersClient::new(e, &cti_addr);
+
+    let topics_and_issuers = cti_client.get_claim_topics_and_issuers();
+
+    // The configuration is enforced as declared, not validated for
+    // completeness. An empty map means nothing is required. A topic with an
+    // empty issuer list has nobody trusted to attest it, so the inner loop has
+    // no candidates and the topic is skipped rather than failing every
+    // account. Both are by design; see `# Notes` above.
+    for (claim_topic, issuers) in topics_and_issuers.iter() {
+        let issuers_with_claim_ids = issuers.iter().enumerate().map(|(i, issuer)| {
+            (
+                issuer.clone(),
+                generate_claim_id(e, &issuer, claim_topic),
+                i as u32 == issuers.len() - 1,
+            )
+        });
+        let account_claim_ids = identity_client.get_claim_ids_by_topic(&claim_topic);
+
+        for (issuer, claim_id, is_last) in issuers_with_claim_ids {
+            if account_claim_ids.contains(&claim_id) {
+                // Here, we can assume claim exists so no need to use
+                // `try_get_claim()`.
+                let claim: Claim = identity_client.get_claim(&claim_id);
+
+                if validate_claim(e, &claim, claim_topic, &issuer, &identity_addr) {
+                    break;
+                } else if is_last {
+                    panic_with_error!(e, RWAError::IdentityVerificationFailed)
+                }
+            } else if is_last {
+                panic_with_error!(e, RWAError::IdentityVerificationFailed)
+            }
+        }
+    }
+}
+
+/// Validates a claim against the expected topic and issuer.
+///
+/// # Arguments
+///
+/// * `e` - Access to the Soroban environment.
+/// * `claim` - The claim to validate.
+/// * `claim_topic` - The expected claim topic.
+/// * `issuer` - The issuer address.
+/// * `identity_addr` - The identity address of the investor.
+///
+/// # Returns
+///
+/// Returns `true` if the claim is valid, `false` otherwise.
+pub fn validate_claim(
+    e: &Env,
+    claim: &Claim,
+    claim_topic: u32,
+    issuer: &Address,
+    identity_addr: &Address,
+) -> bool {
+    if claim.topic == claim_topic && claim.issuer == *issuer {
+        let validation = ClaimIssuerClient::new(e, issuer).try_is_claim_valid(
+            identity_addr,
+            &claim_topic,
+            &claim.scheme,
+            &claim.signature,
+            &claim.data,
+        );
+        matches!(validation, Ok(Ok(_)))
+    } else {
+        false
+    }
+}
+
+/// Returns the target address for the recovery process for the old account.
+/// If the old account is not a target of a recovery process, `None` is
+/// returned.
+///
+/// # Arguments
+///
+/// * `e` - Access to the Soroban environment.
+/// * `old_account` - The address of the old account.
+pub fn recovery_target(e: &Env, old_account: &Address) -> Option<Address> {
+    let irs_addr = identity_registry_storage(e);
+    let irs_client = IdentityRegistryStorageClient::new(e, &irs_addr);
+
+    irs_client.get_recovered_to(old_account)
+}
+
+/// Sets the claim topics and issuers contract of the token.
+///
+/// # Arguments
+///
+/// * `e` - Access to the Soroban environment.
+/// * `claim_topics_and_issuers` - The address of the claim topics and issuers
+///   contract.
+///
+/// # Events
+///
+/// * topics - `["claim_topics_and_issuers_set", claim_topics_and_issuers:
+///   Address]`
+/// * data - `[]`
+///
+/// # Security Warning
+///
+/// **IMPORTANT**: This function bypasses authorization checks and should
+/// only be used internally or in admin functions that implement their own
+/// authorization logic.
+pub fn set_claim_topics_and_issuers(e: &Env, claim_topics_and_issuers: &Address) {
+    e.storage()
+        .instance()
+        .set(&IdentityVerifierStorageKey::ClaimTopicsAndIssuers, claim_topics_and_issuers);
+    emit_claim_topics_and_issuers_set(e, claim_topics_and_issuers);
+}
+
+/// Sets the identity registry storage contract of the token.
+///
+/// # Arguments
+///
+/// * `e` - Access to the Soroban environment.
+/// * `identity_registry_storage` - The address of the identity registry storage
+///   contract.
+///
+/// # Events
+///
+/// * topics - `["identity_registry_storage_set", identity_registry_storage:
+///   Address]`
+/// * data - `[]`
+///
+/// # Security Warning
+///
+/// **IMPORTANT**: This function bypasses authorization checks and should
+/// only be used internally or in admin functions that implement their own
+/// authorization logic.
+pub fn set_identity_registry_storage(e: &Env, identity_registry_storage: &Address) {
+    e.storage()
+        .instance()
+        .set(&IdentityVerifierStorageKey::IdentityRegistryStorage, identity_registry_storage);
+    emit_identity_registry_storage_set(e, identity_registry_storage);
+}

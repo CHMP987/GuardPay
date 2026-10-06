@@ -52,13 +52,13 @@ Estados del checklist: `pendiente` · `en curso` · `bloqueada` · `hecha` · `o
 | T-026 | Test GH-09 (guardián no gasta) | test | hecha | T-023 |
 | T-027 | Tests vínculo GH-20…GH-23 | test | hecha | T-023 |
 | T-028 | Documentar Spike A y congelar firmas | docs | hecha | T-024, T-025, T-026, T-027 |
-| **CP-1** | **Humano: Spike A GO / REDESIGN** | **checkpoint** | **pendiente** | **T-028** |
+| **CP-1** | **Humano: Spike A GO / REDESIGN** | **checkpoint** | **GO** | **T-028** |
 | T-029 | Crear app bench LiteRT-LM | setup | pendiente | CP-0, T-009 |
 | T-030 | Medir Gemma en el teléfono de demo | test | pendiente | T-029 |
 | T-031 | Escribir `evidence/ai/benchmark.md` | docs | pendiente | T-030 |
 | T-032 | Firmar `transfer` ed25519 desde Kotlin | feature | pendiente | T-023 |
 | T-033 | Documentar Spike C | docs | pendiente | T-032 |
-| T-034 | Crear workspace Cargo y vendor OZ | setup | pendiente | CP-1 |
+| T-034 | Crear workspace Cargo y vendor OZ | setup | hecha | CP-1 |
 | T-035 | Implementar `contracts/account` | feature | pendiente | T-034 |
 | T-036 | Implementar `queue` y clave del registro | feature | pendiente | T-034 |
 | T-037 | Implementar `cancel`, `mark_executed` y lecturas | feature | pendiente | T-036 |

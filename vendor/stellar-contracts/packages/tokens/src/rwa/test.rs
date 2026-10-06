@@ -1,0 +1,1170 @@
+extern crate std;
+
+use soroban_sdk::{
+    contract, contractimpl, panic_with_error, symbol_short,
+    testutils::{Address as _, Events},
+    Address, Env, Event, String,
+};
+use stellar_contract_utils::pausable;
+
+use crate::{
+    fungible::{ContractOverrides, Transfer},
+    rwa::{
+        compliance::{AccountSnapshot, TransferKind},
+        storage::RWAStorageKey,
+        IdentityVerifier, RWAError, RecoverySuccess, TokensUnfrozen, RWA,
+    },
+};
+
+#[contract]
+pub struct MockIdentityVerifier;
+
+#[contractimpl]
+impl IdentityVerifier for MockIdentityVerifier {
+    fn verify_identity(e: &Env, account: &Address) {
+        // Per-address denial: if `id_deny` is set and matches, this address
+        // fails verification while others still pass. Lets tests exercise
+        // the asymmetry between `from` and `to` in privileged operations.
+        if let Some(denied) = e.storage().persistent().get::<_, Address>(&symbol_short!("id_deny"))
+        {
+            if &denied == account {
+                panic_with_error!(e, RWAError::IdentityVerificationFailed)
+            }
+        }
+        let result = e.storage().persistent().get(&symbol_short!("id_ok")).unwrap_or(true);
+        if !result {
+            panic_with_error!(e, RWAError::IdentityVerificationFailed)
+        }
+    }
+
+    fn recovery_target(e: &Env, _account: &Address) -> Option<Address> {
+        e.storage().persistent().get(&symbol_short!("recovery"))
+    }
+
+    fn set_claim_topics_and_issuers(
+        _e: &Env,
+        _claim_topics_and_issuers: Address,
+        _operator: Address,
+    ) {
+    }
+}
+
+// Mock Compliance Contract
+#[contract]
+struct MockCompliance;
+
+#[contractimpl]
+impl MockCompliance {
+    // Compliance rejects by panicking from the hook. The `tx_ok` / `mint_ok`
+    // flags let tests flip this mock into rejection mode.
+    pub fn transferred(
+        e: Env,
+        _from: AccountSnapshot,
+        _to: AccountSnapshot,
+        _amount: i128,
+        kind: TransferKind,
+        _contract: Address,
+    ) {
+        let ok: bool = e.storage().persistent().get(&symbol_short!("tx_ok")).unwrap_or(true);
+        assert!(ok, "compliance rejected transfer");
+        // Record the reported kind so tests can assert which one the token
+        // sent for a given operation.
+        e.storage().persistent().set(&symbol_short!("last_kind"), &kind);
+    }
+
+    pub fn created(e: Env, _to: AccountSnapshot, _amount: i128, _contract: Address) {
+        let ok: bool = e.storage().persistent().get(&symbol_short!("mint_ok")).unwrap_or(true);
+        assert!(ok, "compliance rejected mint");
+    }
+
+    pub fn destroyed(_e: Env, _from: AccountSnapshot, _amount: i128, _contract: Address) {}
+}
+
+#[contract]
+struct MockRWAContract;
+
+fn set_and_return_identity_verifier(e: &Env) -> Address {
+    let identity_verifier = e.register(MockIdentityVerifier, ());
+    RWA::set_identity_verifier(e, &identity_verifier);
+    identity_verifier
+}
+
+fn set_and_return_compliance(e: &Env) -> Address {
+    let compliance = e.register(MockCompliance, ());
+    RWA::set_compliance(e, &compliance);
+    compliance
+}
+
+fn setup_all_contracts(e: &Env) {
+    let _ = set_and_return_identity_verifier(e);
+    let _ = set_and_return_compliance(e);
+}
+
+#[test]
+fn get_version() {
+    let e = Env::default();
+    let address = e.register(MockRWAContract, ());
+
+    e.as_contract(&address, || {
+        e.storage().instance().set(&RWAStorageKey::Version, &String::from_str(&e, "1,2,3"));
+        assert_eq!(RWA::version(&e), String::from_str(&e, "1,2,3"));
+    });
+}
+
+#[test]
+#[should_panic(expected = "Error(Contract, #309)")]
+fn get_unset_version_fails() {
+    let e = Env::default();
+    let address = e.register(MockRWAContract, ());
+
+    e.as_contract(&address, || {
+        RWA::version(&e);
+    });
+}
+
+#[test]
+fn set_and_get_onchain_id() {
+    let e = Env::default();
+    let address = e.register(MockRWAContract, ());
+
+    e.as_contract(&address, || {
+        let onchain_id = Address::generate(&e);
+        RWA::set_onchain_id(&e, &onchain_id);
+        assert_eq!(RWA::onchain_id(&e), onchain_id);
+        assert_eq!(e.events().all().events().len(), 1);
+    });
+}
+
+#[test]
+#[should_panic(expected = "Error(Contract, #308)")]
+fn get_unset_onchain_id_fails() {
+    let e = Env::default();
+    let address = e.register(MockRWAContract, ());
+
+    e.as_contract(&address, || {
+        RWA::onchain_id(&e);
+    });
+}
+
+#[test]
+fn set_and_get_compliance() {
+    let e = Env::default();
+    let address = e.register(MockRWAContract, ());
+
+    e.as_contract(&address, || {
+        let compliance = Address::generate(&e);
+        RWA::set_compliance(&e, &compliance);
+        assert_eq!(RWA::compliance(&e), compliance);
+        assert_eq!(e.events().all().events().len(), 1);
+    });
+}
+
+#[test]
+#[should_panic(expected = "Error(Contract, #307)")]
+fn get_unset_compliance_fails() {
+    let e = Env::default();
+    let address = e.register(MockRWAContract, ());
+
+    e.as_contract(&address, || {
+        RWA::compliance(&e);
+    });
+}
+
+#[test]
+fn set_and_get_identity_verifier() {
+    let e = Env::default();
+    let address = e.register(MockRWAContract, ());
+
+    e.as_contract(&address, || {
+        let identity_verifier = Address::generate(&e);
+        RWA::set_identity_verifier(&e, &identity_verifier);
+        assert_eq!(RWA::identity_verifier(&e), identity_verifier);
+        assert_eq!(e.events().all().events().len(), 1);
+    });
+}
+
+#[test]
+#[should_panic(expected = "Error(Contract, #312)")]
+fn get_unset_identity_verifier_fails() {
+    let e = Env::default();
+    let address = e.register(MockRWAContract, ());
+
+    e.as_contract(&address, || {
+        RWA::identity_verifier(&e);
+    });
+}
+
+#[test]
+fn mint_tokens() {
+    let e = Env::default();
+    let address = e.register(MockRWAContract, ());
+    let to = Address::generate(&e);
+
+    e.as_contract(&address, || {
+        setup_all_contracts(&e);
+
+        RWA::mint(&e, &to, 100);
+        assert_eq!(RWA::balance(&e, &to), 100);
+        assert_eq!(RWA::total_supply(&e), 100);
+        // 1 IdentityVerifierSet + 1 ComplianceSet + 1 Minted
+        assert_eq!(e.events().all().events().len(), 3);
+    });
+}
+
+#[test]
+#[should_panic(expected = "Error(Contract, #307)")]
+fn mint_without_compliance_fails() {
+    let e = Env::default();
+    let address = e.register(MockRWAContract, ());
+    let to = Address::generate(&e);
+
+    e.as_contract(&address, || {
+        set_and_return_identity_verifier(&e);
+        RWA::mint(&e, &to, 100);
+    });
+}
+
+#[test]
+#[should_panic(expected = "compliance rejected mint")]
+fn mint_fails_when_not_compliant() {
+    let e = Env::default();
+    let address = e.register(MockRWAContract, ());
+    let from = Address::generate(&e);
+
+    let failing_compliance = e.register(MockCompliance, ());
+    e.as_contract(&failing_compliance, || {
+        e.storage().persistent().set(&symbol_short!("mint_ok"), &false);
+    });
+
+    e.as_contract(&address, || {
+        set_and_return_identity_verifier(&e);
+        RWA::set_compliance(&e, &failing_compliance);
+
+        RWA::mint(&e, &from, 100);
+    });
+}
+
+#[test]
+#[should_panic(expected = "Error(Contract, #304)")]
+fn mint_fails_when_identity_verification_fails() {
+    let e = Env::default();
+    let address = e.register(MockRWAContract, ());
+    let from = Address::generate(&e);
+
+    e.as_contract(&address, || {
+        let identity_verifier = set_and_return_identity_verifier(&e);
+
+        e.as_contract(&identity_verifier, || {
+            e.storage().persistent().set(&symbol_short!("id_ok"), &false);
+        });
+
+        RWA::mint(&e, &from, 100);
+    });
+}
+
+#[test]
+#[should_panic(expected = "Error(Contract, #1000)")]
+fn mint_fails_when_contract_paused() {
+    let e = Env::default();
+    e.mock_all_auths();
+    let address = e.register(MockRWAContract, ());
+    let to = Address::generate(&e);
+
+    e.as_contract(&address, || {
+        setup_all_contracts(&e);
+
+        pausable::pause(&e);
+
+        RWA::mint(&e, &to, 100);
+    });
+}
+
+#[test]
+#[should_panic(expected = "Error(Contract, #302)")]
+fn mint_fails_when_recipient_address_frozen() {
+    let e = Env::default();
+    e.mock_all_auths();
+    let address = e.register(MockRWAContract, ());
+    let to = Address::generate(&e);
+
+    e.as_contract(&address, || {
+        setup_all_contracts(&e);
+
+        RWA::set_address_frozen(&e, &to, true);
+
+        RWA::mint(&e, &to, 100);
+    });
+}
+
+#[test]
+fn burn_tokens() {
+    let e = Env::default();
+    let address = e.register(MockRWAContract, ());
+    let account = Address::generate(&e);
+
+    e.as_contract(&address, || {
+        setup_all_contracts(&e);
+
+        RWA::mint(&e, &account, 100);
+        assert_eq!(RWA::balance(&e, &account), 100);
+
+        // Now burn tokens
+        RWA::burn(&e, &account, 30);
+        assert_eq!(RWA::balance(&e, &account), 70);
+        assert_eq!(RWA::total_supply(&e), 70);
+        // 1 IdentityVerifierSet + 1 ComplianceSet + 1 Minted + 1 Burned
+        assert_eq!(e.events().all().events().len(), 4);
+    });
+}
+
+#[test]
+fn burn_with_token_unfreezing() {
+    let e = Env::default();
+    let address = e.register(MockRWAContract, ());
+    let account = Address::generate(&e);
+
+    e.as_contract(&address, || {
+        setup_all_contracts(&e);
+
+        RWA::mint(&e, &account, 100);
+
+        // Freeze 60 tokens, leaving 40 free
+        RWA::freeze_partial_tokens(&e, &account, 60);
+        assert_eq!(RWA::get_frozen_tokens(&e, &account), 60);
+        assert_eq!(RWA::get_free_tokens(&e, &account), 40);
+
+        // Burn 70 tokens (more than free tokens)
+        // This should automatically unfreeze 30 tokens (70 - 40)
+        RWA::burn(&e, &account, 70);
+
+        assert_eq!(RWA::balance(&e, &account), 30);
+        assert_eq!(RWA::total_supply(&e), 30);
+
+        // Verify frozen tokens were reduced by 30 (60 - 30 = 30)
+        assert_eq!(RWA::get_frozen_tokens(&e, &account), 30);
+        assert_eq!(RWA::get_free_tokens(&e, &account), 0);
+
+        // 1 IdentityVerifierSet + 1 ComplianceSet + 1 Minted + 1 TokensFrozen
+        // + 1 TokensUnfrozen + 1 Burned
+        let events = e.events().all();
+        assert_eq!(events.events().len(), 6);
+        assert_eq!(
+            events.events().get(4).unwrap(),
+            &TokensUnfrozen { user_address: account.clone(), amount: 30 }.to_xdr(&e, &address)
+        );
+    });
+}
+
+#[test]
+#[should_panic(expected = "Error(Contract, #300)")]
+fn burn_insufficient_balance_fails() {
+    let e = Env::default();
+    let address = e.register(MockRWAContract, ());
+    let account = Address::generate(&e);
+
+    e.as_contract(&address, || {
+        RWA::burn(&e, &account, 100);
+    });
+}
+
+#[test]
+fn forced_transfer() {
+    let e = Env::default();
+    let address = e.register(MockRWAContract, ());
+    let from = Address::generate(&e);
+    let to = Address::generate(&e);
+
+    e.as_contract(&address, || {
+        setup_all_contracts(&e);
+
+        RWA::mint(&e, &from, 100);
+
+        // Perform forced transfer
+        RWA::forced_transfer(&e, &from, &to, 50);
+        assert_eq!(RWA::balance(&e, &from), 50);
+        assert_eq!(RWA::balance(&e, &to), 50);
+    });
+}
+
+#[test]
+fn address_freezing() {
+    let e = Env::default();
+    let address = e.register(MockRWAContract, ());
+    let user = Address::generate(&e);
+
+    e.as_contract(&address, || {
+        // Initially not frozen
+        assert!(!RWA::is_frozen(&e, &user));
+
+        // Freeze the address
+        RWA::set_address_frozen(&e, &user, true);
+        assert!(RWA::is_frozen(&e, &user));
+
+        // Unfreeze the address
+        RWA::set_address_frozen(&e, &user, false);
+        assert!(!RWA::is_frozen(&e, &user));
+        // 1 AddressFrozen (true) + 1 AddressFrozen (false)
+        assert_eq!(e.events().all().events().len(), 2);
+    });
+}
+
+#[test]
+fn partial_token_freezing() {
+    let e = Env::default();
+    let address = e.register(MockRWAContract, ());
+    let user = Address::generate(&e);
+
+    e.as_contract(&address, || {
+        setup_all_contracts(&e);
+
+        RWA::mint(&e, &user, 100);
+
+        // Initially no frozen tokens
+        assert_eq!(RWA::get_frozen_tokens(&e, &user), 0);
+
+        // Freeze some tokens
+        RWA::freeze_partial_tokens(&e, &user, 30);
+        assert_eq!(RWA::get_frozen_tokens(&e, &user), 30);
+
+        // Unfreeze some tokens
+        RWA::unfreeze_partial_tokens(&e, &user, 10);
+        assert_eq!(RWA::get_frozen_tokens(&e, &user), 20);
+        // 1 IdentityVerifierSet + 1 ComplianceSet + 1 Minted + 1 TokensFrozen +
+        // 1 TokensUnfrozen
+        assert_eq!(e.events().all().events().len(), 5);
+    });
+}
+
+#[test]
+#[should_panic(expected = "Error(Contract, #300)")]
+fn freeze_more_than_balance_fails() {
+    let e = Env::default();
+    let address = e.register(MockRWAContract, ());
+    let user = Address::generate(&e);
+
+    e.as_contract(&address, || {
+        setup_all_contracts(&e);
+
+        RWA::mint(&e, &user, 50);
+        RWA::freeze_partial_tokens(&e, &user, 100); // Should fail
+    });
+}
+
+#[test]
+#[should_panic(expected = "Error(Contract, #303)")]
+fn unfreeze_more_than_frozen_fails() {
+    let e = Env::default();
+    let address = e.register(MockRWAContract, ());
+    let user = Address::generate(&e);
+
+    e.as_contract(&address, || {
+        setup_all_contracts(&e);
+
+        RWA::mint(&e, &user, 100);
+        RWA::freeze_partial_tokens(&e, &user, 30);
+        RWA::unfreeze_partial_tokens(&e, &user, 50); // Should fail
+    });
+}
+
+#[test]
+fn recover_balance() {
+    let e = Env::default();
+    let address = e.register(MockRWAContract, ());
+    let old_account = Address::generate(&e);
+    let new_account = Address::generate(&e);
+
+    e.as_contract(&address, || {
+        let identity_verifier = set_and_return_identity_verifier(&e);
+        let _ = set_and_return_compliance(&e);
+
+        // Set recovery target in the identity verifier contract's storage
+        e.as_contract(&identity_verifier, || {
+            e.storage().persistent().set(&symbol_short!("recovery"), &new_account);
+        });
+
+        // Mint tokens to old account
+        RWA::mint(&e, &old_account, 100);
+        assert_eq!(RWA::balance(&e, &old_account), 100);
+
+        // Perform recovery
+        let success = RWA::recover_balance(&e, &old_account, &new_account);
+        assert!(success);
+
+        // Verify tokens were transferred
+        assert_eq!(RWA::balance(&e, &old_account), 0);
+        assert_eq!(RWA::balance(&e, &new_account), 100);
+
+        // 1 IdentityVerifierSet + 1 ComplianceSet + 1 Minted + 1 Transfer
+        // (recovery) + 1 RecoverySuccess
+        let events = e.events().all();
+        assert_eq!(events.events().len(), 5);
+        assert_eq!(
+            events.events().get(3).unwrap(),
+            &Transfer { from: old_account.clone(), to: new_account.clone(), amount: 100 }
+                .to_xdr(&e, &address)
+        );
+        assert_eq!(
+            events.events().get(4).unwrap(),
+            &RecoverySuccess { old_account: old_account.clone(), new_account: new_account.clone() }
+                .to_xdr(&e, &address)
+        );
+    });
+}
+
+#[test]
+fn recover_balance_reports_recovery_kind() {
+    let e = Env::default();
+    let address = e.register(MockRWAContract, ());
+    let old_account = Address::generate(&e);
+    let new_account = Address::generate(&e);
+
+    e.as_contract(&address, || {
+        let identity_verifier = set_and_return_identity_verifier(&e);
+        let compliance = set_and_return_compliance(&e);
+
+        e.as_contract(&identity_verifier, || {
+            e.storage().persistent().set(&symbol_short!("recovery"), &new_account);
+        });
+
+        RWA::mint(&e, &old_account, 100);
+        let success = RWA::recover_balance(&e, &old_account, &new_account);
+        assert!(success);
+
+        // The compliance hook saw the movement as a recovery, not a seizure.
+        let kind: TransferKind = e.as_contract(&compliance, || {
+            e.storage().persistent().get(&symbol_short!("last_kind")).unwrap()
+        });
+        assert_eq!(kind, TransferKind::Recovery);
+    });
+}
+
+#[test]
+fn forced_transfer_reports_forced_kind() {
+    let e = Env::default();
+    let address = e.register(MockRWAContract, ());
+    let from = Address::generate(&e);
+    let to = Address::generate(&e);
+
+    e.as_contract(&address, || {
+        let _ = set_and_return_identity_verifier(&e);
+        let compliance = set_and_return_compliance(&e);
+
+        RWA::mint(&e, &from, 100);
+        RWA::forced_transfer(&e, &from, &to, 40);
+
+        let kind: TransferKind = e.as_contract(&compliance, || {
+            e.storage().persistent().get(&symbol_short!("last_kind")).unwrap()
+        });
+        assert_eq!(kind, TransferKind::Forced);
+    });
+}
+
+#[test]
+fn recovery_with_zero_balance_returns_false() {
+    let e = Env::default();
+    let address = e.register(MockRWAContract, ());
+    let old_account = Address::generate(&e);
+    let new_account = Address::generate(&e);
+
+    e.as_contract(&address, || {
+        let identity_verifier = set_and_return_identity_verifier(&e);
+        let _ = set_and_return_compliance(&e);
+
+        // Set recovery target in the identity verifier contract's storage
+        e.as_contract(&identity_verifier, || {
+            e.storage().persistent().set(&symbol_short!("recovery"), &new_account);
+        });
+
+        // No tokens in old account
+        let success = RWA::recover_balance(&e, &old_account, &new_account);
+        assert!(!success); // Should return false for zero balance
+        assert!(!RWA::is_frozen(&e, &new_account));
+    });
+}
+
+#[test]
+#[should_panic(expected = "Error(Contract, #103)")]
+fn negative_amount_mint_fails() {
+    let e = Env::default();
+    let address = e.register(MockRWAContract, ());
+    let user = Address::generate(&e);
+
+    e.as_contract(&address, || {
+        setup_all_contracts(&e);
+
+        RWA::mint(&e, &user, -100);
+    });
+}
+
+#[test]
+fn transfer_with_compliance_and_identity_checks() {
+    let e = Env::default();
+    e.mock_all_auths();
+    let address = e.register(MockRWAContract, ());
+    let from = Address::generate(&e);
+    let to = Address::generate(&e);
+
+    e.as_contract(&address, || {
+        setup_all_contracts(&e);
+
+        // Mint and transfer
+        RWA::mint(&e, &from, 100);
+        RWA::transfer(&e, &from, &to, 50);
+
+        assert_eq!(RWA::balance(&e, &from), 50);
+        assert_eq!(RWA::balance(&e, &to), 50);
+    });
+}
+
+#[test]
+fn contract_overrides_transfer() {
+    let e = Env::default();
+    e.mock_all_auths();
+    let address = e.register(MockRWAContract, ());
+    let from = Address::generate(&e);
+    let to = Address::generate(&e);
+
+    e.as_contract(&address, || {
+        setup_all_contracts(&e);
+
+        RWA::mint(&e, &from, 100);
+
+        // Test ContractOverrides::transfer calls RWA::transfer
+        RWA::transfer(&e, &from, &to, 30);
+
+        assert_eq!(RWA::balance(&e, &from), 70);
+        assert_eq!(RWA::balance(&e, &to), 30);
+    });
+}
+
+#[test]
+fn contract_overrides_transfer_from() {
+    let e = Env::default();
+    e.mock_all_auths();
+    let address = e.register(MockRWAContract, ());
+    let owner = Address::generate(&e);
+    let spender = Address::generate(&e);
+    let to = Address::generate(&e);
+
+    e.as_contract(&address, || {
+        setup_all_contracts(&e);
+
+        RWA::mint(&e, &owner, 100);
+
+        // Set allowance
+        RWA::approve(&e, &owner, &spender, 50, 1000);
+        assert_eq!(RWA::allowance(&e, &owner, &spender), 50);
+    });
+
+    e.as_contract(&address, || {
+        RWA::transfer_from(&e, &spender, &owner, &to, 30);
+
+        assert_eq!(RWA::balance(&e, &owner), 70);
+        assert_eq!(RWA::balance(&e, &to), 30);
+        assert_eq!(RWA::allowance(&e, &owner, &spender), 20);
+    });
+}
+
+#[test]
+#[should_panic(expected = "Error(Contract, #300)")]
+fn forced_transfer_insufficient_balance_fails() {
+    let e = Env::default();
+    let address = e.register(MockRWAContract, ());
+    let from = Address::generate(&e);
+    let to = Address::generate(&e);
+
+    e.as_contract(&address, || {
+        setup_all_contracts(&e);
+
+        RWA::mint(&e, &from, 50);
+
+        // Try to force transfer more than balance - should fail with
+        // InsufficientBalance
+        RWA::forced_transfer(&e, &from, &to, 100);
+    });
+}
+
+#[test]
+#[should_panic(expected = "Error(Contract, #304)")]
+fn forced_transfer_fails_when_to_identity_unverified() {
+    let e = Env::default();
+    let address = e.register(MockRWAContract, ());
+    let from = Address::generate(&e);
+    let to = Address::generate(&e);
+
+    e.as_contract(&address, || {
+        let identity_verifier = set_and_return_identity_verifier(&e);
+        let _ = set_and_return_compliance(&e);
+
+        // Mint while `to` is still verifiable so the mint itself doesn't trip
+        // identity verification.
+        RWA::mint(&e, &from, 100);
+
+        // Now mark `to` as unverified.
+        e.as_contract(&identity_verifier, || {
+            e.storage().persistent().set(&symbol_short!("id_deny"), &to);
+        });
+
+        // forced_transfer must reject when `to` cannot be verified.
+        RWA::forced_transfer(&e, &from, &to, 50);
+    });
+}
+
+#[test]
+fn forced_transfer_succeeds_when_from_identity_unverified() {
+    let e = Env::default();
+    let address = e.register(MockRWAContract, ());
+    let from = Address::generate(&e);
+    let to = Address::generate(&e);
+
+    e.as_contract(&address, || {
+        let identity_verifier = set_and_return_identity_verifier(&e);
+        let _ = set_and_return_compliance(&e);
+
+        RWA::mint(&e, &from, 100);
+
+        // Revoke `from`'s identity after the mint. forced_transfer must still
+        // succeed because it only verifies `to`; this is what lets it pull
+        // tokens out of sanctioned/compromised wallets. `recover_balance`
+        // shares the same mechanics.
+        e.as_contract(&identity_verifier, || {
+            e.storage().persistent().set(&symbol_short!("id_deny"), &from);
+        });
+
+        RWA::forced_transfer(&e, &from, &to, 50);
+        assert_eq!(RWA::balance(&e, &from), 50);
+        assert_eq!(RWA::balance(&e, &to), 50);
+    });
+}
+
+#[test]
+fn forced_transfer_with_token_unfreezing() {
+    let e = Env::default();
+    let address = e.register(MockRWAContract, ());
+    let from = Address::generate(&e);
+    let to = Address::generate(&e);
+
+    e.as_contract(&address, || {
+        setup_all_contracts(&e);
+
+        RWA::mint(&e, &from, 100);
+
+        // Freeze 60 tokens, leaving 40 free
+        RWA::freeze_partial_tokens(&e, &from, 60);
+        assert_eq!(RWA::get_frozen_tokens(&e, &from), 60);
+        assert_eq!(RWA::get_free_tokens(&e, &from), 40);
+
+        // Force transfer 70 tokens (more than free tokens)
+        // This should automatically unfreeze 30 tokens (70 - 40)
+        RWA::forced_transfer(&e, &from, &to, 70);
+
+        // Verify balances
+        assert_eq!(RWA::balance(&e, &from), 30);
+        assert_eq!(RWA::balance(&e, &to), 70);
+
+        // Verify frozen tokens were reduced by 30 (60 - 30 = 30)
+        assert_eq!(RWA::get_frozen_tokens(&e, &from), 30);
+        assert_eq!(RWA::get_free_tokens(&e, &from), 0); // 30 balance - 30
+                                                        // frozen = 0 free
+
+        // 1 IdentityVerifierSet + 1 ComplianceSet + 1 Minted + 1 TokensFrozen
+        // + 1 TokensUnfrozen + 1 Transfer
+        let events = e.events().all();
+        assert_eq!(events.events().len(), 6);
+        assert_eq!(
+            events.events().get(4).unwrap(),
+            &TokensUnfrozen { user_address: from.clone(), amount: 30 }.to_xdr(&e, &address)
+        );
+    });
+}
+
+#[test]
+fn forced_transfer_without_unfreezing_needed() {
+    let e = Env::default();
+    let address = e.register(MockRWAContract, ());
+    let from = Address::generate(&e);
+    let to = Address::generate(&e);
+
+    e.as_contract(&address, || {
+        setup_all_contracts(&e);
+
+        RWA::mint(&e, &from, 100);
+
+        // Freeze 30 tokens, leaving 70 free
+        RWA::freeze_partial_tokens(&e, &from, 30);
+        assert_eq!(RWA::get_frozen_tokens(&e, &from), 30);
+        assert_eq!(RWA::get_free_tokens(&e, &from), 70);
+
+        // Force transfer 50 tokens (less than free tokens)
+        // This should NOT unfreeze any tokens
+        RWA::forced_transfer(&e, &from, &to, 50);
+
+        // Verify balances
+        assert_eq!(RWA::balance(&e, &from), 50);
+        assert_eq!(RWA::balance(&e, &to), 50);
+
+        // Verify frozen tokens remain unchanged
+        assert_eq!(RWA::get_frozen_tokens(&e, &from), 30);
+        assert_eq!(RWA::get_free_tokens(&e, &from), 20); // 50 balance - 30
+                                                         // frozen = 20 free
+    });
+}
+
+#[test]
+fn forced_transfer_exact_unfreezing() {
+    let e = Env::default();
+    let address = e.register(MockRWAContract, ());
+    let from = Address::generate(&e);
+    let to = Address::generate(&e);
+
+    e.as_contract(&address, || {
+        setup_all_contracts(&e);
+
+        RWA::mint(&e, &from, 100);
+
+        // Freeze all tokens
+        RWA::freeze_partial_tokens(&e, &from, 100);
+        assert_eq!(RWA::get_frozen_tokens(&e, &from), 100);
+        assert_eq!(RWA::get_free_tokens(&e, &from), 0);
+
+        // Force transfer all tokens - should unfreeze all
+        RWA::forced_transfer(&e, &from, &to, 100);
+
+        // Verify balances
+        assert_eq!(RWA::balance(&e, &from), 0);
+        assert_eq!(RWA::balance(&e, &to), 100);
+
+        // Verify all tokens were unfrozen
+        assert_eq!(RWA::get_frozen_tokens(&e, &from), 0);
+        assert_eq!(RWA::get_free_tokens(&e, &from), 0);
+    });
+}
+
+#[test]
+fn recover_balance_with_frozen_tokens() {
+    let e = Env::default();
+    let address = e.register(MockRWAContract, ());
+    let old_account = Address::generate(&e);
+    let new_account = Address::generate(&e);
+
+    e.as_contract(&address, || {
+        let identity_verifier = set_and_return_identity_verifier(&e);
+        let _ = set_and_return_compliance(&e);
+
+        // Set recovery target in the identity verifier contract's storage
+        e.as_contract(&identity_verifier, || {
+            e.storage().persistent().set(&symbol_short!("recovery"), &new_account);
+        });
+
+        // Mint tokens and freeze some
+        RWA::mint(&e, &old_account, 100);
+        RWA::freeze_partial_tokens(&e, &old_account, 60);
+        assert_eq!(RWA::get_frozen_tokens(&e, &old_account), 60);
+
+        // Perform recovery
+        let success = RWA::recover_balance(&e, &old_account, &new_account);
+        assert!(success);
+
+        // Verify tokens were transferred and frozen tokens are preserved
+        assert_eq!(RWA::balance(&e, &old_account), 0);
+        assert_eq!(RWA::balance(&e, &new_account), 100);
+        assert_eq!(RWA::get_frozen_tokens(&e, &new_account), 60);
+    });
+}
+
+#[test]
+fn recover_balance_with_frozen_address() {
+    let e = Env::default();
+    let address = e.register(MockRWAContract, ());
+    let old_account = Address::generate(&e);
+    let new_account = Address::generate(&e);
+
+    e.as_contract(&address, || {
+        let identity_verifier = set_and_return_identity_verifier(&e);
+        let _ = set_and_return_compliance(&e);
+
+        // Set recovery target in the identity verifier contract's storage
+        e.as_contract(&identity_verifier, || {
+            e.storage().persistent().set(&symbol_short!("recovery"), &new_account);
+        });
+
+        // Mint tokens and freeze the address
+        RWA::mint(&e, &old_account, 100);
+        RWA::set_address_frozen(&e, &old_account, true);
+        assert!(RWA::is_frozen(&e, &old_account));
+
+        // Perform recovery
+        let success = RWA::recover_balance(&e, &old_account, &new_account);
+        assert!(success);
+
+        // Verify tokens were transferred and frozen status is preserved
+        assert_eq!(RWA::balance(&e, &old_account), 0);
+        assert_eq!(RWA::balance(&e, &new_account), 100);
+        assert!(RWA::is_frozen(&e, &new_account));
+    });
+}
+
+#[test]
+fn recover_balance_with_both_frozen_tokens_and_address() {
+    let e = Env::default();
+    let address = e.register(MockRWAContract, ());
+    let old_account = Address::generate(&e);
+    let new_account = Address::generate(&e);
+
+    e.as_contract(&address, || {
+        let identity_verifier = set_and_return_identity_verifier(&e);
+        let _ = set_and_return_compliance(&e);
+
+        // Set recovery target in the identity verifier contract's storage
+        e.as_contract(&identity_verifier, || {
+            e.storage().persistent().set(&symbol_short!("recovery"), &new_account);
+        });
+
+        // Mint tokens, freeze some tokens, and freeze the address
+        RWA::mint(&e, &old_account, 100);
+        RWA::freeze_partial_tokens(&e, &old_account, 80);
+        RWA::set_address_frozen(&e, &old_account, true);
+
+        assert_eq!(RWA::get_frozen_tokens(&e, &old_account), 80);
+        assert!(RWA::is_frozen(&e, &old_account));
+
+        // Perform recovery
+        let success = RWA::recover_balance(&e, &old_account, &new_account);
+        assert!(success);
+
+        // Verify tokens were transferred and both frozen statuses are preserved
+        assert_eq!(RWA::balance(&e, &old_account), 0);
+        assert_eq!(RWA::balance(&e, &new_account), 100);
+        assert_eq!(RWA::get_frozen_tokens(&e, &new_account), 80);
+        assert!(RWA::is_frozen(&e, &new_account));
+    });
+}
+
+#[test]
+fn recover_balance_with_zero_balance_preserves_frozen_address() {
+    let e = Env::default();
+    let address = e.register(MockRWAContract, ());
+    let old_account = Address::generate(&e);
+    let new_account = Address::generate(&e);
+
+    e.as_contract(&address, || {
+        let identity_verifier = set_and_return_identity_verifier(&e);
+        let _ = set_and_return_compliance(&e);
+
+        // Set recovery target in the identity verifier contract's storage
+        e.as_contract(&identity_verifier, || {
+            e.storage().persistent().set(&symbol_short!("recovery"), &new_account);
+        });
+
+        // Freeze the address while it holds no tokens
+        RWA::set_address_frozen(&e, &old_account, true);
+        assert!(RWA::is_frozen(&e, &old_account));
+
+        // Nothing to move, but the address freeze must still follow
+        let success = RWA::recover_balance(&e, &old_account, &new_account);
+        assert!(!success);
+
+        assert_eq!(RWA::balance(&e, &new_account), 0);
+        assert!(RWA::is_frozen(&e, &new_account));
+    });
+}
+
+#[test]
+#[should_panic(expected = "Error(Contract, #313)")]
+fn recover_balance_without_recovery_target_fails() {
+    let e = Env::default();
+    let address = e.register(MockRWAContract, ());
+    let old_account = Address::generate(&e);
+    let new_account = Address::generate(&e);
+
+    e.as_contract(&address, || {
+        let _identity_verifier = set_and_return_identity_verifier(&e);
+        let _ = set_and_return_compliance(&e);
+
+        // Do NOT set recovery target - this should cause the test to panic
+        // The mock function will return None, which triggers IdentityMismatch
+        // error
+
+        // Mint tokens to old account
+        RWA::mint(&e, &old_account, 100);
+
+        // Attempt recovery without setting recovery target - should fail with
+        // #313
+        RWA::recover_balance(&e, &old_account, &new_account);
+    });
+}
+
+#[test]
+#[should_panic(expected = "Error(Contract, #313)")]
+fn recover_balance_with_wrong_recovery_target_fails() {
+    let e = Env::default();
+    let address = e.register(MockRWAContract, ());
+    let old_account = Address::generate(&e);
+    let new_account = Address::generate(&e);
+    let wrong_wallet = Address::generate(&e);
+
+    e.as_contract(&address, || {
+        let identity_verifier = set_and_return_identity_verifier(&e);
+        let _ = set_and_return_compliance(&e);
+
+        // Set recovery target to wrong_wallet instead of new_account
+        e.as_contract(&identity_verifier, || {
+            e.storage().persistent().set(&symbol_short!("recovery"), &wrong_wallet);
+        });
+
+        // Mint tokens to old account
+        RWA::mint(&e, &old_account, 100);
+
+        // Attempt recovery with wrong target - should fail with #313
+        RWA::recover_balance(&e, &old_account, &new_account);
+    });
+}
+
+#[test]
+#[should_panic(expected = "Error(Contract, #301)")]
+fn freeze_partial_tokens_negative_amount_fails() {
+    let e = Env::default();
+    let address = e.register(MockRWAContract, ());
+    let user = Address::generate(&e);
+
+    e.as_contract(&address, || {
+        setup_all_contracts(&e);
+
+        RWA::mint(&e, &user, 100);
+
+        // Try to freeze negative amount - should fail
+        RWA::freeze_partial_tokens(&e, &user, -10);
+    });
+}
+
+#[test]
+#[should_panic(expected = "Error(Contract, #301)")]
+fn unfreeze_partial_tokens_negative_amount_fails() {
+    let e = Env::default();
+    let address = e.register(MockRWAContract, ());
+    let user = Address::generate(&e);
+
+    e.as_contract(&address, || {
+        setup_all_contracts(&e);
+
+        RWA::mint(&e, &user, 100);
+        RWA::freeze_partial_tokens(&e, &user, 50);
+
+        // Try to unfreeze negative amount - should fail
+        RWA::unfreeze_partial_tokens(&e, &user, -10);
+    });
+}
+
+#[test]
+#[should_panic(expected = "Error(Contract, #302)")]
+fn transfer_fails_when_from_address_frozen() {
+    let e = Env::default();
+    e.mock_all_auths();
+    let address = e.register(MockRWAContract, ());
+    let from = Address::generate(&e);
+    let to = Address::generate(&e);
+
+    e.as_contract(&address, || {
+        setup_all_contracts(&e);
+
+        RWA::mint(&e, &from, 100);
+
+        // Freeze the from address
+        RWA::set_address_frozen(&e, &from, true);
+
+        // Try to transfer - should fail with AddressFrozen error
+        RWA::transfer(&e, &from, &to, 50);
+    });
+}
+
+#[test]
+#[should_panic(expected = "Error(Contract, #302)")]
+fn transfer_fails_when_to_address_frozen() {
+    let e = Env::default();
+    e.mock_all_auths();
+    let address = e.register(MockRWAContract, ());
+    let from = Address::generate(&e);
+    let to = Address::generate(&e);
+
+    e.as_contract(&address, || {
+        setup_all_contracts(&e);
+
+        RWA::mint(&e, &from, 100);
+
+        // Freeze the to address
+        RWA::set_address_frozen(&e, &to, true);
+
+        // Try to transfer - should fail with AddressFrozen error
+        RWA::transfer(&e, &from, &to, 50);
+    });
+}
+
+#[test]
+#[should_panic(expected = "Error(Contract, #303)")]
+fn transfer_fails_when_insufficient_free_tokens() {
+    let e = Env::default();
+    e.mock_all_auths();
+    let address = e.register(MockRWAContract, ());
+    let from = Address::generate(&e);
+    let to = Address::generate(&e);
+
+    e.as_contract(&address, || {
+        setup_all_contracts(&e);
+
+        RWA::mint(&e, &from, 100);
+
+        // Freeze 80 tokens, leaving only 20 free
+        RWA::freeze_partial_tokens(&e, &from, 80);
+        assert_eq!(RWA::get_free_tokens(&e, &from), 20);
+
+        // Try to transfer 50 tokens (more than free) - should fail
+        RWA::transfer(&e, &from, &to, 50);
+    });
+}
+
+#[test]
+#[should_panic(expected = "Error(Contract, #1000)")]
+fn transfer_fails_when_contract_paused() {
+    let e = Env::default();
+    e.mock_all_auths();
+    let address = e.register(MockRWAContract, ());
+    let from = Address::generate(&e);
+    let to = Address::generate(&e);
+
+    e.as_contract(&address, || {
+        setup_all_contracts(&e);
+
+        RWA::mint(&e, &from, 100);
+
+        // Pause the contract
+        pausable::pause(&e);
+
+        // Try to transfer - should fail with EnforcedPause error
+        RWA::transfer(&e, &from, &to, 50);
+    });
+}
+
+#[test]
+#[should_panic(expected = "compliance rejected transfer")]
+fn transfer_fails_when_not_compliant() {
+    let e = Env::default();
+    e.mock_all_auths();
+    let address = e.register(MockRWAContract, ());
+    let from = Address::generate(&e);
+    let to = Address::generate(&e);
+
+    e.as_contract(&address, || {
+        let _ = set_and_return_identity_verifier(&e);
+        let compliance = set_and_return_compliance(&e);
+
+        RWA::mint(&e, &from, 100);
+
+        // Set compliance to reject transfers
+        e.as_contract(&compliance, || {
+            e.storage().persistent().set(&symbol_short!("tx_ok"), &false);
+        });
+
+        // Try to transfer - should fail with TransferNotCompliant error
+        RWA::transfer(&e, &from, &to, 50);
+    });
+}
