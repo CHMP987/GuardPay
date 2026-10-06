@@ -351,7 +351,7 @@ dueña → (opcional) pega el mensaje → Gemma on-device → señales + sugeren
 
 **Por qué la Persona 3 hace los ataques:** quien escribió `enforce` da por obvio lo que un atacante no. Que P9 lo haga alguien que no escribió los contratos es la forma barata de tener una revisión independiente.
 
-**Apoyo cruzado:** Abraham tiene la experiencia en IA local del equipo. Revisa el prompt, el parser y la evaluación de P7 en momentos fuera del camino crítico (noche del día 1 y día 5); Ant sigue siendo la responsable de P7.
+**Apoyo cruzado:** Abraham tiene la experiencia en IA local del equipo. Revisa el prompt, el parser y la evaluación de P7 en momentos fuera del camino crítico (noche del día 1 y día 5); P7 sigue a cargo de Ant.
 
 ### Calendario (si la fecha límite es el 12 oct)
 
