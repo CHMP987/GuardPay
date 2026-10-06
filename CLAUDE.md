@@ -11,7 +11,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 **Client** (Persona 2): Gradle KMP.
 - `app/shared/commonMain`:
   - `domain`: the 9 payment states, transitions and lane.
-  - `ai`: the `GuardPayAI` interface, `AnalysisParser` and a stub per platform.
+  - `ai`: the `GuardPayAI` interface, `AnalysisParser` and a stub per platform. The Android stub (`AndroidGuardPayAI`) returns `Analysis.Unavailable`; P7 has not started.
   - `signing`: the `Signer` interface.
   - `stellar`:
     - `StellarGateway` and `KmpStellarGateway` over stellar-sdk.
@@ -28,7 +28,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
   - `src/debug/Wiring.kt`: uses the Keystore keys plus `testnet.json` from the app's external files dir when both exist and match, else an in-memory simulation.
   - `src/release`: has null sessions.
 
-There is no CI yet.
+`app/README.md` documents the client for humans: structure, platforms, commands, testnet provisioning and limitations. There is no CI yet.
 
 ## Commands
 
@@ -46,7 +46,8 @@ Gradle 8.14.3 via the wrapper, JDK 17, Android SDK path in `local.properties` (g
 
 - `./gradlew :app:shared:testDebugUnitTest -PliveTestnet -Pgp.owner=G… -Pgp.guardian=G… --tests "*DeviceProvisioningLiveTest"`: deploys an account for the phone's Keystore keys (the debug app writes their G addresses to `/sdcard/Android/data/com.guardpay.android/files/keys.json`). It writes `app/shared/build/testnet.json`; `adb push` that file into the same directory. No seed is involved.
 - Instrumented Keystore tests (Android 13+ with a screen lock): `./gradlew :app:android:installDebugAndroidTest`, then `adb shell am instrument -w -r com.guardpay.android.test/androidx.test.runner.AndroidJUnitRunner`.
-- Emulator used for days 5+: AVD `Medium_Phone_API_37.0` with PIN 1234. The host has 7.4 GB RAM, so run `./gradlew --stop` before booting it, and prefer `adb install -r -t <apk>` over `installDebug`. `adb screencap` of the biometric prompt comes out black.
+- Emulator used for days 5+: AVD `Medium_Phone_API_37.0` with PIN 1234. The host has 7.4 GB RAM, so Gradle and the emulator do not fit together: run `./gradlew --stop` before booting it, `adb emu kill` before building, and delete any `hs_err_pid*.log` / `replay_pid*.log` an OOM leaves in the root. Prefer `adb install -r -t app/android/build/outputs/apk/debug/android-debug.apk` over `installDebug`. `adb screencap`/`screenrecord` show the biometric prompt as black.
+- Demo rehearsal: `python evidence/demo/rehearsal/rehearse.py TAG 1 23 6` drives the app on the emulator with uiautomator, records each scene and logs timings (scenes 1, 2+3 and 6). Its videos, PNGs and logs land next to the script, so move them before committing. The demo account (Oct 6) is `CDWPPTDMACOEVMBUHBBTPUW2EEDXY6YVUAOZJFTSGGOBAONCAJ7WGFV6`; see `evidence/demo/rehearsal.md`.
 - Contracts: `cargo test -p account -p guardian_hold -p hold_registry` from the root, and `stellar contract build` (target `wasm32v1-none`, stellar-cli 28.1.0). Use **Testnet only**.
 
 ## Document authority
@@ -89,8 +90,8 @@ AI-assisted payment safety + human guardian veto + deterministic on-chain enforc
 - Label claims in docs `[FACT]` / `[INFERENCE]` / `[RECOMMENDATION]` / `[UNVERIFIED]`. No claims of "first", "unique" or "no bypass exists".
 - Done means implementation + unit + integration + security tests + acceptance criteria + evidence. "Compiles" is not done.
 
-## Open blocking gates (before P1)
+## Gates
 
-- G1: is the submission deadline Oct 12 (Passport) or Oct 5 (Luma)?
-- G2: does the OZ pin `b40c5ea` build with soroban-sdk 28?
+- G1: the submission deadline. **Answered Oct 5: Oct 12 (Passport, 17:59).**
+- G2: does the OZ pin `b40c5ea` build with soroban-sdk 28? **Yes** (`docs/DEPENDENCIES.md`).
 - G3: is a Mac available for iOS? **Answered Oct 5: no.** iOS klibs compile on Windows, but nothing is linked or run on iOS; say so in the README.
