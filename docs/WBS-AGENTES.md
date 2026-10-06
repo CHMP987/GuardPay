@@ -42,7 +42,7 @@ Estados del checklist: `pendiente` · `en curso` · `bloqueada` · `hecha` · `o
 | T-017 | Escribir `docs/DEPENDENCIES.md` | docs | pendiente | T-015, T-016 |
 | T-018 | Escribir README inicial | docs | pendiente | T-001, T-002, T-012, T-013, T-016, T-017 |
 | **CP-0** | **Humano: gates + repo** | **checkpoint** | **pendiente** | **T-018** |
-| T-019 | Correr test digest OZ (Spike A0) | test | pendiente | CP-0, T-016 |
+| T-019 | Correr test digest OZ (Spike A0) | test | hecha | CP-0, T-016 |
 | T-020 | Probar reentrada/recursos R6 (Spike A1) | test | pendiente | T-019 |
 | T-021 | Escribir `account` mínimo del spike | feature | pendiente | T-020 |
 | T-022 | Escribir `hold_registry` mínimo del spike | feature | pendiente | T-020 |
