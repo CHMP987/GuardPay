@@ -1,4 +1,4 @@
-# Capas KMP: tests de arquitectura y dependencias de `commonMain` (P4 día 3, P5 día 4)
+# Capas KMP: tests de arquitectura y dependencias de `commonMain` (P4 día 3, P5 día 4, P6/P8 día 5)
 
 | | |
 | --- | --- |
@@ -14,9 +14,9 @@
 | `domain` | 9 estados de pago (tipos sellados), transiciones, carril, `HeldPayment`, valores | nada |
 | `ai` | `GuardPayAI.analyzeMessage(text): Analysis` y el parser | `domain` |
 | `signing` | `Signer` (firma digests de auth) | nada |
-| `stellar` | `StellarGateway` y `KmpStellarGateway`; decodificadores de cadena, guardia de auth, clasificador de envíos, ABI provisional | `domain`, `signing`, stellar-sdk 1.14.0 |
+| `stellar` | `StellarGateway` y `KmpStellarGateway`; decodificadores de cadena, guardia de auth, clasificador de envíos, ABI de los contratos desplegados (`ContractAbi`) y `TestnetConfig` (direcciones leídas de `testnet.json`) | `domain`, `signing`, stellar-sdk 1.14.0 |
 | `ui` (día 4) | Compose Multiplatform: tokens, componentes, `OwnerSession` (Entrada, Inicio, Pagar + Revisar, Detalle) y `GuardianSession` (lista, detalle, Detener) | `domain`, `ai`, `signing`, `stellar` |
-| `ui/guardian` | Las pantallas del guardián. Solo ven `GuardianChain`: leer el ledger, las retenciones y los contactos, y `submitCancel` | `domain`; de `stellar` solo los tipos de resultado `SubmitResult` y `SubmissionOutcomeUnknownException` |
+| `ui/guardian` | Las pantallas del guardián. Solo ven `GuardianChain`: leer el ledger, las retenciones y los contactos, y `submitCancel`. `HoldWatcher` (día 5) solo usa `readHolds` | `domain`; de `stellar` solo los tipos de resultado `SubmitResult` y `SubmissionOutcomeUnknownException` |
 
 `ai` no ve a `signing` ni a `stellar`, y ningún archivo combina `GuardPayAI` con `Signer`/`StellarGateway`. `checkDependencyGraph` lo hace cumplir.
 
@@ -108,6 +108,8 @@ Día 4: `BUILD SUCCESSFUL`. **105 tests** en `testDebugUnitTest` (Android unit t
 
 El día 3 eran 78 tests; los 27 nuevos de `commonTest` son de `ui`.
 
+Día 5: `BUILD SUCCESSFUL`, **338 tests** en total: 108 en `testDebugUnitTest`, 108 en `testReleaseUnitTest` y 122 en `jvmTest`. Hay 0 fallos y 0 omitidos. Los nuevos son `ui.HoldWatcherTest` (3), que comprueba que la alerta sale del registro leído, que no se repite tras un reinicio y que un fallo de lectura no parece silencio. Frente al día 4 (105 + 119) son 3 más por target. Los tests instrumentados de Android (`KeystoreSignerTest`, 5) corren aparte, en un dispositivo: ver `evidence/smart-account/signing.md`.
+
 `:app:android:assembleDebug` y `:app:android:compileReleaseKotlin` pasan. **No corrido:** la app con esta UI no se ha abierto en un teléfono.
 
 El test vivo de testnet (`KmpStellarGatewayLiveTest`) queda fuera de `allTests` y solo corre con `-PliveTestnet`. Ver `evidence/stellar/gateway-live.md`.
@@ -191,6 +193,7 @@ org.jetbrains.kotlinx:kotlinx-serialization-json:1.9.0
 El prompt de P4 pide `expect Signer` y `expect GuardPayAI`. Se usan **interfaces comunes** con implementaciones por plataforma.
 
 - `Signer` en Android necesitará en P6 un alias del Keystore y una `Activity` para el prompt biométrico o de passkey.
+- Día 5: `KeystoreSigner(alias, prompt)` en `app/android` implementa `Signer` y recibe por constructor el alias y el `BiometricSigningPrompt`, que encuentra la `Activity` visible. Confirma que la interfaz basta.
 - `GuardPayAI` necesitará en P7 un `Context` y la ruta del modelo de LiteRT-LM. Hoy `AndroidGuardPayAI` es un stub sin parámetros.
 
 Un `expect class` obliga a que el constructor tenga la misma firma en todas las plataformas, así que esos objetos tendrían que pasar por estado global. Con una interfaz cada plataforma recibe lo suyo por constructor. El aislamiento que buscaba el `expect` (que `commonMain` no vea la plataforma) lo garantizan igual los controles de la sección 2. `ai/` conserva un único método, `analyzeMessage`.

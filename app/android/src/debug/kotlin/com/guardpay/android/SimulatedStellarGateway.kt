@@ -126,7 +126,7 @@ class SimulatedStellarGateway(
 
     private suspend fun submit(signer: Signer, body: () -> SubmitResult): SubmitResult {
         try {
-            signer.signAuthDigest(ByteArray(32))
+            signer.signHash(ByteArray(32))
         } catch (e: SigningCancelledException) {
             return SubmitResult.SigningCancelled
         }
@@ -161,7 +161,7 @@ class SimulatedStellarGateway(
  * public key and nothing else; the "signature" is zeros and no secret exists.
  */
 class SimulatedSigner(override val publicKey: ByteArray) : Signer {
-    override suspend fun signAuthDigest(digest: ByteArray): ByteArray {
+    override suspend fun signHash(digest: ByteArray): ByteArray {
         delay(600)
         return ByteArray(64)
     }

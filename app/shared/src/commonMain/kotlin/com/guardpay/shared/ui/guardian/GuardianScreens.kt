@@ -89,6 +89,8 @@ fun GuardianListScreen(session: GuardianSession, onOpen: (Long) -> Unit) {
         }
         s.waiting.forEach { hold -> HoldRow(session, s, hold, now) { onOpen(hold.id) } }
         ReadLine(s.ledgerNow, s.lastReadOk, cfg.tz)
+        // P8: never depend on background work alone; this reads the chain now.
+        GpButton("Actualizar", { session.reload() }, kind = ButtonKind.Secondary)
         if (s.stoppedByYou.isNotEmpty()) {
             SectionTitle("Ya detuviste")
             s.stoppedByYou.forEach { hold -> HoldRow(session, s, hold, null) { onOpen(hold.id) } }

@@ -25,8 +25,8 @@ class GatewayGuardianChain(
     override suspend fun submitCancel(holdId: Long, onSigned: () -> Unit): SubmitResult {
         val tracking = object : Signer {
             override val publicKey: ByteArray get() = guardian.publicKey
-            override suspend fun signAuthDigest(digest: ByteArray): ByteArray =
-                guardian.signAuthDigest(digest).also { onSigned() }
+            override suspend fun signHash(digest: ByteArray): ByteArray =
+                guardian.signHash(digest).also { onSigned() }
         }
         return gateway.submitCancel(ownerAccount, holdId, tracking)
     }

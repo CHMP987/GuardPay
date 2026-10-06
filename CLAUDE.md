@@ -4,7 +4,31 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Repository state
 
-`docs/` holds the Spanish-language research, design and planning. The only code so far is the **Gradle KMP skeleton** (day 1, Persona 2): root `settings.gradle.kts`, `gradle/libs.versions.toml` (exact versions, aligned with `stellar-sdk` 1.14.0's own build), `app/shared` (P4 shared core: `domain` with the 9 payment states, transitions and lane prediction; `ai` with the `GuardPayAI` interface, `AnalysisParser` and a stub per platform; `signing` interface; `stellar` with `StellarGateway`, `FakeStellarGateway` (commonTest only) and the day-3 `KmpStellarGateway` skeleton over stellar-sdk: SCVal decoders, an auth-entry guard that signs only the exact call the app built, and a send/poll classifier. Contract function names live in `ProvisionalAbi.kt` and addresses in `GuardPayNetwork`, both provisional until INTERFACES.md / Sync 2; and the day-4 P5 `ui` in Compose Multiplatform, driven by `OwnerSession`/`GuardianSession`, with the guardian screens limited to the `GuardianChain` read + cancel surface) and `app/android` (`src/debug` wires the UI to an in-memory `SimulatedStellarGateway`; `src/release` has null sessions until the testnet contract addresses exist). There are no contracts and no CI yet; when they land, record their real commands here.
+`docs/` holds the Spanish-language research, design and planning. `docs/ESTADO-FASES.md` tracks the phase status, and `evidence/` holds the labeled results.
+
+**Contracts** (Persona 1): a Cargo workspace with `contracts/account`, `contracts/guardian_hold` and `contracts/hold_registry`, plus OZ vendored under `vendor/`. They are deployed on testnet (`evidence/stellar/deployment.md`). The deploy scripts are in `scripts/`; seeds live in the gitignored `scripts/.testnet/`.
+
+**Client** (Persona 2): Gradle KMP.
+- `app/shared/commonMain`:
+  - `domain`: the 9 payment states, transitions and lane.
+  - `ai`: the `GuardPayAI` interface, `AnalysisParser` and a stub per platform.
+  - `signing`: the `Signer` interface.
+  - `stellar`:
+    - `StellarGateway` and `KmpStellarGateway` over stellar-sdk.
+    - The SCVal decoders in `ChainDecoders`.
+    - `AuthEntryGuard`, which signs only the exact call the app built.
+    - The send/poll classifier.
+    - The deployed contracts' function names in `ContractAbi.kt`.
+    - `TestnetConfig`, the parsed `testnet.json` with the addresses.
+  - `ui`: Compose Multiplatform, driven by `OwnerSession`/`GuardianSession`. The guardian screens see only `GuardianChain` (read + cancel). `ui/guardian/HoldWatcher` (P8) turns new `Held` records into local alerts and only reads.
+- `app/shared/androidUnitTest`: `TestnetProvisioner` deploys a fresh account, registry and test SAC for given public keys. `DeviceProvisioningLiveTest` uses it for the phone's keys. `KmpStellarGatewayLiveTest` runs the full cycle plus GH-01/GH-24 against testnet with throwaway keys.
+- `app/android`:
+  - `signing/`: `KeystoreSigner`, an ed25519 key in the Android Keystore (API 33+) with per-use biometric or screen-lock auth, and `BiometricSigningPrompt`.
+  - `notifications/`: `HoldWatchService`, a dataSync foreground service that polls every 30 s, and `HoldNotifications`, with deep links to guardian Detalle or the list.
+  - `src/debug/Wiring.kt`: uses the Keystore keys plus `testnet.json` from the app's external files dir when both exist and match, else an in-memory simulation.
+  - `src/release`: has null sessions.
+
+There is no CI yet.
 
 ## Commands
 
@@ -20,7 +44,10 @@ Gradle 8.14.3 via the wrapper, JDK 17, Android SDK path in `local.properties` (g
 - `./gradlew :app:shared:checkGuardianSurface`: fails if `ui/guardian/**` mentions `StellarGateway`, `Signer`, `submitTransfer`, `submitQueue` or the `signing` package.
 - `./gradlew :app:android:assembleDebug`: debug APK in `app/android/build/outputs/apk/debug/`. `./gradlew :app:android:compileReleaseKotlin` checks the release wiring.
 
-Planned, not set up yet: Rust + `soroban-sdk` 28 targeting `wasm32-unknown-unknown` (`cargo test` for contracts) and `stellar-cli` against **Testnet only**.
+- `./gradlew :app:shared:testDebugUnitTest -PliveTestnet -Pgp.owner=G… -Pgp.guardian=G… --tests "*DeviceProvisioningLiveTest"`: deploys an account for the phone's Keystore keys (the debug app writes their G addresses to `/sdcard/Android/data/com.guardpay.android/files/keys.json`). It writes `app/shared/build/testnet.json`; `adb push` that file into the same directory. No seed is involved.
+- Instrumented Keystore tests (Android 13+ with a screen lock): `./gradlew :app:android:installDebugAndroidTest`, then `adb shell am instrument -w -r com.guardpay.android.test/androidx.test.runner.AndroidJUnitRunner`.
+- Emulator used for days 5+: AVD `Medium_Phone_API_37.0` with PIN 1234. The host has 7.4 GB RAM, so run `./gradlew --stop` before booting it, and prefer `adb install -r -t <apk>` over `installDebug`. `adb screencap` of the biometric prompt comes out black.
+- Contracts: `cargo test -p account -p guardian_hold -p hold_registry` from the root, and `stellar contract build` (target `wasm32v1-none`, stellar-cli 28.1.0). Use **Testnet only**.
 
 ## Document authority
 

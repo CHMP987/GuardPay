@@ -111,7 +111,7 @@ class FakeStellarGateway(
 
     private suspend fun submit(signer: Signer, body: () -> SubmitResult): SubmitResult {
         try {
-            signer.signAuthDigest(ByteArray(32))
+            signer.signHash(ByteArray(32))
         } catch (e: SigningCancelledException) {
             return SubmitResult.SigningCancelled
         }
@@ -137,7 +137,7 @@ class FakeStellarGateway(
 
 /** Test signer: returns a dummy signature, or "cancels" like a dismissed prompt. */
 class FakeSigner(override val publicKey: ByteArray, var cancels: Boolean = false) : Signer {
-    override suspend fun signAuthDigest(digest: ByteArray): ByteArray {
+    override suspend fun signHash(digest: ByteArray): ByteArray {
         if (cancels) throw SigningCancelledException()
         return ByteArray(64)
     }

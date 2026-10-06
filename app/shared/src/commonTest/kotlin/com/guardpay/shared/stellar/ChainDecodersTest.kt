@@ -8,54 +8,53 @@ import com.guardpay.shared.domain.usdc
 import com.ionspin.kotlin.bignum.integer.BigInteger
 import com.soneso.stellar.sdk.Address
 import com.soneso.stellar.sdk.scval.Scv
+import com.soneso.stellar.sdk.xdr.ContractExecutableXdr
+import com.soneso.stellar.sdk.xdr.SCContractInstanceXdr
+import com.soneso.stellar.sdk.xdr.SCMapEntryXdr
+import com.soneso.stellar.sdk.xdr.SCMapXdr
 import com.soneso.stellar.sdk.xdr.SCValXdr
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertNull
 
-/** Parsing of chain reads: contract return values (SCVal) into domain types. */
+/**
+ * Parsing of chain reads into domain types, with the shapes the deployed contracts
+ * store (`contracts/hold_registry`, `contracts/guardian_hold`, the OZ smart account).
+ */
 class ChainDecodersTest {
     private val account = cKey(1)
     private val token = cKey(2)
-    private val guardian = gKey(3)
+    private val registry = cKey(3)
     private val destination = gKey(4)
-    private val stranger = gKey(5)
+    private val owner = gKey(5)
 
     private fun record(
-        account: SCValXdr = sv(this.account),
         token: SCValXdr = sv(this.token),
         amount: SCValXdr = i128(usdc(150).units),
-        status: String = "Held",
+        status: SCValXdr = variant("Retained"),
         createdAt: Long = 1_000,
         readyAt: Long = 1_120,
-        expiresAt: SCValXdr? = u64(1_720),
-        cancelledBy: SCValXdr? = none(),
-        cancelledAt: SCValXdr? = none(),
+        drop: String? = null,
     ): SCValXdr = struct(
-        *listOfNotNull(
-            "id" to u64(7),
-            "account" to account,
+        *listOf(
             "token" to token,
             "destination" to sv(destination),
             "amount" to amount,
             "created_at" to u64(createdAt),
             "ready_at" to u64(readyAt),
-            expiresAt?.let { "expires_at" to it },
-            "status" to variant(status),
-            cancelledBy?.let { "cancelled_by" to it },
-            cancelledAt?.let { "cancelled_at" to it },
-        ).toTypedArray(),
+            "status" to status,
+        ).filter { it.first != drop }.toTypedArray(),
     )
 
-    private fun decode(v: SCValXdr) = ChainDecoders.hold(v, account, token, guardian)
+    private fun decode(v: SCValXdr) = ChainDecoders.hold(7, v, account, token)
 
     private fun rejects(v: SCValXdr) {
         assertFailsWith<ChainDecodeException> { decode(v) }
     }
 
     @Test
-    fun heldRecordDecodesEveryField() {
+    fun retainedRecordDecodesEveryField() {
         val h = decode(record())
         assertEquals(7, h.id)
         assertEquals(account, h.account)
@@ -63,38 +62,34 @@ class ChainDecodersTest {
         assertEquals(usdc(150), h.amount)
         assertEquals(LedgerTime(1_000), h.createdAt)
         assertEquals(LedgerTime(1_120), h.readyAt)
-        assertEquals(LedgerTime(1_720), h.expiresAt)
+        assertNull(h.expiresAt) // the registry has no expiry
         assertEquals(HoldStatus.Held, h.status)
         assertNull(h.cancelledBy)
     }
 
     @Test
-    fun cancellationIsAttributedOnlyToGuardianOrOwner() {
-        val byGuardian = decode(record(status = "Cancelled", cancelledBy = sv(guardian), cancelledAt = u64(1_060)))
-        assertEquals(Party.Guardian, byGuardian.cancelledBy)
-        assertEquals(LedgerTime(1_060), byGuardian.cancelledAt)
-        assertEquals(Party.Owner, decode(record(status = "Cancelled", cancelledBy = sv(account))).cancelledBy)
-        rejects(record(status = "Cancelled", cancelledBy = sv(stranger)))
+    fun statusesMapAndOnlyTheGuardianStops() {
+        assertEquals(HoldStatus.Executed, decode(record(status = variant("Executed"))).status)
+        val stopped = decode(record(status = variant("Stopped")))
+        assertEquals(HoldStatus.Cancelled, stopped.status)
+        assertEquals(Party.Guardian, stopped.cancelledBy)
     }
 
     @Test
-    fun optionalFieldsMayBeVoidOrAbsent() {
-        assertNull(decode(record(expiresAt = none())).expiresAt)
-        val bare = decode(record(expiresAt = null, cancelledBy = null, cancelledAt = null))
-        assertNull(bare.expiresAt)
-        assertNull(bare.cancelledAt)
+    fun unknownOrMalformedStatusIsRejected() {
+        rejects(record(status = variant("Released")))
+        rejects(record(status = variant("Held"))) // the old provisional name
+        rejects(record(status = sym("Retained")))
+        rejects(record(status = vec(sym("Retained"), u64(1))))
     }
 
     @Test
-    fun missingRequiredFieldIsAnError() {
-        val m = Scv.fromMap(record())
-        m.remove(sym("ready_at"))
-        rejects(Scv.toMap(m))
+    fun missingFieldIsAnError() {
+        listOf("token", "destination", "amount", "created_at", "ready_at", "status").forEach { rejects(record(drop = it)) }
     }
 
     @Test
-    fun recordFromAnotherAccountOrTokenIsAnError() {
-        rejects(record(account = sv(cKey(9))))
+    fun recordInAnotherTokenIsAnError() {
         rejects(record(token = sv(cKey(9))))
     }
 
@@ -108,71 +103,95 @@ class ChainDecodersTest {
     }
 
     @Test
-    fun u64AboveLongMaxIsRejected() {
+    fun inconsistentTimesAreRejected() {
+        rejects(record(createdAt = 1_120, readyAt = 1_000))
+    }
+
+    @Test
+    fun integerRangesAreChecked() {
         assertFailsWith<ChainDecodeException> { ChainDecoders.u64(Scv.toUint64(ULong.MAX_VALUE)) }
         assertEquals(Long.MAX_VALUE, ChainDecoders.u64(Scv.toUint64(Long.MAX_VALUE.toULong())))
+        assertFailsWith<ChainDecodeException> { ChainDecoders.u32(Scv.toUint32(UInt.MAX_VALUE)) }
+        assertFailsWith<ChainDecodeException> { ChainDecoders.u32(u64(1)) }
     }
 
     @Test
     fun muxedAddressIsRejected() {
         val muxed = Address.fromMuxedAccount(ByteArray(40) { 4 }).toSCVal()
         assertFailsWith<ChainDecodeException> { ChainDecoders.address(muxed) }
-        assertFailsWith<ChainDecodeException> { ChainDecoders.contacts(vec(sv(destination), muxed)) }
+    }
+
+    // --- guardian_hold config ---------------------------------------------------
+
+    private fun config(
+        contacts: List<SCValXdr> = listOf(sv(destination), sv(gKey(6))),
+        cap: SCValXdr = i128(usdc(100).units),
+    ): SCValXdr = struct(
+        "owner" to sv(owner),
+        "usdc" to sv(token),
+        "trusted_contacts" to Scv.toVec(contacts),
+        "registry" to sv(registry),
+        "daily_cap" to cap,
+        "spent" to i128(0),
+        "spent_day" to u64(0),
+    )
+
+    @Test
+    fun policyConfigDecodes() {
+        val c = ChainDecoders.policyConfig(config())
+        assertEquals(owner, c.owner)
+        assertEquals(token, c.usdc)
+        assertEquals(registry, c.registry)
+        assertEquals(usdc(100), c.dailyCap)
+        assertEquals(listOf(destination, gKey(6)), c.trustedContacts)
+        assertEquals(destination.short(), ChainDecoders.contacts(c.trustedContacts).first().name)
     }
 
     @Test
-    fun unknownOrMalformedStatusIsRejected() {
-        rejects(record(status = "Released"))
-        val m = Scv.fromMap(record())
-        m[sym("status")] = Scv.toVec(listOf(sym("Held"), u64(1)))
-        rejects(Scv.toMap(m))
+    fun policyConfigOutsideTheInstallRulesIsRejected() {
+        assertFailsWith<ChainDecodeException> { ChainDecoders.policyConfig(config(contacts = emptyList())) }
+        assertFailsWith<ChainDecodeException> { ChainDecoders.policyConfig(config(contacts = List(4) { sv(gKey(10 + it)) })) }
+        assertFailsWith<ChainDecodeException> { ChainDecoders.policyConfig(config(contacts = listOf(sv(destination), sv(destination)))) }
+        assertFailsWith<ChainDecodeException> { ChainDecoders.policyConfig(config(cap = i128(0))) }
+        assertFailsWith<ChainDecodeException> { ChainDecoders.policyConfig(struct("owner" to sv(owner))) }
+    }
+
+    // --- OZ account storage ----------------------------------------------------
+
+    @Test
+    fun signersDecodeToGAddresses() {
+        assertEquals(owner, ChainDecoders.signer(vec(sym("Delegated"), sv(owner))))
+        assertEquals(owner, ChainDecoders.signer(vec(sym("External"), sv(cKey(8)), Scv.toBytes(ByteArray(32) { 5 }))))
+        assertFailsWith<ChainDecodeException> { ChainDecoders.signer(vec(sym("External"), sv(cKey(8)), Scv.toBytes(ByteArray(65)))) }
+        assertFailsWith<ChainDecodeException> { ChainDecoders.signer(vec(sym("Delegated"))) }
+        assertFailsWith<ChainDecodeException> { ChainDecoders.signer(vec(sym("Webauthn"), sv(owner))) }
     }
 
     @Test
-    fun inconsistentRecordsAreRejected() {
-        rejects(record(status = "Held", cancelledBy = sv(guardian)))
-        rejects(record(status = "Cancelled"))
-        rejects(record(readyAt = 1_000))
-        rejects(record(expiresAt = u64(1_120)))
-    }
-
-    @Test
-    fun wrongValueTypesAreDecodeErrors() {
-        rejects(record(amount = sym("150")))
-        assertFailsWith<ChainDecodeException> { ChainDecoders.u64(i128(5)) }
-        assertFailsWith<ChainDecodeException> { ChainDecoders.struct(vec()) }
-        assertFailsWith<ChainDecodeException> { ChainDecoders.holds(u64(1), account, token, guardian) }
-    }
-
-    @Test
-    fun holdListDecodesInOrder() {
-        val list = ChainDecoders.holds(vec(record(), record(status = "Executed")), account, token, guardian)
-        assertEquals(listOf(HoldStatus.Held, HoldStatus.Executed), list.map { it.status })
-        assertEquals(emptyList(), ChainDecoders.holds(vec(), account, token, guardian))
-    }
-
-    @Test
-    fun contactsAreDistinctAndShownByShortAddress() {
-        val contacts = ChainDecoders.contacts(vec(sv(destination), sv(stranger), sv(destination)))
-        assertEquals(listOf(destination, stranger), contacts.map { it.address })
-        assertEquals(destination.short(), contacts[0].name)
-    }
-
-    @Test
-    fun accountRulesDecode() {
-        val cfg = struct(
-            "guardian" to sv(guardian),
-            "daily_cap" to i128(usdc(50).units),
-            "hold_secs" to u64(120),
-            "expiry_secs" to u64(600),
+    fun ruleAndEntriesDecode() {
+        val rule = struct(
+            "name" to Scv.toString("default"),
+            "context_type" to variant("Default"),
+            "valid_until" to none(),
+            "signer_ids" to vec(Scv.toUint32(0u)),
+            "policy_ids" to vec(Scv.toUint32(0u), Scv.toUint32(2u)),
         )
-        assertEquals(AccountRules(guardian, usdc(50), 120, 600), ChainDecoders.accountRules(cfg))
+        assertEquals(listOf(0) to listOf(0, 2), ChainDecoders.ruleIds(rule))
+        assertEquals(owner, ChainDecoders.signerEntry(struct("signer" to vec(sym("Delegated"), sv(owner)), "count" to Scv.toUint32(1u))))
+        assertEquals(cKey(9), ChainDecoders.policyEntry(struct("policy" to sv(cKey(9)), "count" to Scv.toUint32(1u))))
+        assertFailsWith<ChainDecodeException> { ChainDecoders.ruleIds(struct("signer_ids" to vec())) }
+    }
 
-        val noExpiry = struct("guardian" to sv(guardian), "daily_cap" to i128(1), "hold_secs" to u64(120), "expiry_secs" to none())
-        assertNull(ChainDecoders.accountRules(noExpiry).expiryWindowSeconds)
-
-        val zeroHold = struct("guardian" to sv(guardian), "daily_cap" to i128(1), "hold_secs" to u64(0))
-        assertFailsWith<ChainDecodeException> { ChainDecoders.accountRules(zeroHold) }
-        assertFailsWith<ChainDecodeException> { ChainDecoders.accountRules(struct("guardian" to sv(guardian))) }
+    @Test
+    fun instanceStorageIsReadByVariantKey() {
+        val instance = Scv.toContractInstance(
+            SCContractInstanceXdr(
+                ContractExecutableXdr.Void,
+                SCMapXdr(listOf(SCMapEntryXdr(variant("Count"), Scv.toUint32(1u)), SCMapEntryXdr(sym("Other"), u64(3)))),
+            ),
+        )
+        assertEquals(1, ChainDecoders.u32(ChainDecoders.instanceValue(instance, "Count")))
+        assertFailsWith<ChainDecodeException> { ChainDecoders.instanceValue(instance, "Missing") }
+        assertFailsWith<ChainDecodeException> { ChainDecoders.instanceValue(u64(1), "Count") }
     }
 }

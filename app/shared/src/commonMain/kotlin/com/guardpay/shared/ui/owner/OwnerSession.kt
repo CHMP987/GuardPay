@@ -56,6 +56,11 @@ data class OwnerConfig(
     val links: ProofLinks = ProofLinks(),
     val contactNames: Map<StellarAddress, String> = emptyMap(),
     val tz: TimeZone = TimeZone.currentSystemDefault(),
+    /**
+     * Whether "Detener mi pago" is offered. The deployed `hold_registry` lets only
+     * the guardian cancel, so real wiring sets false; the chain would refuse it anyway.
+     */
+    val ownerMayStop: Boolean = true,
 )
 
 /** The button moment of Firmando…: "Esperando tu passkey…", then "Enviando a Stellar…". */
@@ -446,8 +451,8 @@ class OwnerSession(
         _ui.update { it.copy(phase = SigningPhase.WaitingPasskey) }
         val tracking = object : Signer {
             override val publicKey: ByteArray get() = owner.publicKey
-            override suspend fun signAuthDigest(digest: ByteArray): ByteArray =
-                owner.signAuthDigest(digest).also { _ui.update { it.copy(phase = SigningPhase.Sending) } }
+            override suspend fun signHash(digest: ByteArray): ByteArray =
+                owner.signHash(digest).also { _ui.update { it.copy(phase = SigningPhase.Sending) } }
         }
         return try {
             block(tracking)

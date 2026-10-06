@@ -16,6 +16,7 @@ android {
         targetSdk = libs.versions.android.targetSdk.get().toInt()
         versionCode = 1
         versionName = "0.1.0"
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
@@ -37,4 +38,9 @@ dependencies {
     implementation(libs.androidx.activity.compose)
     implementation(compose.runtime)
     implementation(compose.foundation)
+
+    androidTestImplementation(libs.androidx.test.runner)
+    androidTestImplementation(libs.androidx.test.ext.junit)
+    // Checks Keystore signatures with an independent ed25519 implementation.
+    androidTestImplementation(libs.stellar.sdk)
 }

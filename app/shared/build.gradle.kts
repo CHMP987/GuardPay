@@ -67,6 +67,9 @@ val liveTestnet = project.hasProperty("liveTestnet")
 tasks.withType<Test>().configureEach {
     inputs.property("liveTestnet", liveTestnet)
     if (!liveTestnet) exclude("**/*LiveTest*")
+    // DeviceProvisioningLiveTest: the phone's public G addresses (from its keys.json).
+    listOf("gp.owner", "gp.guardian").forEach { k -> findProperty(k)?.let { systemProperty(k, it) } }
+    systemProperty("gp.out", layout.buildDirectory.file("testnet.json").get().asFile.absolutePath)
 }
 
 // The 360 dp UI test saves each screen here (SIMULATED evidence); without the property it only asserts.

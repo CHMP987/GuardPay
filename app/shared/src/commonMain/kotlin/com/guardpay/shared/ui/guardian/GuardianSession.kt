@@ -113,6 +113,11 @@ class GuardianSession(
         }
     }
 
+    /** "Actualizar", and opening a notification: read the chain again now. */
+    fun reload() {
+        scope.launch { refresh() }
+    }
+
     suspend fun refresh() = readLock.withLock {
         try {
             val now = chain.latestLedgerTime()

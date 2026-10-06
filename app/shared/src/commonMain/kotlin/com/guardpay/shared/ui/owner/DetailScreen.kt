@@ -105,13 +105,13 @@ fun DetailScreen(session: OwnerSession, key: PaymentKey, onBack: () -> Unit) {
         is PaymentState.Held -> {
             {
                 GpButton("Podrás enviarlo a las ${state.hold.readyAt.clock(cfg.tz)}", {}, enabled = false)
-                GpButton("Detener mi pago", { session.askStop(state.hold.id) }, kind = ButtonKind.DangerOutline, enabled = idle)
+                if (cfg.ownerMayStop) GpButton("Detener mi pago", { session.askStop(state.hold.id) }, kind = ButtonKind.DangerOutline, enabled = idle)
             }
         }
         is PaymentState.ReadyToSend -> {
             {
                 GpButton(signLabel(s.phase, "Firmar y enviar"), { session.release(state.hold.id) }, enabled = idle)
-                GpButton("Detener mi pago", { session.askStop(state.hold.id) }, kind = ButtonKind.DangerOutline, enabled = idle)
+                if (cfg.ownerMayStop) GpButton("Detener mi pago", { session.askStop(state.hold.id) }, kind = ButtonKind.DangerOutline, enabled = idle)
             }
         }
         is PaymentState.NetworkError -> {

@@ -1,9 +1,16 @@
 package com.guardpay.shared.signing
 
 /**
- * Signs Soroban auth digests with a key that never leaves the device (P6: Android
- * Keystore; passkey is SHOULD). The owner's key is the account's only signer; the
- * guardian's key signs `cancel` on the registry and is never an account signer.
+ * Signs 32-byte hashes with an ed25519 key that never leaves the device (P6:
+ * Android Keystore; passkey is SHOULD). The owner's key is the account's only
+ * signer, as `Signer::Delegated(owner G)`; the guardian's key signs `cancel` on the
+ * registry and is never an account signer.
+ *
+ * The key's G account is also the transaction source, so the one hash it signs is
+ * the transaction hash. That envelope signature also authorizes the source-account
+ * entry `account.__check_auth(digest)`, which is how a `Delegated` signer proves
+ * itself to the account. The gateway builds the hash from the transaction it
+ * checked; a signer never chooses what it signs.
  *
  * A common interface rather than `expect`: platform implementations need platform
  * objects (Keystore alias, Activity for a passkey prompt) in their constructors.
@@ -13,11 +20,10 @@ interface Signer {
     val publicKey: ByteArray
 
     /**
-     * Signs the 32-byte digest `sha256(signature_payload ‖ xdr(context_rule_ids))`
-     * (verified on testnet in Spike C) and returns the raw 64-byte signature.
+     * Signs [hash] (32 bytes) and returns the raw 64-byte ed25519 signature.
      * Throws [SigningCancelledException] if the person dismisses the prompt.
      */
-    suspend fun signAuthDigest(digest: ByteArray): ByteArray
+    suspend fun signHash(hash: ByteArray): ByteArray
 }
 
 class SigningCancelledException : Exception("signing cancelled by the user")

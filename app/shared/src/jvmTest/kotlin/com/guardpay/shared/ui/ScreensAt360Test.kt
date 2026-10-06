@@ -154,7 +154,7 @@ class ScreensAt360Test {
     fun firmando() {
         val waits = object : Signer {
             override val publicKey = ownerKey
-            override suspend fun signAuthDigest(digest: ByteArray): ByteArray = awaitCancellation()
+            override suspend fun signHash(digest: ByteArray): ByteArray = awaitCancellation()
         }
         val r = kotlinx.coroutines.runBlocking { rig(signer = waits) }
         r.nav.go(Screen.Home)

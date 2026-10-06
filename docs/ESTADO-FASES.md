@@ -9,13 +9,13 @@
 | G1 | `12 oct` (Passport, 17:59) | Humano, 5 oct 2026. La entrega no es por Luma (5 oct 16:00). |
 | Inscripción en Passport y campos del formulario | sin contestar | Siguen abiertos dentro de T-001. No inventados. |
 | G2 | sí | `[FACT]` 5 oct 2026. `stellar contract build` de `stellar-accounts` @ `b40c5ea` con soroban-sdk 28.0.0, target `wasm32v1-none`, stellar-cli 28.1.0. Exit 0. Detalle en `docs/DEPENDENCIES.md`. |
-| G3 | `SIN CONFIRMAR — bloquea` | T-002 pendiente. Mac / Xcode sin respuesta. |
+| G3 | no hay Mac | Humano (Persona 2), 5 oct 2026: nadie del equipo tiene Mac. Los klibs de iOS compilan en Windows; nada se enlaza ni corre en iOS. |
 
 ## CP-0
 
 Veredicto humano: **GO** a P1. Registrado el 5 oct 2026 a pedido del humano.
 
-P0 sigue **INCOMPLETA**. T-010, T-011, T-012, T-013, T-014 y T-018 no están hechas. `README.md` no existe. Android SDK no está (`ANDROID_HOME` vacío): bloquea la app, no el Spike A.
+P0 sigue **INCOMPLETA**. (6 oct: `README.md` ya existe; las demás tareas de P0 no se revisaron.) T-010, T-011, T-012, T-013, T-014 y T-018 no están hechas. `README.md` no existe. Android SDK no está (`ANDROID_HOME` vacío): bloquea la app, no el Spike A.
 
 T-016 está hecha. G2 ya no bloquea T-019. T-019 hecha (A0 digest OZ pasa; ver `evidence/security/spike-a.md`). T-020 hecha (A1 R6 veredicto **pasa**; ver misma evidencia).
 
@@ -43,7 +43,12 @@ Procedimiento escrito el 6 oct 2026 para poder desplegar. Las semillas de prueba
 | P1 Spike A | cerrada. Evidencia GO y CP-1 GO. |
 | P2 | cerrada para el camino MUST. CP-2 GO. T-049 pendiente. |
 | P3 | deploy en testnet hecho. CP-3 pendiente del humano. |
-| P4–P10 | no iniciado |
+| P4 | hecho para Android (6 oct). `evidence/architecture/kmp-layers.md`, `evidence/stellar/gateway-live.md` |
+| P5 | 4 pantallas con datos de testnet, probadas en emulador (6 oct) |
+| P6 | Keystore + biometría o PIN; ciclo completo en testnet desde la app, en emulador. GH-01/GH-24 con el código del cliente, no desde el teléfono. `evidence/smart-account/signing.md` |
+| P7 | no iniciado (stub) |
+| P8 | aviso local sin backend, < 60 s medido en emulador. `evidence/guardian/notification.md` |
+| P9–P10 | no iniciado |
 
 Definition of Done: implementación + unit + integración + seguridad + criterios de aceptación + evidencia. Compilar no cierra una fase.
 
@@ -62,3 +67,7 @@ El activo es un SAC de prueba emitido por la dueña. No es el USDC de Circle. La
 `scripts/deploy-testnet.ps1` se corrió dos veces. La segunda no desplegó contratos nuevos. `scripts/deploy-testnet.sh` corrió la rama de segunda ejecución. En ese bash no hay `stellar`, así que el primer deploy del `.sh` queda no corrido; lo hizo el `.ps1`.
 
 CP-3 sigue pendiente. Lo firma un humano después de revisar los hashes.
+
+## T-005 · nota del día 5
+
+El teléfono no importa semillas. En el build debug, la app crea las claves de la dueña y del guardián dentro del Keystore de Android. `DeviceProvisioningLiveTest` despliega una cuenta propia para esas direcciones públicas. Las cuentas de `deployment.md`, con semillas en `scripts/.testnet/`, siguen siendo las de los ensayos por CLI. Las dos cosas conviven. Falta decidir cuál usa la demo final.

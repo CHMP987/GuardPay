@@ -14,8 +14,7 @@ import com.guardpay.shared.signing.Signer
  * domain or UI. Production: `KmpStellarGateway` (stellar-sdk 1.14.0). Tests:
  * `FakeStellarGateway`, which exists only in commonTest.
  *
- * PROVISIONAL until INTERFACES.md is frozen at Sync 1: argument and return types
- * may change to match the contracts' exact signatures, reads and error codes.
+ * Function names and storage keys match the deployed contracts (`ContractAbi`).
  *
  * Reads throw on failure (`ChainReadException`, `ChainDecodeException`); they
  * never return a guessed value. Submits return a [SubmitResult], except when the
@@ -31,9 +30,8 @@ interface StellarGateway {
     suspend fun readHolds(account: StellarAddress): List<HeldPayment>
 
     /**
-     * PROVISIONAL (no ABI yet): the account's context rules, signers and policies,
-     * for "Reglas de esta cuenta". Which OZ view functions return them is decided
-     * by INTERFACES.md; until then the real gateway throws [ChainReadException].
+     * The account's context rules, signers and policies, for "Reglas de esta
+     * cuenta", read from the OZ account's own storage.
      */
     suspend fun readAccountShape(account: StellarAddress): AccountShape
 
@@ -41,8 +39,9 @@ interface StellarGateway {
     suspend fun submitQueue(account: StellarAddress, intent: PaymentIntent, owner: Signer): SubmitResult
 
     /**
-     * `HoldRegistry.cancel(caller, id)`: caller is the guardian's G account when
-     * [signer] holds the guardian key (classic auth), otherwise the account itself.
+     * `HoldRegistry.cancel(account, id)`. Only the registry's guardian may cancel:
+     * [signer] is the guardian's G key and pays as the transaction source. Any
+     * other signer is rejected by the registry.
      */
     suspend fun submitCancel(account: StellarAddress, holdId: Long, signer: Signer): SubmitResult
 
@@ -87,8 +86,7 @@ sealed interface SubmitResult {
  * The transaction was handed to the network and its fate could not be confirmed
  * (the RPC stopped answering). It may still land. The caller must NOT retry or
  * report "nothing changed": re-read balance and holds from the chain instead,
- * since a blind retry could pay twice. PROVISIONAL: may become a [SubmitResult]
- * variant once INTERFACES.md and the UI states settle it.
+ * since a blind retry could pay twice.
  */
 class SubmissionOutcomeUnknownException(val txHash: TxHash, cause: Throwable?) :
     Exception("outcome of ${txHash.hex} unknown", cause)

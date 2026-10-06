@@ -1,7 +1,6 @@
 package com.guardpay.shared.stellar
 
 import com.guardpay.shared.domain.StellarAddress
-import com.guardpay.shared.stellar.AuthEntryGuard.Role
 import com.soneso.stellar.sdk.InvokeHostFunctionOperation
 import com.soneso.stellar.sdk.xdr.HostFunctionXdr
 import com.soneso.stellar.sdk.xdr.InvokeContractArgsXdr
@@ -11,7 +10,6 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertFalse
-import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 /** A hostile RPC must not get the owner or guardian to sign a call the app did not build. */
@@ -50,17 +48,17 @@ class AuthEntryGuardTest {
     }
 
     @Test
-    fun signOnlyForTheAccountOrTheSignersOwnKey() {
-        val signerId = gKey(3).value
-        assertEquals(Role.SmartAccount, AuthEntryGuard.role(account.value, account, signerId))
-        assertEquals(Role.ClassicAccount, AuthEntryGuard.role(signerId, account, signerId))
-        assertNull(AuthEntryGuard.role(rpcOperator.value, account, signerId))
-        assertNull(AuthEntryGuard.role(cKey(8).value, account, signerId))
+    fun onlyTheAccountGetsTheDelegatedPayload() {
+        assertTrue(AuthEntryGuard.isAccount(account.value, account))
+        assertFalse(AuthEntryGuard.isAccount(gKey(3).value, account))
+        assertFalse(AuthEntryGuard.isAccount(rpcOperator.value, account))
+        assertFalse(AuthEntryGuard.isAccount(cKey(8).value, account))
+        assertFalse(AuthEntryGuard.isAccount(gKey(3).value, gKey(3)))
     }
 
     @Test
     fun networkConfigIsTestnetShaped() {
-        val ok = GuardPayNetwork("https://soroban-testnet.stellar.org", cKey(1), cKey(2), cKey(3), cKey(4))
+        val ok = GuardPayNetwork("https://soroban-testnet.stellar.org", cKey(1), cKey(2), cKey(3))
         assertEquals(listOf(0u), ok.contextRuleIds)
         assertFailsWith<IllegalArgumentException> { ok.copy(rpcUrl = "http://soroban-testnet.stellar.org") }
         assertFailsWith<IllegalArgumentException> { ok.copy(usdc = gKey(1)) }
