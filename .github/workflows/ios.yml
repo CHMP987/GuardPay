@@ -96,6 +96,8 @@ jobs:
           xcrun simctl list runtimes | grep iOS
           test -n "$sim" && test "$sim" != null || { xcrun simctl list devices available; exit 1; }
           echo "SIM=$sim" >> "$GITHUB_ENV"
+          # Show the on-screen keyboard, so the UI test types like a person would.
+          defaults write com.apple.iphonesimulator ConnectHardwareKeyboard -bool false
           xcrun simctl boot "$sim"
           xcrun simctl bootstatus "$sim" -b
 

@@ -94,10 +94,9 @@ final class SimulationUITests: XCTestCase {
             let l = wait(label, last: true)
             l.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 1.0)).withOffset(CGVector(dx: 0, dy: 32)).tap()
         }
-        if !app.keyboards.firstMatch.waitForExistence(timeout: 5) {
-            shot("fail-\(name.split(separator: " ").last ?? "")-teclado")
-            XCTFail("no keyboard for: \(label) (text fields: \(fields.count))")
-        }
+        // With a hardware keyboard attached the on-screen one never shows; the field can
+        // still have focus, so this only waits and typeText reports a missing focus.
+        _ = app.keyboards.firstMatch.waitForExistence(timeout: 3)
         app.typeText(text)
     }
 
