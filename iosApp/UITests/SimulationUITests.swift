@@ -25,7 +25,7 @@ final class SimulationUITests: XCTestCase {
         shot("02-inicio")
         tap("Pagar")
         tap("Mamá")
-        type("10", into: "Monto (USDC)", field: 0)
+        type("10", into: "Monto (USDC)")
         tap("Revisar")
         tap("Firmar y enviar")
         wait("Enviado", timeout: 30)
@@ -42,8 +42,8 @@ final class SimulationUITests: XCTestCase {
         wait("Saldo")
         tap("Pagar")
         tap("Otra cuenta")
-        type(stranger, into: "Otra cuenta", field: 0)
-        type("150", into: "Monto (USDC)", field: 1)
+        type(stranger, into: "Otra cuenta")
+        type("150", into: "Monto (USDC)")
         tap("Revisar")
         tap("Firmar y retener")
         wait("Retenido", timeout: 30)
@@ -84,26 +84,17 @@ final class SimulationUITests: XCTestCase {
         e.tap()
     }
 
-    /// GpTextField draws its label as a separate text, so the field itself has no label.
-    /// Take the n-th text field on screen; failing that, tap just below the label.
-    private func type(_ text: String, into label: String, field index: Int) {
-        let fields = app.textFields
-        if fields.count > index {
-            fields.element(boundBy: index).tap()
-        } else {
-            let l = wait(label, last: true)
-            l.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 1.0)).withOffset(CGVector(dx: 0, dy: 32)).tap()
+    /// Compose exposes GpTextField as a TextView labelled with the field's label
+    /// (seen in the CI's accessibility tree), not as a TextField.
+    private func type(_ text: String, into label: String) {
+        let field = app.textViews.matching(NSPredicate(format: "label CONTAINS %@", label)).firstMatch
+        if !field.waitForExistence(timeout: 10) {
+            shot("fail-\(name.split(separator: " ").last ?? "")-campo")
+            XCTFail("no text view: \(label)")
         }
-        // With a hardware keyboard attached the on-screen one never shows; the field can
-        // still have focus, so this only waits and typeText reports a missing focus.
+        field.tap()
         _ = app.keyboards.firstMatch.waitForExistence(timeout: 3)
-        // Diagnosis: what the field looks like after the tap, and what XCUITest sees.
-        let tag = "\(name.split(separator: " ").last ?? "")-\(label.prefix(12))"
-        shot("diag-\(tag)")
-        if let dir = ProcessInfo.processInfo.environment["GP_SHOTS"] {
-            try? app.debugDescription.write(toFile: "\(dir)/tree-\(tag).txt", atomically: true, encoding: .utf8)
-        }
-        app.typeText(text)
+        field.typeText(text)
     }
 
     /// The iOS edge swipe, which the app maps to back.
