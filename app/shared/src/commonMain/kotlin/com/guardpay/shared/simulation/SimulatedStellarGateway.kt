@@ -1,4 +1,4 @@
-package com.guardpay.android
+package com.guardpay.shared.simulation
 
 import com.guardpay.shared.domain.HeldPayment
 import com.guardpay.shared.domain.HoldStatus
@@ -20,10 +20,13 @@ import com.guardpay.shared.stellar.ed25519AccountId
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlin.time.Clock
+import kotlin.time.ExperimentalTime
 
 /**
- * DEBUG BUILDS ONLY: an in-memory stand-in for the three contracts, so the screens
- * can be walked on the phone before testnet addresses exist. Same rules as the
+ * SIMULATION ONLY (Android debug builds, and the iOS app until it signs): an in-memory
+ * stand-in for the three contracts, so the screens
+ * can be walked before testnet addresses exist. Same rules as the
  * test fake (security spike, "Modelo de estados") on the phone's wall clock.
  * Nothing here reaches Stellar. Its tx hashes are synthetic: the UI hides every
  * hash and proof while the source is Simulation, and they are never evidence.
@@ -44,7 +47,8 @@ class SimulatedStellarGateway(
     private val holds = mutableListOf<HeldPayment>()
     private var txCounter = 0L
 
-    private fun now() = LedgerTime(System.currentTimeMillis() / 1000)
+    @OptIn(ExperimentalTime::class)
+    private fun now() = LedgerTime(Clock.System.now().epochSeconds)
 
     override suspend fun latestLedgerTime() = settle { now() }
     override suspend fun readAccountRules(account: StellarAddress) = settle { requireAccount(account); rules }
@@ -158,7 +162,7 @@ class SimulatedStellarGateway(
 }
 
 /**
- * DEBUG BUILDS ONLY: stands in for the passkey/Keystore prompt (P6). It holds a
+ * SIMULATION ONLY: stands in for the Keystore/Keychain prompt. It holds a
  * public key and nothing else; the "signature" is zeros and no secret exists.
  */
 class SimulatedSigner(override val publicKey: ByteArray) : Signer {
