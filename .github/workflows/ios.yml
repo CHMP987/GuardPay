@@ -12,8 +12,8 @@ permissions:
   contents: read
 
 env:
-  # swift-sodium 0.11.0 (tag -> commit). Its Clibsodium.xcframework ships libsodium.a per slice.
-  SODIUM_COMMIT: df17ff800f85491b2cdb5c9d0426dacb40761ad2
+  # swift-sodium 0.11.0 (the commit the tag points to). Its Clibsodium.xcframework ships libsodium.a per slice.
+  SODIUM_COMMIT: cfd195c76882aa9b997560ca7cb95d72fbf5db00
   XCODE_APP: /Applications/Xcode_16.4.app
 
 jobs:
