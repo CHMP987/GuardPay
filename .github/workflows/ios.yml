@@ -145,12 +145,14 @@ jobs:
           grep -E "Test Case|error:|\*\*" out/uitest.log | tail -40
           exit $status
 
+      - name: Collect crash reports
+        if: always()
+        run: mkdir -p out/crash && cp ~/Library/Logs/DiagnosticReports/GuardPay* out/crash/ 2>/dev/null || true
+
       - name: Upload screenshots and logs
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: ios-simulator
-          path: |
-            out/
-            ~/Library/Logs/DiagnosticReports/GuardPay*
+          path: out/
           if-no-files-found: ignore

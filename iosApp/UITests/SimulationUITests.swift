@@ -21,11 +21,11 @@ final class SimulationUITests: XCTestCase {
 
     func test2_ownerPaysAContactAndGoesBackBySwipe() {
         tap("Entrar a mi cuenta")
-        wait("Saldo")
+        wait("USDC")  // the balance, once the simulated read settles
         shot("02-inicio")
         tap("Pagar")
         tap("Mamá")
-        type("10", into: "Monto (USDC)")
+        type("10", into: "Monto (USDC)", field: 0)
         tap("Revisar")
         tap("Firmar y enviar")
         wait("Enviado", timeout: 30)
@@ -42,8 +42,8 @@ final class SimulationUITests: XCTestCase {
         wait("Saldo")
         tap("Pagar")
         tap("Otra cuenta")
-        type(stranger, into: "Otra cuenta", last: true)
-        type("150", into: "Monto (USDC)")
+        type(stranger, into: "Otra cuenta", field: 0)
+        type("150", into: "Monto (USDC)", field: 1)
         tap("Revisar")
         tap("Firmar y retener")
         wait("Retenido", timeout: 30)
@@ -78,13 +78,26 @@ final class SimulationUITests: XCTestCase {
     }
 
     private func tap(_ label: String, last: Bool = false) {
-        wait(label, last: last).tap()
+        let e = wait(label, last: last)
+        // The keyboard can cover the bottom of the screen; scroll up to reach the button.
+        for _ in 0..<3 where !e.isHittable { app.swipeUp() }
+        e.tap()
     }
 
-    private func type(_ text: String, into label: String, last: Bool = false) {
-        let field = app.textFields.matching(NSPredicate(format: "label CONTAINS %@ OR placeholderValue CONTAINS %@", label, label))
-        let e = field.count > 0 ? (last ? field.element(boundBy: field.count - 1) : field.firstMatch) : wait(label, last: last)
-        e.tap()
+    /// GpTextField draws its label as a separate text, so the field itself has no label.
+    /// Take the n-th text field on screen; failing that, tap just below the label.
+    private func type(_ text: String, into label: String, field index: Int) {
+        let fields = app.textFields
+        if fields.count > index {
+            fields.element(boundBy: index).tap()
+        } else {
+            let l = wait(label, last: true)
+            l.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 1.0)).withOffset(CGVector(dx: 0, dy: 32)).tap()
+        }
+        if !app.keyboards.firstMatch.waitForExistence(timeout: 5) {
+            shot("fail-\(name.split(separator: " ").last ?? "")-teclado")
+            XCTFail("no keyboard for: \(label) (text fields: \(fields.count))")
+        }
         app.typeText(text)
     }
 
