@@ -52,7 +52,7 @@ La [corrida 37576400338](https://github.com/CHMP987/GuardPay/actions/runs/375764
 
 ## No corrido
 
-- Una app de iOS (`iosApp/`, XcodeGen) y la simulación en el simulador: es iOS-A, el día 9.
+- Una app de iOS (`iosApp/`, XcodeGen) y la simulación en el simulador: es iOS-A, el día 9. **Actualización:** se corrió el día 9, ver `evidence/ios/simulator.md`.
 - Firmar con ed25519 en iOS, con libsodium o con el Keychain (iOS-B).
 - Cualquier cosa en un iPhone físico.
 - Tests contra testnet desde iOS.

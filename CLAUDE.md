@@ -28,7 +28,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
   - `src/debug/Wiring.kt`: uses the Keystore keys plus `testnet.json` from the app's external files dir when both exist and match, else an in-memory simulation.
   - `src/release`: has null sessions.
 
-`app/README.md` documents the client for humans: structure, platforms, commands, testnet provisioning and limitations. There is no CI yet.
+`iosApp/` (iOS-A): XcodeGen `project.yml`, a SwiftUI shell around `MainViewController()` from `shared/iosMain`, and XCUITest scenes 1–3. It runs only the in-memory simulation (`shared/commonMain/simulation`, also used by Android debug without `testnet.json`). Only CI builds it (`.github/workflows/ios.yml`, job `simulator`); see `evidence/ios/simulator.md`. Compose on iOS shows `GpTextField` to XCUITest as a TextView and does not answer scroll-to-visible, so the test taps by coordinate. A `clickable` parent must not hold `paneTitle` (iOS accessibility crashes merging it).
+
+`app/README.md` documents the client for humans: structure, platforms, commands, testnet provisioning and limitations. The only CI is `.github/workflows/ios.yml` (macOS, runs on pushes to the `ios` branch).
 
 ## Commands
 

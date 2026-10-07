@@ -9,7 +9,7 @@
 | G1 | `12 oct` (Passport, 17:59) | Humano, 5 oct 2026. La entrega no es por Luma (5 oct 16:00). |
 | Inscripción en Passport y campos del formulario | sin contestar | Siguen abiertos dentro de T-001. No inventados. |
 | G2 | sí | `[FACT]` 5 oct 2026. `stellar contract build` de `stellar-accounts` @ `b40c5ea` con soroban-sdk 28.0.0, target `wasm32v1-none`, stellar-cli 28.1.0. Exit 0. Detalle en `docs/DEPENDENCIES.md`. |
-| G3 | no hay Mac | Humano (Persona 2), 5 oct 2026: nadie del equipo tiene Mac. Los klibs de iOS compilan en Windows; nada se enlaza ni corre en iOS. |
+| G3 | no hay Mac | Humano (Persona 2), 5 oct 2026: nadie del equipo tiene Mac. Los klibs de iOS compilan en Windows; nada se enlaza ni corre en iOS en Windows. Desde el 7 oct, un runner de macOS del CI enlaza `shared` y corre la app en el simulador, solo en simulación (`evidence/ios/`). |
 
 ## CP-0
 

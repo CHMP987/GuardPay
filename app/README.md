@@ -10,10 +10,12 @@ Es el cliente de GuardPay: la dueña paga y su guardián puede detener un pago r
 | `shared/commonMain/stellar` | `StellarGateway` y `KmpStellarGateway`, sobre `com.soneso.stellar:stellar-sdk:1.14.0`. También `AuthEntryGuard`, que solo firma la llamada exacta que la app construyó; los decodificadores SCVal; `ContractAbi`; y `TestnetConfig`, que es el `testnet.json` con las direcciones. |
 | `shared/commonMain/signing` | La interfaz `Signer`. Firma un hash de 32 bytes y nada más. |
 | `shared/commonMain/ai` | `GuardPayAI.analyzeMessage(text)`. Hoy es un **stub** que devuelve `Unavailable` (P7 no se ha hecho). No ve saldos, contactos, claves ni la red. |
+| `shared/commonMain/simulation` | `SimulatedStellarGateway`, `SimulatedSigner` y `simulatedSides`: la simulación en memoria que comparten el debug de Android sin `testnet.json` y la app de iOS. |
 | `shared/commonMain/ui` | Compose Multiplatform: las 4 pantallas de la Propuesta visual, guiadas por `OwnerSession` y `GuardianSession`. El guardián solo ve `GuardianChain` (leer y cancelar). `HoldWatcher` convierte cada retención nueva en un aviso y solo lee. |
 | `shared/androidUnitTest` | Tests contra testnet (`*LiveTest`, opcionales) y `TestnetProvisioner`, que despliega una cuenta para unas claves públicas. |
 | `android/src/main` | `KeystoreSigner` (ed25519 en el Keystore, API 33+, huella o PIN en cada firma), `BiometricSigningPrompt` y `HoldWatchService` (lee el RPC cada 30 s y publica avisos locales). |
 | `android/src/debug` | `Wiring`. Con `testnet.json` usa las claves del Keystore y los contratos de testnet; sin él, una simulación en memoria con el aviso "Simulación: nada de esto está en Stellar". |
+| `../iosApp` | App de iOS: `project.yml` de XcodeGen 2.46.0 (el `.xcodeproj` no se versiona), `iOSApp.swift`, que muestra `MainViewController()` de `shared/iosMain`, y los tests de XCUITest. libsodium llega por SPM (swift-sodium 0.11.0). Solo simulación, sin firma. |
 | `android/src/release` | Sin sesiones: no se distribuyen direcciones de contratos. La Entrada muestra los botones desactivados. |
 
 Las reglas de capas las imponen tareas de Gradle que corren dentro de `allTests` (ver abajo). Nada en `ai/` puede depender de `Signer` ni de `StellarGateway`.
@@ -23,7 +25,7 @@ Las reglas de capas las imponen tareas de Gradle que corren dentro de `allTests`
 | Plataforma | Estado |
 | --- | --- |
 | Android | APK de debug probado en un **emulador** (API 37) contra testnet: firma, retención, aviso, detención y la pantalla de reglas (`evidence/demo/rehearsal.md`). En el teléfono físico (Galaxy A54, Android 14) corrieron el 7 oct (UTC) las escenas 1, 2, 3 y 6 contra testnet, con huella (`evidence/demo/physical-phone.md`). La dueña y el guardián estaban en el mismo teléfono. minSdk 28; la firma con Keystore pide Android 13+. |
-| iOS | **Enlaza en CI; no hay app de iOS.** Nadie del equipo tiene un Mac. Un runner de macOS (`.github/workflows/ios.yml`, Xcode 16.4) enlaza el framework `Shared` para el simulador y el dispositivo, y corre los 109 tests de `commonTest` en el simulador: 0 fallos (`evidence/ios/ci-link.md`). libsodium viene de swift-sodium 0.11.0. No hay app de iOS, no se ha firmado nada en iOS y nada ha corrido en un iPhone. No afirmamos que iOS funcione. |
+| iOS | **La app abre en el simulador del CI, solo en modo simulación.** Nadie del equipo tiene un Mac. Un runner de macOS (`.github/workflows/ios.yml`, Xcode 16.4) enlaza el framework `Shared`, corre los 109 tests de `commonTest` en el simulador (`evidence/ios/ci-link.md`), genera `iosApp/` con XcodeGen, la compila sin firmar y recorre las escenas 1, 2 y 3 con XCUITest en un iPhone 16 simulado: 3 de 3 tests pasan (`evidence/ios/simulator.md`, SIMULATED). libsodium viene de swift-sodium 0.11.0. No se ha firmado nada con una llave real en iOS, nada ha tocado testnet desde iOS y nada ha corrido en un iPhone. |
 
 Versiones fijadas en `gradle/libs.versions.toml`: Kotlin 2.2.20, AGP 8.12.3, Compose Multiplatform 1.9.1, stellar-sdk 1.14.0, compileSdk/targetSdk 35.
 
@@ -126,6 +128,8 @@ En ningún paso hay una semilla: solo entran y salen direcciones públicas. La c
 | Aviso al guardián sin backend | `evidence/guardian/notification.md` |
 | Pantallas (SIMULATED) | `evidence/demo/screens/` |
 | Ensayo de las escenas 1, 2, 3 y 6 (REAL) | `evidence/demo/rehearsal.md` |
+| iOS: enlace y `commonTest` en el simulador (REAL) | `evidence/ios/ci-link.md` |
+| iOS: la app en el simulador, escenas 1–3 (SIMULATED) | `evidence/ios/simulator.md` |
 
 ## Limitaciones
 
