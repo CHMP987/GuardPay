@@ -1,0 +1,8 @@
+23:16:04 == run p1 scene 23
+23:16:46 waiting for the owner's fingerprint on the phone
+23:18:21 scene2 total 115.6 s; after PIN 90.8 s
+23:18:38 scene3 notification 16.8 s after Retenido showed
+23:19:01 waiting for the owner's fingerprint on the phone
+23:19:25 scene3 from tap on notification 37.8 s; after PIN 20.0 s
+23:19:39 == run p1 scene 6
+23:20:33 scene6 total 19.3 s

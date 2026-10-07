@@ -22,7 +22,7 @@ Las reglas de capas las imponen tareas de Gradle que corren dentro de `allTests`
 
 | Plataforma | Estado |
 | --- | --- |
-| Android | APK de debug probado en un **emulador** (API 37) contra testnet: firma, retención, aviso, detención y la pantalla de reglas (`evidence/demo/rehearsal.md`). En el teléfono físico (Galaxy A54) solo corrió el esqueleto del día 1. **La app actual no se ha abierto en un teléfono físico.** minSdk 28; la firma con Keystore pide Android 13+. |
+| Android | APK de debug probado en un **emulador** (API 37) contra testnet: firma, retención, aviso, detención y la pantalla de reglas (`evidence/demo/rehearsal.md`). En el teléfono físico (Galaxy A54, Android 14) corrieron el 7 oct (UTC) las escenas 1, 2, 3 y 6 contra testnet, con huella (`evidence/demo/physical-phone.md`). La dueña y el guardián estaban en el mismo teléfono. minSdk 28; la firma con Keystore pide Android 13+. |
 | iOS | **Declarada, no compilada ni ejecutada.** Los targets `iosArm64` e `iosSimulatorArm64` están en Gradle y sus klibs compilan en Windows. Nadie del equipo tiene un Mac, así que no se ha enlazado ningún binario ni se ha corrido nada en un iPhone o en un simulador. No afirmamos que iOS funcione. |
 
 Versiones fijadas en `gradle/libs.versions.toml`: Kotlin 2.2.20, AGP 8.12.3, Compose Multiplatform 1.9.1, stellar-sdk 1.14.0, compileSdk/targetSdk 35.
@@ -130,6 +130,7 @@ En ningún paso hay una semilla: solo entran y salen direcciones públicas. La c
 ## Limitaciones
 
 - **La firma es a ciegas.** El diálogo del sistema no muestra ni el destino ni el monto: la clave firma un hash. Lo mitigan la retención en cadena y la vista del guardián, no la clave.
+- **Pagar pide la huella dos veces:** una para la autorización de la cuenta y otra para la transacción, porque la clave de la dueña también paga la comisión. Detener la pide una vez (`evidence/demo/physical-phone.md`).
 - **El aviso al guardián no tiene backend.** El sistema puede detener el servicio de sondeo, y entonces el aviso llega cuando se abre la app o se toca "Actualizar". Consultar cada 30 s no es aceptable en batería para producción.
 - **Las dos claves están en un mismo teléfono** en debug, para la demo. El aviso entre dos teléfonos no se ha probado.
 - **Los pagos inmediatos no se releen.** Un pago a un contacto sigue en cadena, pero desaparece de "Recientes" al reiniciar la app.

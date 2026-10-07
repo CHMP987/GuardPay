@@ -103,7 +103,7 @@ Firmando no tiene captura REAL porque el diálogo del sistema sale en negro. Bor
 
 ## No corrido
 
-- Teléfono físico: todo fue en emulador.
+- Teléfono físico: todo fue en emulador. Se corrió después, el 7 oct (UTC), en un Galaxy A54 (`physical-phone.md`).
 - Desde la terminal (P9, Ant): el envío inmediato rechazado de la escena 2 y los ataques de la escena 6.
 - Escenas 4 y 5, que son de terminal.
 - La IA: hoy es un stub, así que la escena 2 se hizo sin pegar el mensaje sospechoso.
