@@ -97,6 +97,12 @@ final class SimulationUITests: XCTestCase {
         // With a hardware keyboard attached the on-screen one never shows; the field can
         // still have focus, so this only waits and typeText reports a missing focus.
         _ = app.keyboards.firstMatch.waitForExistence(timeout: 3)
+        // Diagnosis: what the field looks like after the tap, and what XCUITest sees.
+        let tag = "\(name.split(separator: " ").last ?? "")-\(label.prefix(12))"
+        shot("diag-\(tag)")
+        if let dir = ProcessInfo.processInfo.environment["GP_SHOTS"] {
+            try? app.debugDescription.write(toFile: "\(dir)/tree-\(tag).txt", atomically: true, encoding: .utf8)
+        }
         app.typeText(text)
     }
 
