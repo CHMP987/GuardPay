@@ -1,0 +1,110 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1480" viewBox="0 0 1080 1480" role="img" aria-labelledby="title desc">
+  <title id="title">GuardPay: lo logrado al 6 de octubre de 2026</title>
+  <desc id="desc">Seis fases cerradas, tres cuentas de testnet con sus wasm, y lo que sigue abierto antes del 12 de octubre.</desc>
+  <rect width="1080" height="1480" fill="#F5F9FA"/>
+  <rect x="0" y="0" width="1080" height="8" fill="#00A99D"/>
+
+  <text x="64" y="72" fill="#0B1220" font-family="Segoe UI, system-ui, sans-serif" font-size="14" letter-spacing="1.6">GUARDPAY · TESTNET · 6 OCT 2026</text>
+  <text x="64" y="128" fill="#0B1220" font-family="Segoe UI, system-ui, sans-serif" font-size="40" font-weight="650">La regla está en el contrato.</text>
+  <text x="64" y="176" fill="#0B1220" font-family="Segoe UI, system-ui, sans-serif" font-size="40" font-weight="650">El guardián puede detener.</text>
+  <text x="64" y="224" fill="#334155" font-family="Segoe UI, system-ui, sans-serif" font-size="18">No mueve el dinero y no es firmante. Entrega el 12 oct, 17:59, por Passport.</text>
+
+  <g font-family="Segoe UI, system-ui, sans-serif">
+    <text x="64" y="300" fill="#107A37" font-size="42" font-weight="700">6</text>
+    <text x="108" y="300" fill="#334155" font-size="16">fases cerradas</text>
+    <text x="300" y="300" fill="#A25904" font-size="42" font-weight="700">4</text>
+    <text x="344" y="300" fill="#334155" font-size="16">a medias</text>
+    <text x="520" y="300" fill="#64748B" font-size="42" font-weight="700">1</text>
+    <text x="560" y="300" fill="#334155" font-size="16">sin abrir</text>
+    <text x="760" y="300" fill="#0B1220" font-size="42" font-weight="700">3</text>
+    <text x="804" y="300" fill="#334155" font-size="16">cuentas, sin mezclar</text>
+  </g>
+
+  <text x="64" y="360" fill="#0B1220" font-family="Segoe UI, system-ui, sans-serif" font-size="13" letter-spacing="1.2">ONCE FASES DEL PLAN</text>
+  <g font-family="Segoe UI, system-ui, sans-serif" font-size="13" font-weight="650" fill="#F5F9FA">
+    <rect x="64" y="376" width="78" height="36" rx="4" fill="#A25904"/>
+    <text x="103" y="399" text-anchor="middle">P0</text>
+    <rect x="150" y="376" width="78" height="36" rx="4" fill="#107A37"/>
+    <text x="189" y="399" text-anchor="middle">P1</text>
+    <rect x="236" y="376" width="78" height="36" rx="4" fill="#107A37"/>
+    <text x="275" y="399" text-anchor="middle">P2</text>
+    <rect x="322" y="376" width="78" height="36" rx="4" fill="#A25904"/>
+    <text x="361" y="399" text-anchor="middle">P3</text>
+    <rect x="408" y="376" width="78" height="36" rx="4" fill="#107A37"/>
+    <text x="447" y="399" text-anchor="middle">P4</text>
+    <rect x="494" y="376" width="78" height="36" rx="4" fill="#107A37"/>
+    <text x="533" y="399" text-anchor="middle">P5</text>
+    <rect x="580" y="376" width="78" height="36" rx="4" fill="#107A37"/>
+    <text x="619" y="399" text-anchor="middle">P6</text>
+    <rect x="666" y="376" width="78" height="36" rx="4" fill="#64748B"/>
+    <text x="705" y="399" text-anchor="middle">P7</text>
+    <rect x="752" y="376" width="78" height="36" rx="4" fill="#107A37"/>
+    <text x="791" y="399" text-anchor="middle">P8</text>
+    <rect x="838" y="376" width="78" height="36" rx="4" fill="#A25904"/>
+    <text x="877" y="399" text-anchor="middle">P9</text>
+    <rect x="924" y="376" width="78" height="36" rx="4" fill="#A25904"/>
+    <text x="963" y="399" text-anchor="middle">P10</text>
+  </g>
+  <text x="64" y="436" fill="#64748B" font-family="Segoe UI, system-ui, sans-serif" font-size="13">Verde: cerrada. Ámbar: a medias. Gris: P7 no se abrió. La IA queda en NICE. Fuente: docs/ESTADO-FASES.md en la rama reconciliada.</text>
+
+  <text x="64" y="488" fill="#0B1220" font-family="Segoe UI, system-ui, sans-serif" font-size="13" letter-spacing="1.2">TRES CUENTAS · UN HASH NO SALTA DE COLUMNA</text>
+
+  <g font-family="Segoe UI, system-ui, sans-serif">
+    <rect x="64" y="508" width="300" height="250" rx="8" fill="#FFFFFF" stroke="#D7E2E6"/>
+    <text x="84" y="540" fill="#007E75" font-size="13" letter-spacing="1">PUBLICADA</text>
+    <text x="84" y="572" fill="#0B1220" font-size="18" font-weight="650">CDBJMSUI&</text>
+    <text x="84" y="600" fill="#334155" font-size="14">Wasm 986956cc&</text>
+    <text x="84" y="628" fill="#334155" font-size="14">El de deployment.md</text>
+    <text x="84" y="668" fill="#0B1220" font-size="14"> de la mañana y dos</text>
+    <text x="84" y="690" fill="#0B1220" font-size="14">rechazos de la noche:</text>
+    <text x="84" y="712" fill="#0B1220" font-size="14">enforce directo, queue</text>
+    <text x="84" y="734" fill="#0B1220" font-size="14">sin la dueña.</text>
+
+    <rect x="384" y="508" width="300" height="250" rx="8" fill="#FFFFFF" stroke="#D7E2E6"/>
+    <text x="404" y="540" fill="#007E75" font-size="13" letter-spacing="1">ATAQUES</text>
+    <text x="404" y="572" fill="#0B1220" font-size="18" font-weight="650">CC6FFXGG&</text>
+    <text x="404" y="600" fill="#334155" font-size="14">Wasm 06226b37&</text>
+    <text x="404" y="628" fill="#334155" font-size="14">Misma fuente, sin optimizar</text>
+    <text x="404" y="668" fill="#0B1220" font-size="14">Destino, monto, muxed,</text>
+    <text x="404" y="690" fill="#0B1220" font-size="14">contrato intermedio y el</text>
+    <text x="404" y="712" fill="#0B1220" font-size="14">tope 30+20+1. Verde solo</text>
+    <text x="404" y="734" fill="#0B1220" font-size="14">en este wasm.</text>
+
+    <rect x="704" y="508" width="312" height="250" rx="8" fill="#0B1220"/>
+    <text x="724" y="540" fill="#5EEAD4" font-size="13" letter-spacing="1">EMULADOR</text>
+    <text x="724" y="572" fill="#F5F9FA" font-size="18" font-weight="650">CDWPPTDM&</text>
+    <text x="724" y="600" fill="#CBD5E1" font-size="14">Wasm 986956cc&</text>
+    <text x="724" y="628" fill="#CBD5E1" font-size="14">El mismo de la publicada</text>
+    <text x="724" y="668" fill="#F5F9FA" font-size="14">Mamá y Diego. Escenas</text>
+    <text x="724" y="690" fill="#F5F9FA" font-size="14">1, 2, 3 y 6 de la app.</text>
+    <text x="724" y="712" fill="#F5F9FA" font-size="14">No se firmaron ataques</text>
+    <text x="724" y="734" fill="#F5F9FA" font-size="14">con esta cuenta.</text>
+  </g>
+
+  <text x="64" y="808" fill="#0B1220" font-family="Segoe UI, system-ui, sans-serif" font-size="13" letter-spacing="1.2">LO QUE EL LEDGER YA MOSTRÓ</text>
+  <g font-family="Segoe UI, system-ui, sans-serif" font-size="16" fill="#0B1220">
+    <circle cx="76" cy="842" r="5" fill="#007E75"/>
+    <text x="96" y="848">Una regla Default. Firmante: la dueña. Política: GuardianHold.</text>
+    <circle cx="76" cy="878" r="5" fill="#007E75"/>
+    <text x="96" y="884">Pago detenido, guardián que intenta gastar, y approve: rechazados.</text>
+    <circle cx="76" cy="914" r="5" fill="#007E75"/>
+    <text x="96" y="920">execute, upgrade y una segunda regla: no hay transacción.</text>
+    <circle cx="76" cy="950" r="5" fill="#007E75"/>
+    <text x="96" y="956">El registro no mueve el token. El activo es un SAC de prueba, no el USDC de Circle.</text>
+    <circle cx="76" cy="986" r="5" fill="#007E75"/>
+    <text x="96" y="992">La app firma en el emulador con Keystore. El aviso al guardián es local, sin backend.</text>
+  </g>
+
+  <rect x="64" y="1040" width="952" height="196" rx="8" fill="#FFFFFF" stroke="#D7E2E6"/>
+  <text x="88" y="1076" fill="#A25904" font-family="Segoe UI, system-ui, sans-serif" font-size="13" letter-spacing="1.2">SIGUE ABIERTO</text>
+  <g font-family="Segoe UI, system-ui, sans-serif" font-size="16" fill="#0B1220">
+    <text x="88" y="1112">GH-29, GH-30 y GH-33: no corrido. No hay vencimiento de 600 s ni passkey.</text>
+    <text x="88" y="1144">Las seis escenas seguidas, por debajo de 5 minutos, no se cronometraron.</text>
+    <text x="88" y="1176">Passport no se envió. CP-3, CP-7 y CP-9 los firma un humano.</text>
+    <text x="88" y="1208">Esta lámina no dice que no exista otra ruta. Cubre las filas que tienen hash.</text>
+  </g>
+
+  <text x="64" y="1290" fill="#64748B" font-family="Segoe UI, system-ui, sans-serif" font-size="14">Detalle: evidence/security/bypass-matrix.md · evidence/demo/rehearsal.md · docs/SUBMISSION.md</text>
+  <text x="64" y="1320" fill="#64748B" font-family="Segoe UI, system-ui, sans-serif" font-size="14">Pin OpenZeppelin b40c5ea · soroban-sdk 28.0.0 · solo testnet · contratos sin auditar</text>
+  <text x="64" y="1410" fill="#0B1220" font-family="Segoe UI, system-ui, sans-serif" font-size="15">La IA advierte. Tú firmas. Tu guardián puede detener. El contrato rechaza lo demás.</text>
+</svg>
