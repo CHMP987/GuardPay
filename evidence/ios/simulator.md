@@ -73,7 +73,7 @@ En todas ellas el build y el arranque de la app pasaron. El paso de UI tenía `c
 
 ## No corrido
 
-- La app en un iPhone físico (`.ipa` sin firmar + Sideloadly): día 10.
+- La app en un iPhone físico (`.ipa` sin firmar + Sideloadly): día 10, en el iPhone de Abraham (plan de Persona 2, §7.1).
 - Firma con una llave real en iOS (`KeychainSigner`, iOS-B). Aquí firma `SimulatedSigner`.
 - Nada contra Stellar testnet desde iOS.
 - La IA en iOS: el stub devuelve `Analysis.Unavailable`.

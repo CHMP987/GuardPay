@@ -105,8 +105,8 @@ Va **después** de la congelación y nunca bloquea la entrega. Todo el trabajo d
 | 8 (7 oct), mañana | Cerrar la depuración del Galaxy A54: la app actual con la cuenta del teléfono, los flujos de pagar, retener y detener, y logcat. | `evidence/demo/physical-phone.md` (REAL o "no corrido") |
 | 8, tarde | **Hito 0, CI en macOS:** `.github/workflows/ios.yml` en `macos-15` con Xcode 16.x fijado. Enlaza el framework de `shared` para el simulador con libsodium. | El framework enlaza, o el error de enlace queda anotado |
 | 9 (8 oct) | **Hito A, simulador:** `iosApp/` con XcodeGen y Compose `App()` en modo simulación. El CI arranca el simulador, abre la app y saca captura y log. | `evidence/ios/simulator.md` (SIMULATED) con la captura |
-| 10 (9 oct) | `.ipa` sin firmar como artefacto del CI. **La instalo yo** con Sideloadly y mi Apple ID secundario: Hito A en el iPhone. Después **Hito B:** `KeychainSigner` en `iosMain`, `keys.json` y `testnet.json` por archivos compartidos. | El iPhone abre la app; el iPhone firma en testnet |
-| 11 (10 oct) | **Variante de dos dispositivos:** el iPhone es el guardián y el A54 la dueña. Escenas 2 y 3 entre los dos teléfonos. | `evidence/ios/two-devices.md` (REAL), con hashes de Horizon |
+| 10 (9 oct) | **Yo:** `.ipa` sin firmar como artefacto del CI. **Abraham** (el iPhone es suyo; yo no tengo) lo instala con Sideloadly y su Apple ID secundario: Hito A en el iPhone. Después **Hito B:** yo escribo `KeychainSigner` en `iosMain`; Abraham reinstala y mueve `keys.json` y `testnet.json` por archivos compartidos. Pasos en §7.1. | El iPhone abre la app; el iPhone firma en testnet |
+| 11 (10 oct) | **Variante de dos dispositivos:** el iPhone de Abraham es el guardián y mi A54 la dueña. Escenas 2 y 3 entre los dos teléfonos, coordinadas por llamada. | `evidence/ios/two-devices.md` (REAL), con hashes de Horizon |
 | 11 oct | Congelación de iOS: README (fila "Plataformas") y `ESTADO-FASES.md` con lo que de verdad corrió. Merge de `ios` a `main` solo si todo está verde. | README honesto |
 | 12 oct | Entrega. Nada nuevo. | — |
 
@@ -142,7 +142,7 @@ Va **después** de la congelación y nunca bloquea la entrega. Todo el trabajo d
 | **Me quedo sin tiempo en P5** | Corto en este orden: Entrada → "Reglas de esta cuenta" plegable → animación de la línea de espera. **Nunca** corto Pagar, Detalle ni Guardián: sin ellas no hay escenas 1 a 3. |
 | **libsodium no enlaza en iOS** | Probar en este orden: (a) `Clibsodium.xcframework` de `jedisct1/swift-sodium` en un tag fijo, con `linkerOpts`; (b) compilar libsodium para iOS en el CI con su script `dist-build/apple-xcframework.sh`; (c) quedarse en iOS-0 rojo, anotado como tal. |
 | **El CI de macOS se queda sin cuota o va lento** | Codemagic (500 min gratis al mes en M2). Si tampoco alcanza, un Mac por horas (MacinCloud o Scaleway), solo si el equipo lo aprueba porque cuesta dinero. |
-| **Sideloadly falla o no hay Apple ID secundario** | Me quedo en iOS-A con el simulador del CI. Se dice "iOS: corre en simulación"; no se afirma que corra en un iPhone. |
+| **Sideloadly falla, Abraham no tiene Apple ID secundario o no tiene tiempo** | Me quedo en iOS-A con el simulador del CI. Se dice "iOS: corre en simulación"; no se afirma que corra en un iPhone. |
 | **`KeychainSigner` no funciona a tiempo** | El iPhone se queda en iOS-A. La demo de dos dispositivos se hace con un segundo Android o con el emulador. |
 | **iOS rompe Android** | Se revierte en la rama `ios`. `main` no recibe nada que no tenga `allTests` y el APK verdes. |
 
@@ -156,7 +156,7 @@ Va **después** de la congelación y nunca bloquea la entrega. Todo el trabajo d
 - Ni "seguro" ni "protegido" en la UI. "Retenido" solo con registro en la cadena.
 - Testnet siempre. Versiones exactas. Ninguna clave ni semilla en el repo.
 - No invento hashes: lo que no corrí se anota como "no corrido".
-- Ningún Apple ID, contraseña, certificado ni perfil de aprovisionamiento entra en el repo ni en los secretos del CI. El Apple ID lo escribe su dueño en Sideloadly, no un script.
+- Ningún Apple ID, contraseña, certificado ni perfil de aprovisionamiento entra en el repo ni en los secretos del CI. El Apple ID lo escribe su dueño (Abraham) en Sideloadly, no un script.
 
 ---
 
@@ -185,7 +185,7 @@ G3 sigue siendo "nadie tiene Mac", pero hay un iPhone. La ruta es compilar en un
    - El CI arranca el simulador con `xcrun simctl`, instala, abre y guarda captura y log como artefactos.
 3. **`.ipa` sin firmar.**
    - `xcodebuild … CODE_SIGNING_ALLOWED=NO`, y después la carpeta `Payload/` en zip. Queda como artefacto del CI.
-   - **Lo instalo yo** con Sideloadly en Windows y un Apple ID **secundario** gratis. Sideloadly necesita el iTunes que no es de la Store.
+   - **Lo instala Abraham** (dueño del iPhone) con Sideloadly y un Apple ID **secundario** gratis suyo. Sideloadly necesita el iTunes que no es de la Store.
    - En el iPhone hay que activar el Modo desarrollador (iOS 16+) y confiar en el perfil. La firma gratis dura **7 días** y admite 3 apps como máximo.
    - Los logs del iPhone se leen con `idevicesyslog` (libimobiledevice para Windows).
 4. **iOS-B, firma real.**
@@ -199,6 +199,31 @@ G3 sigue siendo "nadie tiene Mac", pero hay un iPhone. La ruta es compilar en un
    - `[FACT]` Hoy `src/debug/Wiring.kt:91` exige que **las dos** claves del teléfono coincidan con `testnet.json`. La variante necesita un modo "solo dueña" en el A54. Es un cambio pequeño en el debug de Android, y va en la rama `ios`.
    - Provisión: `-Pgp.owner` con la G del A54 y `-Pgp.guardian` con la G del iPhone. Es una **quinta cuenta**, así que hay que acordar con el equipo cuál va en la demo.
 6. **Aviso al guardián en iOS.** Sondeo del RPC solo con la app en primer plano, más `UNUserNotificationCenter`. No hay sondeo en segundo plano porque no hay backend ni APNs. En la demo la app está abierta, y se dice así.
+
+### 7.1 Reparto con Abraham (revisado 7 oct)
+
+`[FACT]` Yo no tengo iPhone; Abraham sí. Desde el día 10, todo lo que pasa en el iPhone lo hace él. Yo sigo con el código, el CI, el A54 y la evidencia.
+
+| Quién | Qué |
+| --- | --- |
+| Yo | Job del CI que publica el `.ipa` sin firmar (rama `ios`); `KeychainSigner`; modo "solo dueña" en el debug del A54; provisión con `DeviceProvisioningLiveTest`; evidencia en `evidence/ios/`. |
+| Abraham | Instalar y reinstalar el `.ipa`; su Apple ID secundario; Modo desarrollador; capturas y log del iPhone; mover `keys.json` y `testnet.json`; hacer de guardián en la variante de dos dispositivos. |
+
+**Antes de empezar (Abraham):** iPhone con iOS 16 o superior. En el PC: Sideloadly y, en Windows, el iTunes que no es de la Store. Un Apple ID **secundario**: nunca el principal, y nunca se escribe en el repo, en el CI ni en un chat. La firma gratis dura 7 días: si instala el 9 oct, llega al 12.
+
+**Hito A en el iPhone:**
+1. Descargar el artefacto `.ipa` de la última corrida verde de `.github/workflows/ios.yml` en la rama `ios` (Actions → la corrida → Artifacts).
+2. Conectar el iPhone por cable. En Sideloadly: arrastrar el `.ipa`, escribir él su Apple ID secundario y pulsar Start.
+3. En el iPhone: Ajustes → General → VPN y gestión de dispositivos → confiar en el perfil. Activar Ajustes → Privacidad y seguridad → Modo desarrollador y reiniciar.
+4. Abrir GuardPay. Tiene que salir "Simulación: nada de esto está en Stellar". Recorrer las escenas 1 a 3 como en `evidence/ios/simulator.md`.
+5. Mandarme capturas de cada pantalla, el modelo del iPhone y la versión de iOS. Si se cierra, el log con `idevicesyslog | findstr GuardPay` (libimobiledevice), solo esas líneas: el log completo del teléfono lleva datos personales.
+6. Yo agrego la sección "iPhone" a `evidence/ios/simulator.md` (SIMULATED). Con eso iOS-A queda completo.
+
+**Hito B y dos dispositivos:**
+1. Cuando yo suba `KeychainSigner`, Abraham reinstala el `.ipa` nuevo y abre la app. La app crea la clave, pidiendo Face ID o el código, y escribe `keys.json`.
+2. Abraham copia `keys.json` del iPhone con la app Dispositivos de Apple (Windows) o con Finder (Mac) y me pasa la G del guardián. Son solo direcciones públicas; ninguna semilla sale del iPhone.
+3. Yo provisiono con `-Pgp.owner` = la G del A54 y `-Pgp.guardian` = la G del iPhone, compruebo que el guardián no es firmante y le paso `testnet.json`. Abraham lo copia de vuelta a la app.
+4. Por llamada: yo hago el pago de 150 USDC en el A54 (Retenido); Abraham lo ve en el modo guardián y lo detiene, confirmando con Face ID. Yo anoto los hashes de Horizon en `evidence/ios/two-devices.md` (REAL).
 
 ### Riesgos
 
@@ -219,6 +244,8 @@ G3 sigue siendo "nadie tiene Mac", pero hay un iPhone. La ruta es compilar en un
 - [x] G1: fecha límite. Resuelto el 5 oct: 12 oct (Passport, 17:59).
 - [x] G3: nadie tiene Mac. La ruta de §7 lo cubre con macOS en la nube.
 - [ ] ¿Cuántos teléfonos Android hay? Tengo uno. Para la demo hace falta otro dispositivo para el guardián: un segundo Android, un emulador o el iPhone (§7, variante).
-- [ ] Modelo del iPhone y versión de iOS. Hacen falta iOS 14+ (SDK) y el Modo desarrollador (iOS 16+).
-- [ ] ¿Hay un Apple ID secundario para firmar con Sideloadly? No uso el principal.
+- [x] ¿Quién tiene iPhone? Resuelto el 7 oct: Abraham, no yo (§7.1).
+- [ ] Modelo y versión de iOS del iPhone de Abraham. Hacen falta iOS 14+ (SDK) y el Modo desarrollador (iOS 16+).
+- [ ] ¿Tiene Abraham un Apple ID secundario para Sideloadly? No se usa el principal.
+- [ ] ¿Usa Abraham Windows o Mac? Cambia cómo se copian los archivos (Dispositivos de Apple o Finder).
 - [ ] Cuenta de la demo: con la variante serían cinco cuentas en testnet. Lo decide el equipo.
