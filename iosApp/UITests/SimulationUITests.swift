@@ -81,7 +81,8 @@ final class SimulationUITests: XCTestCase {
         let e = wait(label, last: last)
         // The keyboard can cover the bottom of the screen; scroll up to reach the button.
         for _ in 0..<3 where !e.isHittable { app.swipeUp() }
-        e.tap()
+        // By coordinate: an element tap asks for scroll-to-visible, which Compose does not answer.
+        e.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
     }
 
     /// Compose exposes GpTextField as a TextView labelled with the field's label
