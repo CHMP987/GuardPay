@@ -92,6 +92,9 @@ final class SimulationUITests: XCTestCase {
             shot("fail-\(name.split(separator: " ").last ?? "")-campo")
             XCTFail("no text view: \(label)")
         }
+        // The keyboard left by the previous field can cover this one, and Compose does not
+        // answer XCUITest's scroll-to-visible; scroll by hand instead.
+        for _ in 0..<3 where !field.isHittable { app.swipeUp() }
         field.tap()
         _ = app.keyboards.firstMatch.waitForExistence(timeout: 3)
         field.typeText(text)

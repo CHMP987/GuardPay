@@ -27,8 +27,11 @@ import kotlin.experimental.ExperimentalNativeApi
 @OptIn(ExperimentalComposeUiApi::class, ExperimentalNativeApi::class)
 fun MainViewController(): UIViewController {
     // Kotlin's uncaught exceptions go to stderr, which the simulator log does not keep.
-    // Log them before the app terminates, as it still does.
-    setUnhandledExceptionHook { NSLog("GuardPay uncaught: %@", it.stackTraceToString()) }
+    // Log them before the app terminates, as it still does. One line per call, with no
+    // format arguments: passing a Kotlin String through NSLog's varargs crashed.
+    setUnhandledExceptionHook { e ->
+        e.stackTraceToString().lines().take(60).forEach { NSLog("GuardPay uncaught: " + it.replace("%", "%%")) }
+    }
     val nav = Navigator()
     val sides = simulatedSides(nav, MainScope(), aiMessageReader())
     return ComposeUIViewController {
