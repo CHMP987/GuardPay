@@ -15,15 +15,20 @@ import com.guardpay.shared.ui.Screen
 import com.guardpay.shared.ui.handleBack
 import com.guardpay.shared.ui.theme.GpColor
 import kotlinx.coroutines.MainScope
+import platform.Foundation.NSLog
 import platform.UIKit.UIViewController
+import kotlin.experimental.ExperimentalNativeApi
 
 /**
  * The iOS app's root, called from Swift (`iosApp/`). iOS-A: the in-memory simulation
  * only, under the "Simulación" banner. There is no signer on iOS yet, so nothing
  * here reaches Stellar. iOS has no back button: the edge swipe goes back instead.
  */
-@OptIn(ExperimentalComposeUiApi::class)
+@OptIn(ExperimentalComposeUiApi::class, ExperimentalNativeApi::class)
 fun MainViewController(): UIViewController {
+    // Kotlin's uncaught exceptions go to stderr, which the simulator log does not keep.
+    // Log them before the app terminates, as it still does.
+    setUnhandledExceptionHook { NSLog("GuardPay uncaught: %@", it.stackTraceToString()) }
     val nav = Navigator()
     val sides = simulatedSides(nav, MainScope(), aiMessageReader())
     return ComposeUIViewController {

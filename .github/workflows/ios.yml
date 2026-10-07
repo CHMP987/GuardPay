@@ -145,6 +145,8 @@ jobs:
             -resultBundlePath out/ui.xcresult CODE_SIGNING_ALLOWED=NO > out/uitest.log 2>&1
           status=$?
           grep -E "Test Case|error:|\*\*" out/uitest.log | tail -40
+          xcrun simctl spawn "$SIM" log show --last 15m --style compact --predicate 'process == "GuardPay"' > out/app-uitest.log
+          grep -A40 "GuardPay uncaught" out/app-uitest.log | head -60
           exit $status
 
       - name: Collect crash reports
