@@ -93,11 +93,16 @@ final class SimulationUITests: XCTestCase {
             XCTFail("no text view: \(label)")
         }
         // The keyboard left by the previous field can cover this one, and Compose does not
-        // answer XCUITest's scroll-to-visible; scroll by hand instead.
-        for _ in 0..<3 where !field.isHittable { app.swipeUp() }
-        field.tap()
-        _ = app.keyboards.firstMatch.waitForExistence(timeout: 3)
-        field.typeText(text)
+        // answer XCUITest's scroll-to-visible (kAXErrorCannotComplete). So drag the form up
+        // by hand until the field clears the keyboard, then tap and type by coordinate.
+        let keyboard = app.keyboards.firstMatch
+        for _ in 0..<4 where keyboard.exists && field.frame.maxY > keyboard.frame.minY - 8 {
+            app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.4))
+                .press(forDuration: 0.05, thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.15)))
+        }
+        field.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
+        _ = keyboard.waitForExistence(timeout: 3)
+        app.typeText(text)
     }
 
     /// The iOS edge swipe, which the app maps to back.

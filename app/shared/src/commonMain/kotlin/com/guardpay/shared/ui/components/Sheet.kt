@@ -34,14 +34,16 @@ import com.guardpay.shared.ui.theme.GpSpace
 @Composable
 fun GpSheet(title: String, content: @Composable ColumnScope.() -> Unit) {
     val layout = LocalGpLayout.current
-    Box(
-        Modifier
-            .fillMaxSize()
-            .background(GpColor.Scrim)
-            // Swallow taps so nothing behind the sheet can be pressed.
-            .clickable(remember { MutableInteractionSource() }, indication = null) {},
-        contentAlignment = if (layout.column) Alignment.Center else Alignment.BottomCenter,
-    ) {
+    Box(Modifier.fillMaxSize(), contentAlignment = if (layout.column) Alignment.Center else Alignment.BottomCenter) {
+        // The scrim swallows taps so nothing behind the sheet can be pressed. It is a sibling
+        // of the sheet, not its parent: a clickable merges its descendants' semantics, and
+        // merging paneTitle throws on iOS once accessibility (VoiceOver, XCUITest) reads the tree.
+        Box(
+            Modifier
+                .matchParentSize()
+                .background(GpColor.Scrim)
+                .clickable(remember { MutableInteractionSource() }, indication = null) {},
+        )
         val shape = if (layout.column) RoundedCornerShape(GpSize.sheetRadius)
         else RoundedCornerShape(topStart = GpSize.sheetRadius, topEnd = GpSize.sheetRadius)
         Column(
