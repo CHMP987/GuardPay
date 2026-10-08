@@ -1,0 +1,18 @@
+// Init script: writes DemoTerminal's classpath (debug unit-test classes + runtime jars) to -DcpOut.
+// ./gradlew -I evidence/demo/full-rehearsal/cp.gradle :app:shared:compileDebugUnitTestKotlin :app:shared:printTestCp -DcpOut=<file>
+allprojects {
+  afterEvaluate { p ->
+    if (p.path == ':app:shared') {
+      p.tasks.register('printTestCp') {
+        doLast {
+          def jars = p.configurations.getByName('debugUnitTestRuntimeClasspath').incoming.artifactView {
+            attributes { attribute(Attribute.of('artifactType', String), 'android-classes-jar') }
+            lenient = true
+          }.files.files
+          def classes = ['debugUnitTest', 'debug'].collect { new File(p.buildDir, "tmp/kotlin-classes/$it") }
+          new File(System.getProperty('cpOut')).text = (classes + jars).join(File.pathSeparator)
+        }
+      }
+    }
+  }
+}

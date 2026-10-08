@@ -27,7 +27,7 @@ CP-3, CP-7 y CP-9 no están firmados.
 
 P0 está incompleta. P7 no se abrió. Spike B está rojo y la IA queda en NICE. Las entrevistas están no corrido. Passport no se envió.
 
-Las seis escenas seguidas, en una sola sentada y por debajo de 5 minutos, no se cronometraron.
+Las seis escenas seguidas corrieron dos veces el 8 oct, en 3:46 y 3:35. Las escenas de terminal usaron otra cuenta de testnet (`evidence/demo/full-rehearsal.md`).
 
 ## Describe your project
 

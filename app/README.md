@@ -118,7 +118,7 @@ En ningún paso hay una semilla: solo entran y salen direcciones públicas. La c
 - AVD `Medium_Phone_API_37.0`, con PIN de pantalla 1234. El PIN libera cada firma.
 - El host tiene 7,4 GB de RAM. Gradle y el emulador no caben a la vez: hay que correr `./gradlew --stop` antes de arrancar el emulador, y apagarlo (`adb emu kill`) antes de compilar.
 - `adb screencap` y `screenrecord` muestran el diálogo de huella o PIN en negro.
-- El ensayo de la demo está automatizado en `evidence/demo/rehearsal/rehearse.py` (`python rehearse.py TAG 1 23 6`). Graba cada escena y anota los tiempos. Deja los vídeos, capturas y logs junto al script.
+- El ensayo de la demo está automatizado en `evidence/demo/rehearsal/rehearse.py` (`python rehearse.py TAG 1 23 6`). Graba cada escena y anota los tiempos. Deja los vídeos, capturas y logs junto al script. Las seis escenas seguidas, con dos dispositivos y la terminal (`DemoTerminal`, que prepara su propia cuenta de testnet), se corren con `evidence/demo/full-rehearsal/full.py`. Ver `evidence/demo/full-rehearsal.md`.
 
 ## Evidencia
 

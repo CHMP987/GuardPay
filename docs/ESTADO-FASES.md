@@ -49,7 +49,7 @@ Procedimiento escrito el 6 oct 2026 para poder desplegar. Las semillas de prueba
 | P7 | no abierto. Spike B rojo, sin números de un teléfono. La IA queda en NICE. CP-7 sin firmar. |
 | P8 | aviso local sin backend, < 60 s medido en emulador, en el A54 (mismo teléfono para dueña y guardián) y entre dos dispositivos (8 oct: A54 dueña, emulador guardián, aviso 17 s después del ledger del `queue`). `evidence/guardian/notification.md`, `evidence/demo/two-devices-android.md` |
 | P9 | matriz de tres cuentas en `evidence/security/bypass-matrix.md`. GH-29, GH-30 y GH-33: no corrido. GH-28 verde solo en la cuenta de ataques y su wasm. CP-9 sin firmar. |
-| P10 | README, escenas y `docs/SUBMISSION.md`. Passport no enviado. Entrevistas: no corrido. Las seis escenas seguidas no se cronometraron. |
+| P10 | README, escenas y `docs/SUBMISSION.md`. Passport no enviado. Entrevistas: no corrido. Las seis escenas seguidas se cronometraron dos veces el 8 oct: 3:46 y 3:35. La app corrió en el A54 y el emulador, y la terminal en otra cuenta (`evidence/demo/full-rehearsal.md`). |
 
 Definition of Done: implementación + unit + integración + seguridad + criterios de aceptación + evidencia. Compilar no cierra una fase.
 
@@ -91,4 +91,4 @@ Dos corridas de ataques, dos cuentas, dos wasm. No se mezclaron. No se redespleg
 
 GH-29, GH-30 y GH-33 siguen no corrido. No hay `expires_at`, ni cancel de la dueña, ni passkey. T-049 no está autorizado. Spike B sigue rojo. P7 no se abre. La IA queda en NICE. Las entrevistas siguen no corrido. Passport no se envió. Los campos del formulario siguen sin contestar. CP-3, CP-7 y CP-9 siguen sin firmar.
 
-Las seis escenas seguidas, en una sola sentada y por debajo de 5 minutos, no se cronometraron.
+8 oct: las seis escenas seguidas corrieron dos veces en una sola sentada, en 226 s y 215 s, sin fallos (`evidence/demo/full-rehearsal.md`). Las escenas de app usaron la cuenta `CA5Z7JZS…` (A54 dueña, emulador guardián). Las de terminal usaron otra cuenta de testnet con claves en memoria, porque las del Keystore no salen del teléfono. La escena 5 no la firmó la clave del emulador.

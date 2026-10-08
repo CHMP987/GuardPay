@@ -81,7 +81,7 @@ La cuenta del emulador no se usó para firmar ataques: la semilla del Keystore n
 - **La retención es la constante de 120 s.** No hay vencimiento a los 600 s. Un hold maduro no caduca dentro del contrato.
 - **Si el guardián no mira, nadie detiene nada.**
 - **Los pagos inmediatos no se releen.** Un pago a un contacto queda en cadena, pero desaparece de "Recientes" si se reinicia la app. Las retenciones sí se vuelven a leer del registro.
-- **Las seis escenas seguidas, en una sola sentada y por debajo de 5 minutos, no se cronometraron.** Las de la app se midieron dos veces, aparte. Las de terminal se corrieron después, en otra cuenta.
+- **Las seis escenas seguidas corrieron dos veces, cada una por debajo de 5 minutos (3:46 y 3:35, el 8 oct), pero no sobre una sola cuenta.** Las de app usaron el A54 y un emulador. Las de terminal corrieron en vivo en la misma sentada, sobre otra cuenta de testnet con claves desechables, porque las del Keystore no salen del teléfono (`evidence/demo/full-rehearsal.md`). Las manejó un guion, no una persona presentando.
 
 ## Construir y probar
 

@@ -1,0 +1,110 @@
+16:37:39 UTC == setup (untimed): terminal provisions its own account
+16:37:41 UTC   terminal | preparando una cuenta de testnet nueva (claves solo en memoria)…
+16:38:31 UTC   terminal | deployed hold_registry: CA3TNH2IY2AJZ73GQNT6NSOPAJCGRWHSRTTY44FGNUUMRXEQJ5MPQQKK
+16:38:36 UTC   terminal | deployed account: CBE2VJ37HF6JM3CQHBPRPYOAKFGGWVKUWYWT67ISQ5EBBBKAD6NWXLRB
+16:38:40 UTC   terminal | provisioned account=CBE2VJ37HF6JM3CQHBPRPYOAKFGGWVKUWYWT67ISQ5EBBBKAD6NWXLRB registry=CA3TNH2IY2AJZ73GQNT6NSOPAJCGRWHSRTTY44FGNUUMRXEQJ5MPQQKK usdc=CDFMSM6PKODYW4GZIZCV6S74GHCW4Z3NX4HOJDWUMD64NKU3MOBSFGER
+16:38:41 UTC   terminal | cuenta     CBE2VJ37HF6JM3CQHBPRPYOAKFGGWVKUWYWT67ISQ5EBBBKAD6NWXLRB
+16:38:41 UTC   terminal | registro   CA3TNH2IY2AJZ73GQNT6NSOPAJCGRWHSRTTY44FGNUUMRXEQJ5MPQQKK
+16:38:41 UTC   terminal | dueña      GCUSBHAS7H6OYTFQ25BAVPQKK76XLRFQHPQVAIE2R4AZKIGV5LC2P3NI
+16:38:41 UTC   terminal | guardián   GBQKLI6CGW6NN2LDTSJ55GYHAFAXIWQVREQ2FY2NDN4HTC5OQJLJF5IU
+16:38:41 UTC   terminal | extraño    GBUAJLMCYJMYVEVAQ7RUAMYMJVDXNEPVSIXEDWUIYBXQ5WAOVJCCPHNW
+16:38:41 UTC   terminal | reglas: 1, firmantes: [GCUSBH], guardián firmante: false
+16:38:41 UTC   terminal | > listo
+16:38:41 UTC == run 1: start
+16:39:09 UTC scene 1: FINGERPRINT on the phone
+16:39:31 UTC scene 1: Enviado 37.9 s; 21.3 s after Firmar y enviar
+16:40:07 UTC scene 2: FINGERPRINT on the phone
+16:40:24 UTC scene 2: Retenido 51.5 s; 16.5 s after Firmar y retener
+16:40:25 UTC   terminal | [escena 2] la dueña retiene 150 USDC para el extraño (queue)
+16:40:31 UTC   terminal |   queue: confirmada f89b6a714262384b33e42ba3a6f380b36a8628ab4e6ceef79e6370e0b6974636
+16:40:32 UTC   terminal |   hold #0 en el registro: Retenido
+16:40:32 UTC   terminal | [escena 2] la dueña firma el transfer de esos 150 ya, sin esperar
+16:40:34 UTC   terminal |   simulación: rechazo del contrato, código 7 (HoldNotReady)
+16:40:41 UTC   terminal |   enviado de todos modos: bcbf23b1eb2cc3bcd993ee5bba9d3e14fb78c6e8e3418e88515af0d1349cabb5
+16:40:41 UTC   terminal |   resultado en la cadena: FAILED, ledger 5090811, trapped
+16:40:41 UTC   terminal |   https://stellar.expert/explorer/testnet/tx/bcbf23b1eb2cc3bcd993ee5bba9d3e14fb78c6e8e3418e88515af0d1349cabb5
+16:40:41 UTC   terminal | > listo
+16:40:41 UTC terminal scene 2: 15.7 s
+16:40:41 UTC scene 2 total 68.6 s
+16:40:41 UTC scene 3: notification 17.4 s after Retenido on the phone
+16:41:30 UTC scene 3: Detenido on the emulator 49.3 s; 15.8 s after the PIN
+16:41:34 UTC scene 3: Detenido on the phone: True
+16:41:34 UTC   terminal | [escena 4] el guardián detiene el hold #0 (cancel)
+16:41:42 UTC   terminal |   cancel: confirmada 2d76533a048ca8d47eb7724d2bfc0f87f9332d4056d361f0bc9f809d64dcdf5c
+16:41:43 UTC   terminal |   hold #0: Cancelled
+16:41:43 UTC   terminal | [escena 4] la dueña firma el transfer del pago detenido
+16:41:45 UTC   terminal |   simulación: rechazo del contrato, código 3 (NotAllowed)
+16:41:50 UTC   terminal |   enviado de todos modos: 6ac460061dd92e0a044b82fb5e07867315e74da08ee4af449d8b1a894cbdc979
+16:41:50 UTC   terminal |   resultado en la cadena: FAILED, ledger 5090825, trapped
+16:41:50 UTC   terminal |   https://stellar.expert/explorer/testnet/tx/6ac460061dd92e0a044b82fb5e07867315e74da08ee4af449d8b1a894cbdc979
+16:41:50 UTC   terminal | > listo
+16:41:50 UTC terminal scene 4: 16.1 s
+16:41:50 UTC   terminal | [escena 5] el guardián firma un transfer de 20 USDC hacia sí mismo
+16:41:52 UTC   terminal |   simulación: rechazo del contrato, código 3016 (UnauthorizedSigner)
+16:41:55 UTC   terminal |   enviado de todos modos: 4d9c20844d04e978b6a403ac75a4a39a3d79ba3da6f50e44970383db9e634a67
+16:41:55 UTC   terminal |   resultado en la cadena: FAILED, ledger 5090826, trapped
+16:41:55 UTC   terminal |   https://stellar.expert/explorer/testnet/tx/4d9c20844d04e978b6a403ac75a4a39a3d79ba3da6f50e44970383db9e634a67
+16:41:55 UTC   terminal | > listo
+16:41:55 UTC terminal scene 5: 4.4 s
+16:41:55 UTC   terminal | [escena 6] la dueña firma approve de 25 USDC al guardián
+16:41:57 UTC   terminal |   simulación: rechazo del contrato, código 3 (NotAllowed)
+16:42:06 UTC   terminal |   enviado de todos modos: ea483077215fc099bc3e2e665bed695f02829eceef7842d52c06050c4fbd8224
+16:42:06 UTC   terminal |   resultado en la cadena: FAILED, ledger 5090828, trapped
+16:42:06 UTC   terminal |   https://stellar.expert/explorer/testnet/tx/ea483077215fc099bc3e2e665bed695f02829eceef7842d52c06050c4fbd8224
+16:42:06 UTC   terminal | [escena 6] add_context_rule en la cuenta
+16:42:08 UTC   terminal |   simulación: HostError: Error(WasmVm, MissingValue)
+16:42:08 UTC   terminal |   no hay transacción: la función no existe
+16:42:09 UTC   terminal |   reglas de la cuenta: 1
+16:42:09 UTC   terminal | > listo
+16:42:09 UTC terminal scene 6: 14.1 s
+16:42:39 UTC scene 6: 44.5 s; ['Esta cuenta tiene 1 regla']
+16:42:39 UTC == run 1: six scenes in 226.4 s (3.77 min) UNDER 5 MIN
+16:42:39 UTC == run 2: start
+16:43:14 UTC scene 1: FINGERPRINT on the phone
+16:43:35 UTC scene 1: Enviado 36.6 s; 20.4 s after Firmar y enviar
+16:44:10 UTC scene 2: FINGERPRINT on the phone
+16:44:30 UTC scene 2: Retenido 54.2 s; 20.0 s after Firmar y retener
+16:44:32 UTC   terminal | [escena 2] la dueña retiene 150 USDC para el extraño (queue)
+16:44:40 UTC   terminal |   queue: confirmada 23651a9422f599d02440097bc8c7abd1a200bee293030147b7e308995192e94a
+16:44:41 UTC   terminal |   hold #1 en el registro: Retenido
+16:44:41 UTC   terminal | [escena 2] la dueña firma el transfer de esos 150 ya, sin esperar
+16:44:43 UTC   terminal |   simulación: rechazo del contrato, código 7 (HoldNotReady)
+16:44:50 UTC   terminal |   enviado de todos modos: 881318697b0194b9d1266006fb80a64370b0a8fc8f12171d28729f43973be54e
+16:44:50 UTC   terminal |   resultado en la cadena: FAILED, ledger 5090861, trapped
+16:44:50 UTC   terminal |   https://stellar.expert/explorer/testnet/tx/881318697b0194b9d1266006fb80a64370b0a8fc8f12171d28729f43973be54e
+16:44:50 UTC   terminal | > listo
+16:44:50 UTC terminal scene 2: 18.3 s
+16:44:50 UTC scene 2 total 73.9 s
+16:44:50 UTC scene 3: notification 19.8 s after Retenido on the phone
+16:45:33 UTC scene 3: Detenido on the emulator 43.3 s; 15.4 s after the PIN
+16:45:37 UTC scene 3: Detenido on the phone: True
+16:45:37 UTC   terminal | [escena 4] el guardián detiene el hold #1 (cancel)
+16:45:45 UTC   terminal |   cancel: confirmada 02fd63ea9d4a261d9b64747dc4f62e4718df37adafceb8a30a0f71417c72c7c8
+16:45:46 UTC   terminal |   hold #1: Cancelled
+16:45:46 UTC   terminal | [escena 4] la dueña firma el transfer del pago detenido
+16:45:48 UTC   terminal |   simulación: rechazo del contrato, código 3 (NotAllowed)
+16:45:50 UTC   terminal |   enviado de todos modos: 9d15a663f0ddc76336383ac4245743ce3236deebc8e463592c60456718ecf0b4
+16:45:50 UTC   terminal |   resultado en la cadena: FAILED, ledger 5090873, trapped
+16:45:50 UTC   terminal |   https://stellar.expert/explorer/testnet/tx/9d15a663f0ddc76336383ac4245743ce3236deebc8e463592c60456718ecf0b4
+16:45:50 UTC   terminal | > listo
+16:45:50 UTC terminal scene 4: 12.7 s
+16:45:50 UTC   terminal | [escena 5] el guardián firma un transfer de 20 USDC hacia sí mismo
+16:45:52 UTC   terminal |   simulación: rechazo del contrato, código 3016 (UnauthorizedSigner)
+16:45:55 UTC   terminal |   enviado de todos modos: 485b649e757fe42f315b915ced8d0e1aab44ebeef2a8ba6fbb6d5d3427a2c65b
+16:45:55 UTC   terminal |   resultado en la cadena: FAILED, ledger 5090874, trapped
+16:45:55 UTC   terminal |   https://stellar.expert/explorer/testnet/tx/485b649e757fe42f315b915ced8d0e1aab44ebeef2a8ba6fbb6d5d3427a2c65b
+16:45:55 UTC   terminal | > listo
+16:45:55 UTC terminal scene 5: 4.5 s
+16:45:55 UTC   terminal | [escena 6] la dueña firma approve de 25 USDC al guardián
+16:45:57 UTC   terminal |   simulación: rechazo del contrato, código 3 (NotAllowed)
+16:46:01 UTC   terminal |   enviado de todos modos: c5beca110cc00128c12bec53988b82c2e53a123288a38ff2a71f071e16ba974f
+16:46:01 UTC   terminal |   resultado en la cadena: FAILED, ledger 5090875, trapped
+16:46:01 UTC   terminal |   https://stellar.expert/explorer/testnet/tx/c5beca110cc00128c12bec53988b82c2e53a123288a38ff2a71f071e16ba974f
+16:46:01 UTC   terminal | [escena 6] add_context_rule en la cuenta
+16:46:02 UTC   terminal |   simulación: HostError: Error(WasmVm, MissingValue)
+16:46:02 UTC   terminal |   no hay transacción: la función no existe
+16:46:03 UTC   terminal |   reglas de la cuenta: 1
+16:46:03 UTC   terminal | > listo
+16:46:03 UTC terminal scene 6: 8.1 s
+16:46:33 UTC scene 6: 38.5 s; ['Esta cuenta tiene 1 regla']
+16:46:33 UTC == run 2: six scenes in 215.0 s (3.58 min) UNDER 5 MIN
