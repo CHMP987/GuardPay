@@ -41,7 +41,7 @@ The same shape could be built on an EVM with Safe, a Delay modifier, and a guard
 
 Related work we name on purpose: Yandex Pay, OpenZeppelin TimelockController, Argent/Ready, and Monzo.
 
-Testnet only. The contracts are not audited. The guardian cannot be changed. If the guardian does not look, nobody stops the payment. The alert can be late when the app is closed. iOS was not linked or run. Interviews were not run.
+Testnet only. The contracts are not audited. The guardian cannot be changed. If the guardian does not look, nobody stops the payment. The alert can be late when the app is closed. iOS ran only in simulation, in the CI simulator: not on a device and not against testnet. Interviews were not run.
 
 ## Tres cuentas
 

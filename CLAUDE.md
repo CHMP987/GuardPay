@@ -80,7 +80,7 @@ AI-assisted payment safety + human guardian veto + deterministic on-chain enforc
 **Client (Kotlin Multiplatform + Compose Multiplatform):**
 - `commonMain` holds all logic and must compile with no Android, iOS, LiteRT-LM or WebAuthn imports. Layers: `domain` (9 payment states as sealed types), `stellar` (`StellarGateway` interface over `com.soneso.stellar:stellar-sdk:1.14.0`), `signing` (`expect Signer`) and `ai` (`expect GuardPayAI`).
 - `GuardPayAI` has **one** function, `analyzeMessage(text): Analysis`, whose suggestion is `SuggestHold | NoClearSignals`. It has no tool calling and no access to balances, contacts, policy or keys. It must never draft a payment or fill in the destination or amount. Nothing in `ai/` may depend on, or share a graph with, `Signer` or `StellarGateway`; a test enforces this.
-- Android is the demo device. The iOS target is declared but only compiles if a Mac is available.
+- Android is the demo device. iOS runs only in simulation, in the macOS CI simulator (`iosApp/`).
 - **There is no backend**: no server, DB, push (FCM/APNs) or fee sponsor. The guardian is notified by on-device RPC polling plus a local notification.
 
 ## Hard constraints
@@ -96,4 +96,4 @@ AI-assisted payment safety + human guardian veto + deterministic on-chain enforc
 
 - G1: the submission deadline. **Answered Oct 5: Oct 12 (Passport, 17:59).**
 - G2: does the OZ pin `b40c5ea` build with soroban-sdk 28? **Yes** (`docs/DEPENDENCIES.md`).
-- G3: is a Mac available for iOS? **Answered Oct 5: no.** iOS klibs compile on Windows, but nothing is linked or run on iOS; say so in the README.
+- G3: is a Mac available for iOS? **Answered Oct 5: no.** iOS klibs compile on Windows, where nothing is linked or run on iOS. Since Oct 7 the macOS CI links `shared` and runs the app in the simulator, in simulation only; the README says so.

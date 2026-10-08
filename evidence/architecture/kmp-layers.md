@@ -110,7 +110,7 @@ El día 3 eran 78 tests; los 27 nuevos de `commonTest` son de `ui`.
 
 Día 5: `BUILD SUCCESSFUL`, **338 tests** en total: 108 en `testDebugUnitTest`, 108 en `testReleaseUnitTest` y 122 en `jvmTest`. Hay 0 fallos y 0 omitidos. Los nuevos son `ui.HoldWatcherTest` (3), que comprueba que la alerta sale del registro leído, que no se repite tras un reinicio y que un fallo de lectura no parece silencio. Frente al día 4 (105 + 119) son 3 más por target. Los tests instrumentados de Android (`KeystoreSignerTest`, 5) corren aparte, en un dispositivo: ver `evidence/smart-account/signing.md`.
 
-`:app:android:assembleDebug` y `:app:android:compileReleaseKotlin` pasan. **No corrido:** la app con esta UI no se ha abierto en un teléfono.
+`:app:android:assembleDebug` y `:app:android:compileReleaseKotlin` pasan. **No corrido:** la app con esta UI no se ha abierto en un teléfono. (Se abrió después, el 7 oct UTC, en un Galaxy A54: `evidence/demo/physical-phone.md`.)
 
 El test vivo de testnet (`KmpStellarGatewayLiveTest`) queda fuera de `allTests` y solo corre con `-PliveTestnet`. Ver `evidence/stellar/gateway-live.md`.
 

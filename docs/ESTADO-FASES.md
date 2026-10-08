@@ -44,10 +44,10 @@ Procedimiento escrito el 6 oct 2026 para poder desplegar. Las semillas de prueba
 | P2 | cerrada para el camino MUST. CP-2 GO. T-049 pendiente. |
 | P3 | deploy en testnet hecho. CP-3 pendiente del humano. |
 | P4 | hecho para Android (6 oct). `evidence/architecture/kmp-layers.md`, `evidence/stellar/gateway-live.md` |
-| P5 | 4 pantallas con datos de testnet, probadas en emulador (6 oct) |
-| P6 | Keystore + biometría o PIN; ciclo completo en testnet desde la app, en emulador. GH-01/GH-24 con el código del cliente, no desde el teléfono. `evidence/smart-account/signing.md` |
+| P5 | 4 pantallas con datos de testnet, probadas en emulador (6 oct) y en el Galaxy A54 (7 oct UTC, `evidence/demo/physical-phone.md`) |
+| P6 | Keystore + biometría o PIN; ciclo completo en testnet desde la app, en emulador. En el A54, `transfer`, `queue` y `cancel` firmados con huella (7 oct UTC). GH-01/GH-24 con el código del cliente, no desde el teléfono. `evidence/smart-account/signing.md` |
 | P7 | no abierto. Spike B rojo, sin números de un teléfono. La IA queda en NICE. CP-7 sin firmar. |
-| P8 | aviso local sin backend, < 60 s medido en emulador. `evidence/guardian/notification.md` |
+| P8 | aviso local sin backend, < 60 s medido en emulador y en el A54 (mismo teléfono para dueña y guardián). `evidence/guardian/notification.md` |
 | P9 | matriz de tres cuentas en `evidence/security/bypass-matrix.md`. GH-29, GH-30 y GH-33: no corrido. GH-28 verde solo en la cuenta de ataques y su wasm. CP-9 sin firmar. |
 | P10 | README, escenas y `docs/SUBMISSION.md`. Passport no enviado. Entrevistas: no corrido. Las seis escenas seguidas no se cronometraron. |
 

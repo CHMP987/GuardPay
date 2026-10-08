@@ -84,5 +84,5 @@ Capturas en `screens/`:
 
 - Latencia con el servicio detenido por el sistema (Doze, ahorro de batería, tope de 6 h).
 - Dos dispositivos (dueña y guardián separados).
-- Teléfono físico.
-- iOS (no hay Mac; no existe implementación de iOS del servicio).
+- Teléfono físico. Se corrió después, el 7 oct UTC, en un Galaxy A54 con dueña y guardián en el mismo teléfono: la notificación se publicó unos 29 s después del ledger del `queue` (05:18:12 → 05:18:40,8 UTC). Ver `evidence/demo/physical-phone.md`.
+- iOS: no existe implementación de iOS del aviso. La app de iOS solo corre en simulación en el simulador del CI (`evidence/ios/simulator.md`).

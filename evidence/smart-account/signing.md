@@ -92,7 +92,7 @@ Se corrieron en `KmpStellarGatewayLiveTest`, run 4 (2026-10-06, 13:36 UTC). Ese 
 
 ## No corrido
 
-- Teléfono físico (solo emulador).
+- Teléfono físico (solo emulador). Después, el 7 oct UTC, el Galaxy A54 firmó `transfer`, `queue` y `cancel` con huella contra testnet (`evidence/demo/physical-phone.md`). El ciclo encolar → esperar → enviar no se repitió en el teléfono.
 - GH-01 y GH-24 desde el teléfono y contra la cuenta del dispositivo.
 - GH-33 (passkey WebAuthn). Era SHOULD. Se usa Keystore + BiometricPrompt, no una passkey.
 - Recuperación de cuenta (fuera de alcance).

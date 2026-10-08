@@ -34,7 +34,7 @@ Estado del entorno comprobado en esta máquina `[FACT]`: JDK 17 instalado; Andro
 - [ ] Segundo dispositivo para el guardián: otro Android, un emulador, o el iPhone por la ruta sin Mac de §7.
 - [x] Leer la demo de smart accounts de `Soneso/kmp-stellar-sdk` v1.14.0. Es la referencia del Spike C.
 - [ ] Leer `GuardPay — Propuesta visual.md` §5 (colores), §7 (pantallas), §8 (estados) y §9 (guardián).
-- [x] G3 resuelto (5 oct): **nadie tiene Mac.** iOS se declara en Gradle pero no se compila, y el README lo dice.
+- [x] G3 resuelto (5 oct): **nadie tiene Mac.** iOS se declara en Gradle pero no se compila, y el README lo dice. (7 oct: el CI de macOS ya lo enlaza y abre la app en el simulador; ver §7.)
 - [x] Revisión del 6 oct: `[FACT]` las klibs de iOS **sí compilan en Windows** (`compileKotlinIosArm64`, `compileKotlinIosSimulatorArm64` y `compileTestKotlinIosSimulatorArm64` salen con código 0). Falta enlazar, empaquetar y correr: eso exige macOS, que se alquila en la nube (§7).
 
 ---

@@ -40,5 +40,5 @@ Están los 9 estados de pago: Borrador, Firmando, Retenido, Listo para enviar, E
 - [FACT] Contraste: `ContrastTest` recalcula la tabla de la sección 5 de la Propuesta visual. Todo color de texto pasa 4,5:1 sobre Blanco e Ice, el borde de los campos pasa 3:1, y el blanco sobre Teal (2,93) está prohibido.
 - [FACT] El estado nunca va solo por color: cada chip lleva texto y un ícono.
 - No corrido: TalkBack en un teléfono real, escala de fuente al 200 %, tamaño mínimo de los objetivos táctiles y el modo oscuro.
-- No corrido: la app no se ha abierto en el Galaxy A54 con esta UI. El APK de debug compila (`assembleDebug`), pero no hay un dispositivo conectado.
+- No corrido: la app no se ha abierto en el Galaxy A54 con esta UI. El APK de debug compila (`assembleDebug`), pero no hay un dispositivo conectado. (Se abrió después, el 7 oct UTC: `evidence/demo/physical-phone.md`.)
 - [INFERENCE] Skia en JVM dibuja con las mismas fuentes IBM Plex que Android, pero el rasterizado y las métricas pueden diferir unos píxeles de un teléfono.

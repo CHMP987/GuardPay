@@ -34,11 +34,11 @@ Detalle y responsables en `docs/ESTADO-FASES.md`. Toda la evidencia está en `ev
 | P1 Spike C | verde | `evidence/stellar/spike-c.md` |
 | P2 Contratos | cerrada para el camino MUST. T-049 no autorizado | `evidence/policies/` |
 | P3 Testnet | deploy hecho. CP-3 sin firmar | `evidence/stellar/deployment.md`, `evidence/smart-account/rules-onchain.md` |
-| P4 Núcleo KMP | hecho (Android). iOS solo compila klibs | `evidence/architecture/kmp-layers.md`, `evidence/stellar/gateway-live.md` |
-| P5 UI | 4 pantallas con datos de testnet, en **emulador** | `evidence/demo/screens/`, `evidence/smart-account/screens/` |
-| P6 Firma | Keystore ed25519 con biometría o PIN; ciclo completo en testnet, en **emulador** | `evidence/smart-account/signing.md` |
+| P4 Núcleo KMP | hecho (Android). iOS: enlaza y abre en el simulador del CI, solo en simulación (`evidence/ios/simulator.md`) | `evidence/architecture/kmp-layers.md`, `evidence/stellar/gateway-live.md` |
+| P5 UI | 4 pantallas con datos de testnet, en **emulador** y en el Galaxy A54 (7 oct UTC, `evidence/demo/physical-phone.md`) | `evidence/demo/screens/`, `evidence/smart-account/screens/` |
+| P6 Firma | Keystore ed25519 con biometría o PIN; ciclo completo en testnet, en **emulador**. En el A54, `transfer`, `queue` y `cancel` firmados con huella | `evidence/smart-account/signing.md` |
 | P7 IA on-device | **no abierto.** Spike B está rojo. Android e iOS devuelven análisis no disponible. CP-7 sin firmar | `evidence/ai/benchmark.md`, `evidence/ai/prompt-injection.md` |
-| P8 Aviso al guardián | sondeo local sin backend; < 60 s medido en **emulador** | `evidence/guardian/notification.md` |
+| P8 Aviso al guardián | sondeo local sin backend; < 60 s medido en **emulador** y en el A54, con dueña y guardián en el mismo teléfono | `evidence/guardian/notification.md` |
 | Día 6 | escenas 1, 2, 3 y 6 de la app, dos veces, en **emulador** | `evidence/demo/rehearsal.md` |
 | P9 Adversarial | matriz de tres cuentas. Verde solo donde esa cuenta y ese wasm tienen hash. CP-9 sin firmar | `evidence/security/bypass-matrix.md` |
 | P10 Entrega | README, escenas y texto escritos. Passport no enviado | `docs/SUBMISSION.md`, `evidence/demo/` |
@@ -65,7 +65,7 @@ La cuenta del emulador no se usó para firmar ataques: la semilla del Keystore n
 
 - **G1:** la fecha límite es el 12 oct (Passport, 17:59). Respuesta humana del 5 oct. La inscripción y los campos del formulario siguen sin contestar. Passport no se envió.
 - **G2:** sí. El pin `b40c5ea` de OZ compila con soroban-sdk 28 (`docs/DEPENDENCIES.md`).
-- **G3:** no hay Mac. Respuesta humana del 5 oct. En Windows los klibs de iOS compilan, pero **nada se enlaza ni se ejecuta en iOS**.
+- **G3:** no hay Mac. Respuesta humana del 5 oct. En Windows los klibs de iOS compilan, pero nada se enlaza ni se ejecuta en iOS. Desde el 7 oct, un runner de macOS del CI enlaza `shared` y abre la app en el simulador, solo en simulación (`evidence/ios/`).
 
 ## Limitaciones conocidas
 
@@ -75,9 +75,9 @@ La cuenta del emulador no se usó para firmar ataques: la semilla del Keystore n
 - **La clave firma un hash a ciegas.** El diálogo del sistema ("Firmar en Stellar") no muestra el destino, el monto ni la regla: la clave del Keystore firma un hash. Esto lo mitigan la retención en cadena y la vista del guardián, no la clave.
 - **Aviso al guardián sin backend.** No hay servidor, FCM ni APNs. El teléfono del guardián consulta el RPC cada 30 s desde un servicio en primer plano. Si el sistema lo detiene, el aviso llega tarde: hasta que se abra la app o se toque "Actualizar". Puede detenerlo por ahorro de batería, por el fabricante, por un cierre forzado o por el tope de unas 6 h/día de `dataSync` en Android 15+. Consultar cada 30 s no es aceptable en batería para producción.
 - **Demo en un teléfono.** En el build debug, las claves de la dueña y del guardián están en el mismo teléfono, bajo dos alias del Keystore. En uso real cada persona tiene el suyo. El aviso entre dos teléfonos no se ha probado.
-- **Pruebas en emulador.** Lo de P5, P6 y P8 se corrió en un emulador Android (API 37), no en un teléfono físico.
+- **Pruebas en emulador y en un solo teléfono.** Lo de P5, P6 y P8 se corrió en un emulador Android (API 37). En el teléfono físico (Galaxy A54) corrieron después las escenas 1, 2, 3 y 6 (`evidence/demo/physical-phone.md`). El ciclo encolar → esperar → enviar y GH-01/GH-24 no se repitieron en el teléfono.
 - **La IA quedó en NICE.** No hay números de teléfono, ni modelo, ni `spikes/ai-bench/`. P7 no se abrió. La retención no consulta a la IA.
-- **iOS no se enlazó ni se corrió.** No hay Mac.
+- **iOS solo corre en simulación.** No hay Mac: el CI de macOS abre la app en el simulador con la simulación en memoria (`evidence/ios/simulator.md`). Nada firmado con una clave real, nada contra testnet y nada en un iPhone.
 - **La retención es la constante de 120 s.** No hay vencimiento a los 600 s. Un hold maduro no caduca dentro del contrato.
 - **Si el guardián no mira, nadie detiene nada.**
 - **Los pagos inmediatos no se releen.** Un pago a un contacto queda en cadena, pero desaparece de "Recientes" si se reinicia la app. Las retenciones sí se vuelven a leer del registro.
