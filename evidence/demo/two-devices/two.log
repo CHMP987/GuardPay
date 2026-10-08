@@ -1,0 +1,5 @@
+16:06:32 UTC owner: waiting for the fingerprint on the A54
+16:06:51 UTC owner: Retenido shown 46.1 s after Pagar; 19.8 s after Firmar y retener (includes the human's fingerprint)
+16:06:59 UTC guardian: notification 7.8 s after Retenido showed on the A54
+16:07:50 UTC guardian: Detenido 43.2 s after tapping the notification; 16.2 s after the PIN
+16:08:02 UTC owner: Detenido visible on the A54: True 7.8 s after the guardian's Detenido

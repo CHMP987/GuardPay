@@ -1,6 +1,6 @@
 # Día 8: la app en el teléfono físico (Galaxy A54)
 
-**Veredicto: las escenas 1, 2, 3 y 6 corrieron en un teléfono físico contra testnet**, con la firma del Keystore liberada por huella. Dueña y guardián estaban en el **mismo** teléfono: el aviso entre dos teléfonos sigue sin correr.
+**Veredicto: las escenas 1, 2, 3 y 6 corrieron en un teléfono físico contra testnet**, con la firma del Keystore liberada por huella. Dueña y guardián estaban en el **mismo** teléfono. (8 oct: las escenas 2 y 3 corrieron después con la dueña en este A54 y el guardián en un emulador, en `two-devices-android.md`.)
 
 | | |
 | --- | --- |
@@ -86,7 +86,7 @@ Quedan en la máquina de CHMP987.
 
 ## No corrido
 
-- Dos teléfonos: dueña y guardián siguen en el mismo dispositivo.
+- Dos teléfonos físicos. Dos dispositivos (A54 más emulador) corrió el 8 oct: `two-devices-android.md`.
 - La escena 1 con el guion (se hizo a mano), y sus tiempos.
 - Reiniciar la app entre escenas: los pagos inmediatos siguen viviendo solo en memoria (`rehearsal.md`).
 - La IA: sigue siendo un stub.

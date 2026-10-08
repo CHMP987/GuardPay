@@ -78,11 +78,11 @@ Capturas en `screens/`:
 - [FACT] **Android 15+ limita los servicios `dataSync`** a unas 6 horas por día. Pasado ese tope, el sistema los detiene. Este servicio no implementa `onTimeout`. [UNVERIFIED] Su comportamiento exacto al llegar al tope no se probó.
 - [INFERENCE] **Batería.** Una lectura RPC cada 30 s con un servicio fijo no es aceptable en producción. [RECOMMENDATION] Para producción hacen falta push (FCM/APNs) con un indexador o un intervalo largo (WorkManager, mínimo 15 min) más "Actualizar". Las dos cosas cambian el compromiso de latencia, y la primera añade un backend que este MVP excluye a propósito.
 - [INFERENCE] **Ventana de retención.** Si el aviso se retrasa más que la ventana de retención, el guardián llega tarde para detener. La retención en cadena sigue impidiendo el envío antes de `ready_at`, pero no avisa a nadie.
-- [FACT] **Las dos claves están en el mismo teléfono** en debug, así que el "guardián" de esta prueba es el mismo emulador que la dueña. El aviso entre dos teléfonos **no se ha probado**.
+- [FACT] **Las dos claves están en el mismo teléfono** en debug, así que el "guardián" de esta prueba es el mismo emulador que la dueña. Entonces el aviso entre dos dispositivos **no se había probado**. Se corrió el 8 oct con la dueña en el A54 y el guardián en un emulador: el aviso llegó 17 s después del ledger del `queue` (`evidence/demo/two-devices-android.md`).
 
 ## No corrido
 
 - Latencia con el servicio detenido por el sistema (Doze, ahorro de batería, tope de 6 h).
-- Dos dispositivos (dueña y guardián separados).
+- Dos dispositivos (dueña y guardián separados). Se corrió después, el 8 oct, con el A54 como dueña y el emulador como guardián (`evidence/demo/two-devices-android.md`). Dos teléfonos físicos: no corrido.
 - Teléfono físico. Se corrió después, el 7 oct UTC, en un Galaxy A54 con dueña y guardián en el mismo teléfono: la notificación se publicó unos 29 s después del ledger del `queue` (05:18:12 → 05:18:40,8 UTC). Ver `evidence/demo/physical-phone.md`.
 - iOS: no existe implementación de iOS del aviso. La app de iOS solo corre en simulación en el simulador del CI (`evidence/ios/simulator.md`).

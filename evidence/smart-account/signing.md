@@ -12,7 +12,7 @@
 
 ## Cómo está montado
 
-- **Claves.** `KeystoreSigner` crea un par ed25519 dentro del `AndroidKeyStore` (API 33+; `PURPOSE_SIGN`). Hay dos alias: `guardpay-owner` y `guardpay-guardian`. En debug viven las dos en el mismo teléfono, para la demo. En uso real cada persona tiene su teléfono.
+- **Claves.** `KeystoreSigner` crea un par ed25519 dentro del `AndroidKeyStore` (API 33+; `PURPOSE_SIGN`). Hay dos alias: `guardpay-owner` y `guardpay-guardian`. En debug se crean las dos en cada teléfono, y `testnet.json` decide qué rol usa ese teléfono (desde `8285692`). En uso real cada persona tiene su teléfono.
 - **Autorización por firma.** Cada clave pide `setUserAuthenticationRequired(true)` con timeout `0` y `AUTH_BIOMETRIC_STRONG | AUTH_DEVICE_CREDENTIAL`. Cada firma abre el diálogo del sistema: "Firmar en Stellar" para la dueña y "Detener el pago" para el guardián. Se libera con la huella o con el bloqueo de pantalla.
 - **Solo hashes.** `signHash` acepta exactamente 32 bytes. El digest lo construye `KmpStellarGateway`, que antes pasa la entrada de auth por `AuthEntryGuard`: solo se firma la llamada exacta que la app construyó.
 - **Provisión.** La app escribe las direcciones G públicas en `keys.json`. `DeviceProvisioningLiveTest` despliega una cuenta para esas claves y escribe `testnet.json`, que se sube con `adb push`. No hay semilla en ningún paso.

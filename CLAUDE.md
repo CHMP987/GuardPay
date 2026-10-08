@@ -25,7 +25,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `app/android`:
   - `signing/`: `KeystoreSigner`, an ed25519 key in the Android Keystore (API 33+) with per-use biometric or screen-lock auth, and `BiometricSigningPrompt`.
   - `notifications/`: `HoldWatchService`, a dataSync foreground service that polls every 30 s, and `HoldNotifications`, with deep links to guardian Detalle or the list.
-  - `src/debug/Wiring.kt`: uses the Keystore keys plus `testnet.json` from the app's external files dir when both exist and match, else an in-memory simulation.
+  - `src/debug/Wiring.kt`: uses the Keystore keys plus `testnet.json` from the app's external files dir when they match, else an in-memory simulation. The role comes from which of the phone's keys `testnet.json` names: both, owner only or guardian only (only a guardian phone polls). For two devices, provision with one device's owner G and the other's guardian G, then push the same file to both (`evidence/demo/two-devices-android.md`).
   - `src/release`: has null sessions.
 
 `iosApp/` (iOS-A): XcodeGen `project.yml`, a SwiftUI shell around `MainViewController()` from `shared/iosMain`, and XCUITest scenes 1–3. It runs only the in-memory simulation (`shared/commonMain/simulation`, also used by Android debug without `testnet.json`). Only CI builds it (`.github/workflows/ios.yml`, job `simulator`); see `evidence/ios/simulator.md`. Compose on iOS shows `GpTextField` to XCUITest as a TextView and does not answer scroll-to-visible, so the test taps by coordinate. A `clickable` parent must not hold `paneTitle` (iOS accessibility crashes merging it).

@@ -24,7 +24,7 @@ Las reglas de capas las imponen tareas de Gradle que corren dentro de `allTests`
 
 | Plataforma | Estado |
 | --- | --- |
-| Android | APK de debug probado en un **emulador** (API 37) contra testnet: firma, retención, aviso, detención y la pantalla de reglas (`evidence/demo/rehearsal.md`). En el teléfono físico (Galaxy A54, Android 14) corrieron el 7 oct (UTC) las escenas 1, 2, 3 y 6 contra testnet, con huella (`evidence/demo/physical-phone.md`). La dueña y el guardián estaban en el mismo teléfono. minSdk 28; la firma con Keystore pide Android 13+. |
+| Android | APK de debug probado en un **emulador** (API 37) contra testnet: firma, retención, aviso, detención y la pantalla de reglas (`evidence/demo/rehearsal.md`). En el teléfono físico (Galaxy A54, Android 14) corrieron el 7 oct (UTC) las escenas 1, 2, 3 y 6 contra testnet, con huella (`evidence/demo/physical-phone.md`). La dueña y el guardián estaban en el mismo teléfono. El 8 oct corrieron las escenas 2 y 3 con la dueña en el A54 y el guardián en el emulador (`../evidence/demo/two-devices-android.md`). minSdk 28; la firma con Keystore pide Android 13+. |
 | iOS | **La app abre en el simulador del CI, solo en modo simulación.** Nadie del equipo tiene un Mac. Un runner de macOS (`.github/workflows/ios.yml`, Xcode 16.4) enlaza el framework `Shared`, corre los 109 tests de `commonTest` en el simulador (`evidence/ios/ci-link.md`), genera `iosApp/` con XcodeGen, la compila sin firmar y recorre las escenas 1, 2 y 3 con XCUITest en un iPhone 16 simulado: 3 de 3 tests pasan (`evidence/ios/simulator.md`, SIMULATED). libsodium viene de swift-sodium 0.11.0. No se ha firmado nada con una llave real en iOS, nada ha tocado testnet desde iOS y nada ha corrido en un iPhone. |
 
 Versiones fijadas en `gradle/libs.versions.toml`: Kotlin 2.2.20, AGP 8.12.3, Compose Multiplatform 1.9.1, stellar-sdk 1.14.0, compileSdk/targetSdk 35.
@@ -109,6 +109,8 @@ Sin estos pasos, la app de debug corre la simulación en memoria.
    adb push app/shared/build/testnet.json /sdcard/Android/data/com.guardpay.android/files/testnet.json
    ```
 
+**Dos dispositivos** (dueña en uno, guardián en otro): en el paso 2 pasa `-Pgp.owner=` la clave `owner` del `keys.json` de un dispositivo y `-Pgp.guardian=` la clave `guardian` del otro. En el paso 3 sube el mismo `testnet.json` a los dos. Cada uno toma solo el rol de la clave que tiene. Solo el del guardián vigila los pagos retenidos, y en él "Entrar a mi cuenta" queda apagado. Así corrió `../evidence/demo/two-devices-android.md`.
+
 En ningún paso hay una semilla: solo entran y salen direcciones públicas. La cuenta de la demo del 6 oct es `CDWPPTDMACOEVMBUHBBTPUW2EEDXY6YVUAOZJFTSGGOBAONCAJ7WGFV6`.
 
 ## Emulador (cómo se probó)
@@ -136,7 +138,7 @@ En ningún paso hay una semilla: solo entran y salen direcciones públicas. La c
 - **La firma es a ciegas.** El diálogo del sistema no muestra ni el destino ni el monto: la clave firma un hash. Lo mitigan la retención en cadena y la vista del guardián, no la clave.
 - **Pagar pide la huella dos veces:** una para la autorización de la cuenta y otra para la transacción, porque la clave de la dueña también paga la comisión. Detener la pide una vez (`evidence/demo/physical-phone.md`).
 - **El aviso al guardián no tiene backend.** El sistema puede detener el servicio de sondeo, y entonces el aviso llega cuando se abre la app o se toca "Actualizar". Consultar cada 30 s no es aceptable en batería para producción.
-- **Las dos claves están en un mismo teléfono** en debug, para la demo. El aviso entre dos teléfonos no se ha probado.
+- **Las dos claves se crean en cada teléfono** en debug. `testnet.json` decide el rol: si nombra las dos, el teléfono hace de dueña y de guardián; si nombra una, solo ese rol. El aviso entre dos dispositivos corrió con un A54 y un emulador; con dos teléfonos físicos no se ha probado.
 - **Los pagos inmediatos no se releen.** Un pago a un contacto sigue en cadena, pero desaparece de "Recientes" al reiniciar la app.
 - **El guardián no se puede cambiar** y no hay recuperación de cuenta.
 - **La IA es un stub.**
