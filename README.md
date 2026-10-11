@@ -95,6 +95,8 @@ JDK 17, el Android SDK en `local.properties` (`sdk.dir=C:/Users/<tú>/AppData/Lo
 ./gradlew :app:android:assembleDebug
 ```
 
+El APK de debug ya armado está en [`downloads/android-debug.apk`](downloads/android-debug.apk). El commit del que salió y su SHA-256 están en [`downloads/README.md`](downloads/README.md).
+
 Tests instrumentados (Keystore; necesitan Android 13+ con bloqueo de pantalla):
 
 ```bash
