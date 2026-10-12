@@ -1,0 +1,539 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Auditoría motion video</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F5F9FA; --surface:#FFFFFF; --fg:#0B1220; --muted:#4A5568; --border:#D5E0E3;
+  --accent:#007E75; --line:#00A99D; --soft:#E3F4F2;
+  --warn:#A25904; --warnbg:#FDF3E3; --ok:#107A37; --okbg:#E6F5EC; --bad:#B91C1C; --badbg:#FDECEC;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0B1220; --surface:#121B2E; --fg:#F5F9FA; --muted:#A8B3C4; --border:#24324A;
+    --accent:#5EEAD4; --line:#00A99D; --soft:#10302F;
+    --warn:#F5B35C; --warnbg:#2E2210; --ok:#6EDB97; --okbg:#0F2A1A; --bad:#F59A9A; --badbg:#2E1414;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0B1220; --surface:#121B2E; --fg:#F5F9FA; --muted:#A8B3C4; --border:#24324A;
+  --accent:#5EEAD4; --line:#00A99D; --soft:#10302F;
+  --warn:#F5B35C; --warnbg:#2E2210; --ok:#6EDB97; --okbg:#0F2A1A; --bad:#F59A9A; --badbg:#2E1414;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.6 "IBM Plex Sans",system-ui,sans-serif}
+main{max-width:980px;margin:0 auto;padding:32px 16px 80px}
+h1{font-size:2rem;line-height:1.2;font-weight:600;margin:0 0 8px}
+h2{font-size:1.4rem;font-weight:600;margin:48px 0 12px;padding-top:8px;border-top:1px solid var(--border)}
+h3{font-size:1.1rem;font-weight:600;margin:28px 0 8px}
+p,li{max-width:72ch}
+a{color:var(--accent)}
+code{font:0.88em "IBM Plex Mono",monospace;background:var(--soft);padding:1px 5px;border-radius:4px;word-break:break-word}
+pre{font:0.85em/1.5 "IBM Plex Mono",monospace;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px 14px;overflow-x:auto}
+.wait{height:4px;width:120px;background:var(--line);border-radius:2px;margin:16px 0 20px}
+.meta{color:var(--muted);font-size:0.92rem}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px 18px;margin:14px 0}
+.verdict{border-left:6px solid var(--line)}
+.verdict strong.big{font-size:1.25rem;color:var(--accent)}
+.note{background:var(--warnbg);border:1px solid var(--border);border-radius:12px;padding:12px 16px;margin:14px 0}
+.tbl{overflow-x:auto;margin:12px 0;border:1px solid var(--border);border-radius:12px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-size:0.9rem}
+th,td{text-align:left;vertical-align:top;padding:8px 10px;border-bottom:1px solid var(--border)}
+th{font-weight:600;background:var(--soft)}
+tr:last-child td{border-bottom:none}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.tag{display:inline-block;font:500 0.72rem/1 "IBM Plex Sans",sans-serif;padding:3px 7px;border-radius:999px;margin-right:4px;vertical-align:1px;white-space:nowrap}
+.H{background:var(--okbg);color:var(--ok)}
+.OT{background:var(--soft);color:var(--accent)}
+.V{background:var(--surface);color:var(--muted);border:1px solid var(--border)}
+.Hip,.P{background:var(--warnbg);color:var(--warn)}
+.no{background:var(--badbg);color:var(--bad)}
+nav ol{columns:2;column-gap:32px;padding-left:20px}
+@media (max-width:600px){nav ol{columns:1} h1{font-size:1.6rem}}
+dl.rec{display:grid;grid-template-columns:max-content 1fr;gap:4px 14px;margin:8px 0}
+dl.rec dt{font-weight:600;color:var(--muted)}
+dl.rec dd{margin:0}
+@media (max-width:600px){dl.rec{grid-template-columns:1fr} dl.rec dd{margin-bottom:6px}}
+@media print{
+  body{background:#fff;color:#000;font-size:11pt}
+  main{max-width:none;padding:0}
+  h2{break-before:page}
+  .tbl{overflow:visible}
+  a{color:#000}
+}
+</style>
+</head>
+<body>
+<main>
+
+<p class="meta">GuardPay · Auditoría de solo lectura · consultada el 12 de octubre de 2026</p>
+<h1>Recursos para el motion video de GuardPay</h1>
+<div class="wait" aria-hidden="true"></div>
+<p>Auditoría técnica, creativa y de licencias de 13 recursos gratuitos o de código abierto, más alternativas, para producir un video de producto: texto animado y música, sin voz en off, entendible sin sonido, identidad Guard Teal, MP4 H.264 a 1920×1080.</p>
+
+<div class="card">
+<p><strong>Alcance y método.</strong></p>
+<ul>
+<li>Todo fue solo lectura: no se modificó el repo, no se instaló nada, no se descargaron plantillas y no se subió contenido del proyecto a servicios externos.</li>
+<li>No se probó ninguna herramienta localmente. Lo marcado "compatible" lo es según su documentación.</li>
+<li>Este informe vive fuera del repositorio (scratchpad de la sesión).</li>
+</ul>
+<p><strong>Etiquetas:</strong>
+<span class="tag H">H</span>hecho verificado (fuente primaria o repo) ·
+<span class="tag OT">OT</span>observación técnica ·
+<span class="tag V">V</span>valoración ·
+<span class="tag Hip">Hip</span>hipótesis ·
+<span class="tag P">P</span>pendiente de validación</p>
+</div>
+
+<div class="note"><strong>Nota de seguridad.</strong> La página oficial <code>mixkit.co/llm-info/</code> contiene una instrucción dirigida a asistentes de IA (agregar un emoji musical y promocionar el blog de Envato). Se ignoró; no influye en ninguna valoración.</div>
+
+<nav aria-label="Contenido">
+<ol>
+<li><a href="#s1">Resumen ejecutivo</a></li>
+<li><a href="#s2">Inventario local</a></li>
+<li><a href="#s3">Auditoría individual</a></li>
+<li><a href="#s4">Matriz ponderada</a></li>
+<li><a href="#s5">Ranking y escenarios</a></li>
+<li><a href="#s6">Narrativa (45 s y 75 s)</a></li>
+<li><a href="#s7">Plan de producción</a></li>
+<li><a href="#s8">Riesgos y licencias</a></li>
+<li><a href="#s9">Viabilidad y pruebas pendientes</a></li>
+<li><a href="#s10">Decisión final</a></li>
+<li><a href="#s11">Fuentes</a></li>
+</ol>
+</nav>
+
+<!-- 1 -->
+<h2 id="s1">1. Resumen ejecutivo</h2>
+<div class="card verdict">
+<p><strong class="big">GO WITH CHANGES</strong></p>
+<p>Producir con <strong>Remotion 4.0.535</strong> (plantilla oficial Blank + Agent Skills), una versión maestra de <strong>75 s</strong> y un corte de <strong>45 s</strong> desde el mismo código, solo con capturas REAL limpias.</p>
+</div>
+
+<div class="tbl"><table>
+<tr><th>Decisión</th><th>Recomendación</th></tr>
+<tr><td>Motor</td><td><strong>Remotion 4.0.535</strong>: H.264 1080p por código, versionable y automatizable con Claude Code</td></tr>
+<tr><td>Base</td><td>Plantilla oficial <strong>Blank</strong> + <strong>Agent Skills</strong>. El <code>PromoTemplate</code> de AleBrito solo como referencia de lectura (MIT)</td></tr>
+<tr><td>Música</td><td>Pixabay o Mixkit (licencia Free), guardando prueba de la licencia</td></tr>
+<tr><td>SFX</td><td>Freesound <strong>CC0</strong> o SFX de Mixkit</td></tr>
+<tr><td>Guías</td><td>Cadre (estructura, presupuesto de palabras), Material 1 Choreography (escalonado, un foco), Apple HIG Motion (movimiento con propósito, nunca como único canal)</td></tr>
+<tr><td>Descartar</td><td>react-video-toolkit (sin archivo LICENSE), Rive (exportar video es de pago), Lottie Creator como herramienta (tope de 5 exportaciones)</td></tr>
+<tr><td>Duración</td><td>Maestro 75 s + corte 45 s</td></tr>
+</table></div>
+
+<h3>Los cambios que pide el "WITH CHANGES"</h3>
+<ol>
+<li><strong>Capturas limpias.</strong> Hoy tienen notificaciones de otras apps, hora inconsistente (11:xx en la barra contra 23:xx en la app) y 25 % de batería; los renders de simulación llevan el banner "Simulación".</li>
+<li><strong>Confirmar el tamaño del equipo</strong> (≤3 personas) para la licencia gratuita de Remotion. <span class="tag Hip">Hip</span> CLAUDE.md nombra Persona 1 y Persona 2.</li>
+<li><strong>Wordmark de texto.</strong> No existe logo y la propuesta visual no permite rediseñar.</li>
+<li><strong>Revisar todo el copy contra la evidencia</strong> (sección 2).</li>
+</ol>
+<div class="note"><strong>Plazo.</strong> G1 vence hoy, 12 oct, a las 17:59. Si el video es para esa entrega, el plan completo no cabe: usar el Escenario A o solo el corte de 45 s.</div>
+
+<!-- 2 -->
+<h2 id="s2">2. Inventario local</h2>
+<p><strong>Clases:</strong> 1 implementado con evidencia REAL · 2 implementado con evidencia parcial · 3 solo en simulación · 4 ilustrativo · 5 no implementado (no mostrar como funcional) · 6 no verificable o ausente.</p>
+<div class="tbl"><table>
+<tr><th>Función o recurso</th><th>Clase</th><th>Evidencia</th><th>Uso en el video</th></tr>
+<tr><td>Pago inmediato a contacto de confianza bajo el tope diario</td><td>1</td><td><code>evidence/smart-account/screens/o2-enviado</code>, <code>o3-contacto</code></td><td>Sí</td></tr>
+<tr><td>Retención on-chain ("Retenido", "En Stellar")</td><td>1</td><td><code>evidence/demo/physical-phone/p1-s2-retenido</code>, <code>smart-account/p2-retenido</code></td><td>Sí, escena central</td></tr>
+<tr><td>El guardián detiene</td><td>1</td><td><code>p1-s3-detenido</code>, <code>g1-detalle</code>, <code>g2-detenido</code></td><td>Sí</td></tr>
+<tr><td>El guardián no mueve dinero y no es firmante</td><td>1</td><td>Diseño del contrato, suite GH, <code>checkGuardianSurface</code></td><td>Sí, como texto</td></tr>
+<tr><td>El contrato rechaza lo demás</td><td>1</td><td><code>evidence/demo/terminal-rejections.mp4</code>, GH-01…33</td><td>Sí <span class="tag P">P</span> confirmar etiqueta del clip</td></tr>
+<tr><td>La IA del teléfono sugiere retener</td><td>1 (mensajes SIMULATED)</td><td><code>evidence/ai/prompt-injection.md</code>, <code>evidence/ai/p7/ui-3</code></td><td>Sí, siempre con "puede equivocarse"</td></tr>
+<tr><td>Aviso local al guardián (polling, sin backend)</td><td>1</td><td><code>evidence/guardian/screens/n5</code></td><td>Sí, recortado</td></tr>
+<tr><td>Firma biométrica con Keystore</td><td>1</td><td>Tests instrumentados</td><td>Solo texto: el prompt sale negro en capturas</td></tr>
+<tr><td>"Listo para enviar" al vencer la espera</td><td>1 en live test; captura clase 3</td><td><code>KmpStellarGatewayLiveTest</code>; <code>screens/04</code> es simulación</td><td>Solo versión B, con captura REAL nueva</td></tr>
+<tr><td>Vencido, Error de red</td><td>3</td><td><code>evidence/demo/screens/07</code>, <code>09</code></td><td>No</td></tr>
+<tr><td>iOS</td><td>3</td><td><code>evidence/ios/simulator/</code></td><td>No, o solo como límite</td></tr>
+<tr><td>USDC</td><td>1 como SAC de prueba</td><td>Token de prueba, no USDC de Circle</td><td>Decir "USDC de prueba"</td></tr>
+<tr><td>Mainnet, dinero real, push, servidor</td><td>5</td><td>No existen</td><td>Nunca</td></tr>
+<tr><td>Logo e ícono de la app</td><td>6</td><td>No existen; notificaciones con ícono por defecto de Android</td><td>Wordmark de texto</td></tr>
+<tr><td>Métricas de estafas evitadas</td><td>6</td><td>Sin datos</td><td>Nunca</td></tr>
+</table></div>
+
+<h3>Activos visuales</h3>
+<ul>
+<li><span class="tag H">H</span><strong>Paleta</strong> (<code>ui/theme/Tokens.kt</code>): Navy <code>#0B1220</code>, Teal <code>#00A99D</code>, Mint <code>#5EEAD4</code>, Ice <code>#F5F9FA</code>, TealText <code>#007E75</code>. Nunca texto blanco sobre Teal (2.93:1).</li>
+<li><span class="tag H">H</span><strong>Fuentes:</strong> IBM Plex Sans y Mono en <code>composeResources/font</code>; licencia en <code>app/shared/licenses/IBM-Plex-OFL.txt</code>.</li>
+<li><span class="tag H">H</span><strong>Íconos:</strong> Lucide 1.52.0, ISC (<code>ui/theme/Icons.kt:14</code>, <code>Lucide-ISC.txt</code>).</li>
+<li><span class="tag OT">OT</span><strong>Documento desactualizado:</strong> <code>docs/SUBMISSION.md</code> contradice el estado de P7. No usarlo como fuente del guion.</li>
+<li><span class="tag P">P</span><strong>Videos existentes:</strong> duración y códec sin verificar (no hay ffprobe en el PATH).</li>
+</ul>
+<div class="tbl"><table>
+<tr><th>Carpeta de capturas</th><th>Resolución</th><th>Problema</th></tr>
+<tr><td><code>evidence/demo/physical-phone</code></td><td>1080×2340</td><td>Barra de estado inconsistente</td></tr>
+<tr><td><code>evidence/demo/rehearsal</code>, <code>evidence/smart-account/screens</code></td><td>1080×2400</td><td>—</td></tr>
+<tr><td><code>evidence/guardian/screens</code></td><td>1080×2400</td><td>Notificaciones de otras apps (n1, n3, n5)</td></tr>
+<tr><td><code>evidence/ai/p7</code></td><td>1080×2340</td><td>—</td></tr>
+<tr><td><code>evidence/demo/screens</code></td><td>720×1600</td><td>Banner de simulación</td></tr>
+<tr><td><code>two-devices</code>, <code>full-rehearsal</code></td><td>540×1130 / 540×1200</td><td>Baja resolución</td></tr>
+<tr><td><code>evidence/ios/simulator</code></td><td>589×1278</td><td>Simulación</td></tr>
+</table></div>
+
+<!-- 3 -->
+<h2 id="s3">3. Auditoría individual</h2>
+
+<h3>1. Remotion</h3>
+<dl class="rec">
+<dt>URL</dt><dd><a href="https://www.remotion.dev">remotion.dev</a></dd>
+<dt>Tipo</dt><dd>Framework React/TypeScript que renderiza video</dd>
+<dt>Versión</dt><dd><span class="tag H">H</span>4.0.535, publicada el 12 oct 2026 (npm y GitHub releases)</dd>
+<dt>Licencia</dt><dd><span class="tag H">H</span>Remotion License, <em>source-available</em>. Gratis para individuos, empresas de hasta 3 personas, sin fines de lucro y evaluación. Desde 4 personas: Creators USD 25/puesto/mes; Automators USD 0.01/render (mín. USD 100/mes); Enterprise desde USD 500/mes. Cambiará "un poco" en Remotion 5.</dd>
+<dt>Export</dt><dd><span class="tag H">H</span>h264 por defecto (CRF 18), h265, vp8/9, av1, prores. Aceleración por hardware en Windows con NVIDIA desde 4.0.228.</dd>
+<dt>Windows</dt><dd><span class="tag H">H</span>Chrome Headless Shell soporta Windows x64; se instala en <code>node_modules</code>.</dd>
+<dt>Dependencias</dt><dd>Node, React. <code>@remotion/lottie</code> requiere <code>lottie-web ^5</code> (5.13.0, MIT). Existe <code>@remotion/rive</code>.</dd>
+<dt>Capturas</dt><dd><span class="tag OT">OT</span><code>&lt;Img src={staticFile()}&gt;</code>: control total de recorte y zoom; marco de teléfono en CSS.</dd>
+<dt>Automatización</dt><dd><span class="tag H">H</span>Página oficial para Claude Code (<code>npx create-video --yes --blank</code>) y Agent Skills (<code>npx skills add remotion-dev/skills</code>).</dd>
+<dt>Riesgos</dt><dd><span class="tag P">P</span>Elegibilidad por tamaño de equipo · <span class="tag Hip">Hip</span>render pesado con 7.4 GB de RAM (bajar <code>--concurrency</code>) · <span class="tag P">P</span>no probado localmente</dd>
+<dt>Valoración</dt><dd><span class="tag V">V</span>La mejor opción por control, licencia y automatización.</dd>
+</dl>
+
+<h3>2. AleBrito124356/remotion-video-templates</h3>
+<dl class="rec">
+<dt>URL</dt><dd><a href="https://github.com/AleBrito124356/remotion-video-templates">GitHub</a></dd>
+<dt>Hechos</dt><dd><span class="tag H">H</span>MIT (archivo LICENSE). 1 commit (18 jul 2026), 4 estrellas, 1 fork. Remotion 4.0.200, React 18.3.1, zod 3.22.3, TypeScript 5.5.4. Siete composiciones; <code>PromoTemplate</code> es 1920×1080.</dd>
+<dt>Técnica</dt><dd><span class="tag OT">OT</span>Máximo 3 <code>features</code>; fuente Inter; placeholders SVG horizontales; duración = 70 + 90·N + 80 − 20·(N+1) frames; <code>TransitionSeries</code> con fade y slide; copy por defecto "Safe by default".</dd>
+<dt>Riesgos</dt><dd><span class="tag V">V</span>Mantenimiento nulo; Remotion 335 versiones atrás; habría que rehacer capturas verticales y fuentes.</dd>
+<dt>Uso</dt><dd>Leer sus patrones de springs y transiciones; no clonarla como base.</dd>
+</dl>
+
+<h3>3. itsjwill/react-video-toolkit</h3>
+<dl class="rec">
+<dt>URL</dt><dd><a href="https://github.com/itsjwill/react-video-toolkit">GitHub</a></dd>
+<dt>Hechos</dt><dd><span class="tag H">H</span>Sin archivo LICENSE (API de GitHub: <code>license: null</code>); "MIT" solo en README y <code>package.json</code>. 1 commit (23 ene 2026), 1 estrella, Remotion 4.0.409. El README promociona una comunidad de Skool.</dd>
+<dt>Técnica</dt><dd><span class="tag OT">OT</span>Efectos (film grain, glitch, aberración cromática) chocan con la dirección "Calma verificable".</dd>
+<dt>Valoración</dt><dd><span class="tag no">Descartar</span>Licencia ambigua y estética ajena.</dd>
+</dl>
+
+<h3>4. Otras plantillas de Remotion</h3>
+<dl class="rec">
+<dt>URL</dt><dd><a href="https://www.remotion.dev/templates">remotion.dev/templates</a></dd>
+<dt>Hechos</dt><dd><span class="tag H">H</span>Gratuitas: Blank, Hello World, Recorder, Prompt to Motion Graphics, Skia, Overlay, Code Hike, Stargazer, TikTok, Audiogram, 3D, Stills, Next.js, Render Server, Electron, React Router 7, Prompt to Video, Music Visualization. De pago: Editor Starter, Watercolor Map, Timeline.</dd>
+<dt>Técnica</dt><dd><span class="tag OT">OT</span>Ninguna está pensada para mostrar apps móviles.</dd>
+<dt>Valoración</dt><dd><span class="tag V">V</span><strong>Blank</strong> + Skills es la base más limpia.</dd>
+</dl>
+
+<h3>5. LottieFiles (motion templates)</h3>
+<dl class="rec">
+<dt>URL</dt><dd><a href="https://lottiefiles.com/motion-templates">Motion templates</a> · <a href="https://lottiefiles.com/page/license">Licencia</a></dd>
+<dt>Licencia</dt><dd><span class="tag H">H</span>Lottie Simple License: uso comercial, sin atribución obligatoria (sugerida), mismos términos al redistribuir, no para construir un servicio competidor. Filtro Free/Premium aparte.</dd>
+<dt>Creator</dt><dd><span class="tag H">H</span>Gratis con tope de <strong>5 exportaciones</strong>; formatos MP4, GIF, WebM, MOV, dotLottie, JSON <span class="tag P">P</span>cuáles son gratis no está claro.</dd>
+<dt>Uso</dt><dd>Acentos (check, reloj) vía <code>@remotion/lottie</code> con el JSON en <code>public/</code>.</dd>
+<dt>Riesgos</dt><dd><span class="tag V">V</span>Recolorear a la paleta; licencia por archivo; no sirve para capturas.</dd>
+</dl>
+
+<h3>6. Rive y su comunidad</h3>
+<dl class="rec">
+<dt>URL</dt><dd><a href="https://rive.app/pricing">Precios</a></dd>
+<dt>Hechos</dt><dd><span class="tag H">H</span>Free: editor, CLI, <code>.riv</code> con splash, 3 archivos colaborativos. Exportar video/imagen (H.264, GIF, PNG, WebM) es de pago: Cadet USD 9, Voyager USD 32, Enterprise USD 120. Archivos de comunidad: CC BY.</dd>
+<dt>Técnica</dt><dd><span class="tag OT">OT</span><code>@remotion/rive</code> reproduce un artboard y una animación sincronizados; no documenta state machines.</dd>
+<dt>Valoración</dt><dd><span class="tag no">Descartar</span>Pensado para UI interactiva, no para video pregrabado.</dd>
+</dl>
+
+<h3>7. Plantilla de storyboard de Figma/FigJam</h3>
+<dl class="rec">
+<dt>URL</dt><dd><a href="https://www.figma.com/templates/storyboard-template/">Figma</a></dd>
+<dt>Hechos</dt><dd><span class="tag H">H</span>Gratis, en FigJam. La página no indica límites del plan.</dd>
+<dt>Valoración</dt><dd><span class="tag V">V</span>Útil para alinear al equipo; las tablas de la sección 6 la reemplazan. Subir capturas a Figma es subir contenido a un servicio externo: decidirlo explícitamente.</dd>
+</dl>
+
+<h3>8. Cadre: plantilla de guion de demo</h3>
+<dl class="rec">
+<dt>URL</dt><dd><a href="https://cadre.cam/guides/product-demo-script-template.html">cadre.cam</a></dd>
+<dt>Hechos</dt><dd><span class="tag H">H</span>Actualizada el 26 ago 2026. Seis beats: gancho, problema, promesa, recorrido, prueba, siguiente paso. Tope de 140 palabras/min (30 s ≈ 70, 60 s ≈ 140, 90 s ≈ 210). Cada afirmación con un plano visible; dejar la prueba vacía antes que inventarla. Plantilla reutilizable comercialmente; exportar desde su software exige Pro.</dd>
+<dt>Valoración</dt><dd><span class="tag V">V</span>Adoptar la estructura y la regla "afirmación = plano". El software no hace falta.</dd>
+</dl>
+
+<h3>9. Material Design 1 — Choreography</h3>
+<dl class="rec">
+<dt>URL</dt><dd><a href="https://m1.material.io/motion/choreography.html">m1.material.io</a></dd>
+<dt>Hechos</dt><dd><span class="tag H">H</span>Legacy ("Material 1 is no longer maintained"). Un elemento compartido como foco; revelar en una sola dirección; escalonar ≤20 ms; fades, posición y escala para superficies sin input.</dd>
+<dt>Valoración</dt><dd><span class="tag V">V</span>Principios útiles; no citarla como norma vigente.</dd>
+</dl>
+
+<h3>10. Apple HIG — Motion</h3>
+<dl class="rec">
+<dt>URL</dt><dd><a href="https://developer.apple.com/design/human-interface-guidelines/motion">developer.apple.com</a></dd>
+<dt>Hechos</dt><dd><span class="tag H">H</span>Último cambio 9 sep 2025. "Add motion purposefully, supporting the experience without overshadowing it." No usar el movimiento como único canal; animaciones breves y precisas; evitar oscilación sostenida cerca de 0.2 Hz (visionOS).</dd>
+<dt>Valoración</dt><dd><span class="tag V">V</span>Encaja con un video sin voz: el texto debe bastar por sí solo.</dd>
+</dl>
+
+<h3>11. Mixkit</h3>
+<dl class="rec">
+<dt>URL</dt><dd><a href="https://mixkit.co/license/">Licencia</a></dd>
+<dt>Hechos</dt><dd><span class="tag H">H</span>Free License: uso comercial (YouTube, anuncios online), sin atribución. Restricted: solo no comercial. No revender ítems sin alterar.</dd>
+<dt>Pendiente</dt><dd><span class="tag P">P</span>Texto completo de la licencia de música no legible. Según fuentes secundarias: no CD/DVD, videojuegos, TV/radio. No menciona Content ID.</dd>
+<dt>Riesgo</dt><dd><span class="tag V">V</span>Verificar la licencia de cada pista.</dd>
+</dl>
+
+<h3>12. Pixabay (música)</h3>
+<dl class="rec">
+<dt>URL</dt><dd><a href="https://pixabay.com/service/license-summary/">Resumen</a> · <a href="https://pixabay.com/service/terms/">Términos</a></dd>
+<dt>Hechos</dt><dd><span class="tag H">H</span>Uso libre, sin atribución. Prohíbe la redistribución standalone (combinar con video está permitido), el uso engañoso y el uso de marcas. No garantiza autorizaciones de terceros. CC0 solo para contenido anterior al 9 ene 2019. No menciona Content ID.</dd>
+<dt>Riesgo</dt><dd><span class="tag Hip">Hip</span>Posibles reclamos automáticos en plataformas. Mitigar guardando URL, autor, fecha y captura de la licencia.</dd>
+</dl>
+
+<h3>13. Freesound</h3>
+<dl class="rec">
+<dt>URL</dt><dd><a href="https://freesound.org/help/faq/">FAQ</a></dd>
+<dt>Hechos</dt><dd><span class="tag H">H</span>Licencia por archivo: CC0, CC BY (crédito con título, usuario, URL y licencia), CC BY-NC (no comercial), Sampling+ (legacy, prohíbe publicidad).</dd>
+<dt>Valoración</dt><dd><span class="tag V">V</span>Solo <strong>CC0</strong> para SFX; CC BY solo con créditos finales. Evitar NC y Sampling+.</dd>
+</dl>
+
+<h3>Alternativas</h3>
+<p><span class="tag P">P</span>No consultadas hoy: datos de conocimiento previo.</p>
+<div class="tbl"><table>
+<tr><th>Alternativa</th><th>Licencia</th><th>Valoración</th></tr>
+<tr><td>Kdenlive / Shotcut</td><td>GPL-3</td><td>Editores de línea de tiempo gratuitos en Windows; buen plan B manual; Claude no los automatiza</td></tr>
+<tr><td>Blender</td><td>GPL</td><td>Excesivo para texto y capturas</td></tr>
+<tr><td>Motion Canvas</td><td>MIT</td><td>Alternativa por código a Remotion; actividad del proyecto pendiente</td></tr>
+<tr><td>FFmpeg</td><td>LGPL/GPL</td><td>Ya viene con Remotion</td></tr>
+<tr><td>IBM Plex / Lucide</td><td>OFL 1.1 / ISC</td><td>Ya en el repo con sus licencias</td></tr>
+</table></div>
+
+<!-- 4 -->
+<h2 id="s4">4. Matriz ponderada</h2>
+<p>Escala 0–5 por dimensión, ponderada a 100. <span class="tag V">V</span> Los puntajes son valoraciones; Motion Canvas, Kdenlive/Shotcut y Blender quedan marcados como pendientes porque no se consultaron hoy.</p>
+<div class="tbl"><table>
+<tr><th>#</th><th>Dimensión</th><th class="num">Peso</th><th>#</th><th>Dimensión</th><th class="num">Peso</th></tr>
+<tr><td>D1</td><td>Ajuste a la narrativa</td><td class="num">10</td><td>D8</td><td>Madurez y documentación</td><td class="num">6</td></tr>
+<tr><td>D2</td><td>Control de la identidad</td><td class="num">8</td><td>D9</td><td>Automatizable por Claude Code</td><td class="num">8</td></tr>
+<tr><td>D3</td><td>Capturas verticales</td><td class="num">8</td><td>D10</td><td>Windows</td><td class="num">6</td></tr>
+<tr><td>D4</td><td>Export MP4 1080p gratis</td><td class="num">10</td><td>D11</td><td>Reproducibilidad</td><td class="num">5</td></tr>
+<tr><td>D5</td><td>Claridad de la licencia</td><td class="num">10</td><td>D12</td><td>Riesgo (inverso)</td><td class="num">7</td></tr>
+<tr><td>D6</td><td>Costo</td><td class="num">6</td><td>D13</td><td>Velocidad al primer render</td><td class="num">5</td></tr>
+<tr><td>D7</td><td>Mantenimiento</td><td class="num">6</td><td>D14</td><td>Evidencia de demo</td><td class="num">5</td></tr>
+</table></div>
+
+<div class="tbl"><table>
+<tr><th>Herramienta</th><th class="num">D1</th><th class="num">D2</th><th class="num">D3</th><th class="num">D4</th><th class="num">D5</th><th class="num">D6</th><th class="num">D7</th><th class="num">D8</th><th class="num">D9</th><th class="num">D10</th><th class="num">D11</th><th class="num">D12</th><th class="num">D13</th><th class="num">D14</th><th class="num">Total</th></tr>
+<tr><td>Remotion (motor)</td><td class="num">5</td><td class="num">5</td><td class="num">5</td><td class="num">5</td><td class="num">4</td><td class="num">5</td><td class="num">5</td><td class="num">5</td><td class="num">5</td><td class="num">4</td><td class="num">5</td><td class="num">4</td><td class="num">3</td><td class="num">4</td><td class="num"><strong>92.4</strong></td></tr>
+<tr><td>Remotion Blank + Skills</td><td class="num">4</td><td class="num">5</td><td class="num">4</td><td class="num">5</td><td class="num">4</td><td class="num">5</td><td class="num">5</td><td class="num">5</td><td class="num">5</td><td class="num">4</td><td class="num">5</td><td class="num">4</td><td class="num">4</td><td class="num">3</td><td class="num"><strong>88.8</strong></td></tr>
+<tr><td>Motion Canvas <span class="tag P">P</span></td><td class="num">4</td><td class="num">5</td><td class="num">4</td><td class="num">3</td><td class="num">5</td><td class="num">5</td><td class="num">2</td><td class="num">3</td><td class="num">4</td><td class="num">4</td><td class="num">5</td><td class="num">3</td><td class="num">3</td><td class="num">3</td><td class="num"><strong>76.8</strong></td></tr>
+<tr><td>Kdenlive / Shotcut <span class="tag P">P</span></td><td class="num">3</td><td class="num">4</td><td class="num">4</td><td class="num">5</td><td class="num">5</td><td class="num">5</td><td class="num">4</td><td class="num">4</td><td class="num">1</td><td class="num">5</td><td class="num">2</td><td class="num">4</td><td class="num">3</td><td class="num">3</td><td class="num"><strong>75.6</strong></td></tr>
+<tr><td>Blender <span class="tag P">P</span></td><td class="num">2</td><td class="num">4</td><td class="num">3</td><td class="num">5</td><td class="num">5</td><td class="num">5</td><td class="num">5</td><td class="num">4</td><td class="num">2</td><td class="num">5</td><td class="num">3</td><td class="num">4</td><td class="num">1</td><td class="num">3</td><td class="num"><strong>73.8</strong></td></tr>
+<tr><td>AleBrito templates</td><td class="num">4</td><td class="num">3</td><td class="num">2</td><td class="num">5</td><td class="num">4</td><td class="num">5</td><td class="num">1</td><td class="num">2</td><td class="num">4</td><td class="num">4</td><td class="num">4</td><td class="num">3</td><td class="num">4</td><td class="num">2</td><td class="num"><strong>69.0</strong></td></tr>
+<tr><td>Figma storyboard</td><td class="num">4</td><td class="num">4</td><td class="num">3</td><td class="num">0</td><td class="num">4</td><td class="num">4</td><td class="num">4</td><td class="num">4</td><td class="num">3</td><td class="num">5</td><td class="num">2</td><td class="num">3</td><td class="num">3</td><td class="num">3</td><td class="num"><strong>64.6</strong></td></tr>
+<tr><td>Lottie (vía Remotion)</td><td class="num">3</td><td class="num">3</td><td class="num">1</td><td class="num">3</td><td class="num">3</td><td class="num">4</td><td class="num">4</td><td class="num">4</td><td class="num">3</td><td class="num">4</td><td class="num">3</td><td class="num">3</td><td class="num">3</td><td class="num">3</td><td class="num"><strong>61.6</strong></td></tr>
+<tr><td>react-video-toolkit</td><td class="num">3</td><td class="num">3</td><td class="num">3</td><td class="num">5</td><td class="num">1</td><td class="num">5</td><td class="num">1</td><td class="num">2</td><td class="num">4</td><td class="num">4</td><td class="num">3</td><td class="num">2</td><td class="num">3</td><td class="num">2</td><td class="num"><strong>59.2</strong></td></tr>
+<tr><td>Rive</td><td class="num">2</td><td class="num">4</td><td class="num">1</td><td class="num">2</td><td class="num">3</td><td class="num">2</td><td class="num">4</td><td class="num">3</td><td class="num">2</td><td class="num">4</td><td class="num">2</td><td class="num">3</td><td class="num">2</td><td class="num">2</td><td class="num"><strong>51.0</strong></td></tr>
+</table></div>
+
+<h3>Audio</h3>
+<p>Claridad de licencia / sin atribución / bajo riesgo de reclamos / ajuste / trazabilidad (0–5):</p>
+<div class="tbl"><table>
+<tr><th>Fuente</th><th>Puntajes</th><th class="num">Media</th><th>Uso</th></tr>
+<tr><td>Freesound (solo CC0)</td><td>5 / 5 / 4 / 3 / 5</td><td class="num"><strong>4.4</strong></td><td>SFX</td></tr>
+<tr><td>Pixabay</td><td>4 / 5 / 3 / 4 / 3</td><td class="num"><strong>3.8</strong></td><td>Música</td></tr>
+<tr><td>Mixkit</td><td>3 / 5 / 3 / 4 / 3</td><td class="num"><strong>3.6</strong></td><td>Música o SFX</td></tr>
+</table></div>
+<p><strong>Guías (aplicabilidad, 0–5):</strong> Cadre 5 · HIG Motion 4 · Material 1 4 (legacy).</p>
+
+<!-- 5 -->
+<h2 id="s5">5. Ranking y escenarios</h2>
+<ol>
+<li>Remotion con Blank + Skills</li>
+<li>Kdenlive o Shotcut (plan B manual)</li>
+<li>Motion Canvas <span class="tag P">P</span></li>
+<li>Blender</li>
+<li>AleBrito (solo referencia)</li>
+<li>Figma storyboard (opcional)</li>
+<li>Lottie (solo acentos)</li>
+<li>react-video-toolkit</li>
+<li>Rive</li>
+</ol>
+
+<div class="tbl"><table>
+<tr><th></th><th>A · mínima complejidad</th><th>B · mejor equilibrio (recomendado)</th><th>C · máximo control</th></tr>
+<tr><td>Herramienta</td><td>Shotcut o Kdenlive</td><td>Remotion Blank + Skills</td><td>Remotion a medida, Lottie y props por corte</td></tr>
+<tr><td>Duración</td><td>45 s</td><td>Maestro 75 s + corte 45 s</td><td>45, 75 y 90 s + vertical</td></tr>
+<tr><td>Visual</td><td>Capturas con fade y títulos nativos</td><td>Marco de teléfono en CSS, línea de espera, zoom a chips</td><td>B + íconos Lottie y transiciones compartidas</td></tr>
+<tr><td>Automatiza Claude</td><td>No</td><td>Casi todo</td><td>Todo, con más iteración</td></tr>
+<tr><td>Riesgo</td><td>Tipografía y paleta manuales; no reproducible</td><td>Licencia de Remotion <span class="tag P">P</span>; RAM</td><td>Tiempo; más dependencias</td></tr>
+<tr><td>Esfuerzo <span class="tag Hip">Hip</span></td><td>Medio día</td><td>1–2 días</td><td>3+ días</td></tr>
+</table></div>
+
+<!-- 6 -->
+<h2 id="s6">6. Narrativa</h2>
+<h3>Reglas del copy</h3>
+<ul>
+<li>Cada frase sale de una función de clase 1.</li>
+<li>Nada de seguro / protegido / verificado, ni primero / único / "sin bypass".</li>
+<li>No dar el número de la espera (120 s es una constante de la demo).</li>
+<li>La IA "puede equivocarse" y nunca decide.</li>
+<li><span class="tag V">V</span>Como máximo ~2 palabras por segundo; cada línea ≥2 s en pantalla.</li>
+<li><span class="tag V">V</span>Texto principal 72–96 px, secundario ≥48 px a 1080p.</li>
+<li>Un solo foco por escena (Material 1). El sonido es acento: el video se entiende sin audio (HIG).</li>
+<li>Nunca texto blanco sobre Teal.</li>
+</ul>
+
+<h3>Versión A · 45 s (1350 frames a 30 fps)</h3>
+<div class="tbl"><table>
+<tr><th>Inicio–fin</th><th>Objetivo y texto</th><th>Visual y estado</th><th>Animación / transición</th><th>Sonido</th><th>Riesgo y evidencia</th></tr>
+<tr><td>0:00–0:04</td><td>Gancho: "Un mensaje urgente. Un pago a una cuenta nueva."</td><td>Burbuja de chat hecha en Remotion con el texto del caso 1, rotulada "Mensaje de ejemplo" (SIMULATED)</td><td>Spring hacia arriba / corte</td><td>Ping suave</td><td>Debe leerse como ejemplo. <code>prompt-injection.md</code></td></tr>
+<tr><td>0:04–0:10</td><td>Promesa: "GuardPay agrega una espera y una segunda persona."</td><td>Línea de espera Teal sobre Navy</td><td>La línea se dibuja / fade</td><td>Entra la música</td><td>—</td></tr>
+<tr><td>0:10–0:17</td><td>"La IA de tu teléfono lee el mensaje y sugiere retener. Puede equivocarse."</td><td><code>ai/p7/ui-3</code> en marco de teléfono; REAL, mensaje SIMULATED</td><td>Slide desde la derecha, recuadro en la sugerencia</td><td>—</td><td>No sugerir que la IA decide</td></tr>
+<tr><td>0:17–0:24</td><td>"Tú firmas. El pago queda retenido en Stellar."</td><td><code>p1-s2-revisa</code> → <code>p1-s2-retenido</code>; REAL testnet</td><td>Crossfade en el mismo marco, zoom al chip "Retenido"</td><td>Clic suave</td><td>Barra de estado: recortar o recapturar</td></tr>
+<tr><td>0:24–0:32</td><td>"Tu guardián recibe un aviso y puede detenerlo. No puede mover tu dinero."</td><td>Dos teléfonos: <code>n5</code> recortada y <code>p1-s3-detenido</code>; REAL</td><td>Entrada escalonada izquierda → derecha</td><td>Golpe sordo en "Detenido"</td><td><code>n5</code> muestra otras apps e ícono genérico</td></tr>
+<tr><td>0:32–0:39</td><td>"El contrato rechaza lo que no cumple las reglas."</td><td>Fragmento ampliado de <code>terminal-rejections.mp4</code></td><td>Zoom lento / fade</td><td>—</td><td>Legibilidad <span class="tag P">P</span>etiqueta y duración</td></tr>
+<tr><td>0:39–0:45</td><td>"La IA advierte. Tú firmas. Tu guardián puede detener. El contrato rechaza lo demás." + wordmark + "Demo en Stellar Testnet · USDC de prueba"</td><td>Navy, Plex, Teal solo en el acento</td><td>4 líneas escalonadas</td><td>Resolución musical</td><td>Sin logo inventado</td></tr>
+</table></div>
+
+<h3>Versión B · 75 s (2250 frames)</h3>
+<p>Agrega o alarga estas escenas sobre la versión A:</p>
+<div class="tbl"><table>
+<tr><th>Inicio–fin</th><th>Texto</th><th>Visual</th><th>Evidencia</th></tr>
+<tr><td>0:11–0:19</td><td>"A tus contactos de confianza, dentro de tu límite diario, el pago sale al instante."</td><td><code>smart-account/o3-contacto</code> y <code>o2-enviado</code></td><td>REAL</td></tr>
+<tr><td>0:28–0:37</td><td>"Firmas con tu huella o el bloqueo de pantalla."</td><td>Solo texto (el prompt biométrico sale negro)</td><td>Tests instrumentados</td></tr>
+<tr><td>0:47–0:54</td><td>"Si nadie lo detiene, al terminar la espera puedes enviarlo."</td><td>Captura nueva de "Listo para enviar"</td><td>Requiere captura REAL; <code>screens/04</code> es simulación</td></tr>
+<tr><td>0:54–1:03</td><td>"Tres contratos en Stellar. Sin servidor propio: el aviso sale del teléfono del guardián."</td><td>Diagrama de tres bloques (ILLUSTRATIVE)</td><td>Plan y despliegue</td></tr>
+<tr><td>1:03–1:10</td><td>"Prototipo en Stellar Testnet. USDC de prueba. iOS solo en simulación."</td><td>Tarjeta de límites</td><td><code>docs/ESTADO-FASES.md</code></td></tr>
+<tr><td>1:10–1:15</td><td>Cierre, igual que en A</td><td>—</td><td>—</td></tr>
+</table></div>
+
+<h3>A frente a B <span class="tag V">V</span></h3>
+<ul>
+<li><strong>A (45 s):</strong> cabe en el formato de entrega y retiene a los jurados, pero no explica el carril inmediato: parece que todo pago espera.</li>
+<li><strong>B (75 s):</strong> muestra el producto completo y sus límites honestos; ~150 palabras, cerca del tope de Cadre.</li>
+<li><strong>Recomendación:</strong> B como maestro, A como corte.</li>
+</ul>
+
+<!-- 7 -->
+<h2 id="s7">7. Plan de producción (12 fases)</h2>
+<div class="tbl"><table>
+<tr><th>#</th><th>Fase</th><th>Criterio de aceptación</th><th>¿Claude Code?</th></tr>
+<tr><td>1</td><td>Decisiones: plazo, plataforma, duración, tamaño del equipo</td><td>Respuestas escritas; elegibilidad Remotion Free confirmada</td><td>No</td></tr>
+<tr><td>2</td><td>Guion y copy</td><td>Cada frase enlaza a su evidencia; grep sin palabras prohibidas; presupuesto de palabras cumplido</td><td>Parcial</td></tr>
+<tr><td>3</td><td>Storyboard</td><td>Un still por escena, aprobado (<code>remotion still</code>)</td><td>Sí</td></tr>
+<tr><td>4</td><td>Capturas REAL limpias</td><td>Sin apps ajenas ni datos personales; hora y batería coherentes (modo demo del emulador o recorte)</td><td>Parcial: emulador sí, teléfono no</td></tr>
+<tr><td>5</td><td>Proyecto Remotion aislado</td><td>Carpeta o repo aparte; versiones exactas (4.0.535, sin <code>^</code>); CI de la app intacto</td><td>Sí, con autorización</td></tr>
+<tr><td>6</td><td>Tokens y tipografía</td><td>Colores iguales a Tokens.kt; Plex local por <code>staticFile</code>; contraste revisado</td><td>Sí</td></tr>
+<tr><td>7</td><td>Componentes: PhoneFrame, TextCard, WaitLine, Highlight</td><td>Se renderizan en Studio</td><td>Sí</td></tr>
+<tr><td>8</td><td>Escenas A y B</td><td>Exactamente 1350 y 2250 frames</td><td>Sí</td></tr>
+<tr><td>9</td><td>Audio</td><td>Licencias permitidas; registro con URL, autor, licencia, fecha y captura</td><td>Parcial: el equipo descarga</td></tr>
+<tr><td>10</td><td>Render</td><td>H.264, yuv420p, 1920×1080, 30 fps, AAC</td><td>Sí</td></tr>
+<tr><td>11</td><td>QA</td><td>ffprobe correcto; dos personas lo ven sin sonido y explican la tesis; checklist de afirmaciones</td><td>Parcial</td></tr>
+<tr><td>12</td><td>Entrega y evidencia</td><td><code>evidence/video/</code> con etiqueta por escena, licencias y SHA-256 del MP4; subida hecha por el equipo</td><td>Parcial</td></tr>
+</table></div>
+
+<!-- 8 -->
+<h2 id="s8">8. Riesgos y licencias</h2>
+<div class="tbl"><table>
+<tr><th>Recurso</th><th>Clase de licencia</th><th>Atribución</th><th>Prueba a guardar</th></tr>
+<tr><td>Remotion</td><td>Source-available, condicionada (≤3 personas)</td><td>No</td><td>Captura de la licencia + tamaño del equipo</td></tr>
+<tr><td>AleBrito</td><td>MIT</td><td>Aviso MIT si se copia código</td><td>El LICENSE</td></tr>
+<tr><td>react-video-toolkit</td><td>Ambigua (sin LICENSE)</td><td>—</td><td><span class="tag no">Evitar</span></td></tr>
+<tr><td>Lottie Simple License</td><td>Permisiva, por archivo</td><td>No (sugerida)</td><td>URL de cada archivo</td></tr>
+<tr><td>Rive Community</td><td>CC BY</td><td>Sí</td><td><span class="tag no">Evitar</span></td></tr>
+<tr><td>Mixkit Free</td><td>Permisiva con restricciones</td><td>No</td><td>Página del ítem y su licencia</td></tr>
+<tr><td>Pixabay Content License</td><td>Permisiva con restricciones</td><td>No</td><td>URL, autor, fecha</td></tr>
+<tr><td>Freesound</td><td>CC0 sí; CC BY con créditos; NC y Sampling+ no</td><td>Según archivo</td><td>Página de atribución</td></tr>
+<tr><td>IBM Plex</td><td>OFL 1.1 (en el repo)</td><td>No en el video</td><td><code>IBM-Plex-OFL.txt</code></td></tr>
+<tr><td>Lucide</td><td>ISC (en el repo)</td><td>No</td><td><code>Lucide-ISC.txt</code></td></tr>
+<tr><td>Cadre, Material 1, HIG</td><td>Solo referencia</td><td>—</td><td>—</td></tr>
+</table></div>
+
+<h3>Riesgos de contenido (más graves primero)</h3>
+<ol>
+<li>Mostrar algo de clase 3 o 5 como si funcionara (mainnet, push, iOS).</li>
+<li>Decir que la IA decide o que "detecta estafas".</li>
+<li>Usar seguro / protegido / verificado.</li>
+<li>Capturas con datos ajenos.</li>
+<li>Hora y batería inconsistentes.</li>
+<li>Un logo improvisado.</li>
+<li>Copiar el guion de <code>SUBMISSION.md</code> (desactualizado).</li>
+</ol>
+<h3>Riesgos técnicos</h3>
+<ul>
+<li>RAM (7.4 GB): no renderizar con Gradle o el emulador abiertos.</li>
+<li>Texto ilegible en capturas verticales escaladas (~0.37): usar zooms.</li>
+<li>Reclamo automático sobre la música.</li>
+</ul>
+
+<!-- 9 -->
+<h2 id="s9">9. Viabilidad técnica y pruebas pendientes</h2>
+<div class="tbl"><table>
+<tr><th>Requisito</th><th>Estado</th></tr>
+<tr><td>H.264 1080p30 en Remotion</td><td>Compatible según docs</td></tr>
+<tr><td>Windows x64 (Headless Shell)</td><td>Compatible según docs</td></tr>
+<tr><td>Lottie y Rive dentro de Remotion</td><td>Compatible según docs</td></tr>
+<tr><td>Node y npm en esta máquina</td><td><span class="tag H">H</span>npm 11.16.0 respondió</td></tr>
+<tr><td>Render real, fuentes Plex, legibilidad, audio AAC</td><td><span class="tag P">P</span>No probado localmente</td></tr>
+</table></div>
+
+<h3>Pruebas pendientes (no corridas)</h3>
+<ol>
+<li>Crear el proyecto fuera del repo y renderizar 5 s:
+<pre>npx create-video@4.0.535 --yes --blank guardpay-video
+npx remotion render GuardPay out/test.mp4 --codec=h264 --crf=18 --pixel-format=yuv420p --audio-codec=aac --concurrency=2</pre></li>
+<li>Validar con el ffprobe que trae Remotion <span class="tag P">P</span>confirmar el subcomando en 4.0.535:
+<pre>npx remotion ffprobe -v error -show_streams -show_format out/test.mp4</pre></li>
+<li>Plex carga por <code>staticFile</code> sin fallback.</li>
+<li>Legibilidad de las capturas a 1080p, con stills.</li>
+<li>Tamaño del equipo para la licencia de Remotion.</li>
+<li>Etiqueta y duración de <code>terminal-rejections.mp4</code>.</li>
+<li>Visionado sin sonido con dos personas.</li>
+<li>Resultado tras el re-encode de la plataforma de entrega.</li>
+</ol>
+
+<!-- 10 -->
+<h2 id="s10">10. Decisión final</h2>
+<div class="card verdict">
+<p><strong class="big">GO WITH CHANGES · Escenario B</strong></p>
+<ul>
+<li>Remotion 4.0.535 con Blank + Agent Skills, en un proyecto aparte.</li>
+<li>Maestro de 75 s y corte de 45 s.</li>
+<li>Solo capturas REAL limpias.</li>
+<li>Música de Pixabay o Mixkit Free y SFX de Freesound CC0, con prueba de cada licencia.</li>
+</ul>
+<p><strong>Antes de producir:</strong> confirmar plazo y tamaño del equipo; recapturar pantallas con barra de estado y notificaciones limpias.</p>
+<p><strong>Si la entrega es hoy a las 17:59:</strong> Escenario A con el guion de 45 s de la sección 6.</p>
+</div>
+
+<!-- 11 -->
+<h2 id="s11">11. Fuentes (consultadas el 12 oct 2026)</h2>
+<h3>Remotion</h3>
+<ul>
+<li><a href="https://github.com/remotion-dev/remotion/blob/main/LICENSE.md">Licencia (GitHub)</a> · <a href="https://www.remotion.pro/license">Precios</a> · <a href="https://www.remotion.dev/docs/license">Docs de licencia</a> · <a href="https://github.com/remotion-dev/remotion/releases">Releases</a></li>
+<li><a href="https://www.remotion.dev/docs/encoding">Encoding</a> · <a href="https://www.remotion.dev/docs/ai/claude-code">Claude Code</a> · <a href="https://www.remotion.dev/docs/ai/skills">Agent Skills</a> · <a href="https://www.remotion.dev/templates">Plantillas</a></li>
+<li><a href="https://www.remotion.dev/docs/rive/remotionrivecanvas">RemotionRiveCanvas</a> · <a href="https://www.remotion.dev/docs/lottie/staticfile">Lottie con staticFile</a> · <a href="https://www.remotion.dev/docs/chrome-headless-shell">Chrome Headless Shell</a></li>
+</ul>
+<h3>Plantillas de terceros</h3>
+<ul>
+<li><a href="https://github.com/AleBrito124356/remotion-video-templates">AleBrito124356/remotion-video-templates</a></li>
+<li><a href="https://github.com/itsjwill/react-video-toolkit">itsjwill/react-video-toolkit</a></li>
+</ul>
+<h3>LottieFiles</h3>
+<ul>
+<li><a href="https://lottiefiles.com/page/license">Licencia</a> · <a href="https://lottiefiles.com/motion-templates">Motion templates</a> · <a href="https://help.lottiefiles.com/hc/en-us/articles/15418024472345-Is-Lottie-Creator-free">¿Lottie Creator es gratis?</a> · <a href="https://docs.lottiefiles.com/en/creator/10_exporting">Exportar desde Creator</a></li>
+</ul>
+<h3>Rive</h3>
+<ul>
+<li><a href="https://rive.app/pricing">Precios</a> · <a href="https://rive.app/docs/editor/exporting/exporting-for-video-and-static-design">Exportar video</a> · <a href="https://rive.app/community/doc/community-files-and-licensing/docmCfDHQaQq">Licencia de archivos de comunidad</a></li>
+</ul>
+<h3>Guías</h3>
+<ul>
+<li><a href="https://www.figma.com/templates/storyboard-template/">Storyboard de Figma</a> · <a href="https://cadre.cam/guides/product-demo-script-template.html">Cadre</a> · <a href="https://m1.material.io/motion/choreography.html">Material 1 Choreography</a> · <a href="https://developer.apple.com/design/human-interface-guidelines/motion">Apple HIG Motion</a></li>
+</ul>
+<h3>Audio</h3>
+<ul>
+<li>Mixkit: <a href="https://mixkit.co/license/">Licencia</a> · <a href="https://mixkit.co/llm-info/">llm-info</a> · <a href="https://mixkit.co/free-stock-music/">Música</a> · secundaria: <a href="https://kripeshadwani.com/mixkit-review/">kripeshadwani</a></li>
+<li>Pixabay: <a href="https://pixabay.com/service/license-summary/">Resumen de licencia</a> · <a href="https://pixabay.com/service/terms/">Términos</a></li>
+<li>Freesound: <a href="https://freesound.org/help/faq/">FAQ</a> · <a href="https://freesound.org/home/attribution/">Atribución</a></li>
+</ul>
+<h3>Repositorio (solo lectura)</h3>
+<ul>
+<li><code>app/shared/src/commonMain/kotlin/com/guardpay/shared/ui/theme/Tokens.kt</code>, <code>Icons.kt</code></li>
+<li><code>evidence/ai/prompt-injection.md</code>, <code>docs/GuardPay — Propuesta visual.md</code>, <code>docs/ESTADO-FASES.md</code></li>
+</ul>
+
+</main>
+</body>
+</html>
