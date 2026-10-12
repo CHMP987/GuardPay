@@ -322,6 +322,7 @@ class OwnerSession(
         val intent = s.formIntent() ?: return
         val prediction = s.prediction() ?: return
         val analysis = s.form.analysis?.takeUnless { it.isUnavailable }
+        if (!claimSigning()) return
         scope.launch {
             val queue = prediction is LanePrediction.MustHold
             val before = _ui.value.holds.map { it.id }.toSet()
@@ -379,6 +380,7 @@ class OwnerSession(
         val hold = s.holds.firstOrNull { it.id == id } ?: return
         val state = s.stateOf(PaymentKey.Hold(id))
         if (state !is PaymentState.ReadyToSend && !(state is PaymentState.NetworkError && state.origin is SigningOrigin.Release)) return
+        if (!claimSigning()) return
         scope.launch {
             when (val outcome = submit { gateway.submitTransfer(config.account, hold.intent, it) }) {
                 is SubmitResult.Confirmed -> {
@@ -423,7 +425,7 @@ class OwnerSession(
     /** "Detener mi pago": the owner cancels her own held payment on the registry. */
     fun confirmStop() {
         val id = _ui.value.stopSheetFor ?: return
-        if (_ui.value.phase != SigningPhase.Idle) return
+        if (!claimSigning()) return
         scope.launch {
             when (val outcome = submit { gateway.submitCancel(config.account, id, it) }) {
                 is SubmitResult.Confirmed -> {
@@ -450,9 +452,21 @@ class OwnerSession(
 
     // ---- internals ----
 
-    /** Runs a submit with the phase-tracking signer. Null means the outcome is unknown. */
+    /**
+     * Leaves Idle in the caller's own call, before anything is launched. Checking the
+     * phase and setting it later inside the coroutine let a second tap through, and a
+     * trusted transfer is not deduplicated on chain. [submit] returns the phase to Idle.
+     */
+    private fun claimSigning(): Boolean {
+        while (true) {
+            val s = _ui.value
+            if (s.phase != SigningPhase.Idle) return false
+            if (_ui.compareAndSet(s, s.copy(phase = SigningPhase.WaitingPasskey))) return true
+        }
+    }
+
+    /** Runs a submit with the phase-tracking signer, after [claimSigning]. Null means the outcome is unknown. */
     private suspend fun submit(block: suspend (Signer) -> SubmitResult): SubmitResult? {
-        _ui.update { it.copy(phase = SigningPhase.WaitingPasskey) }
         val tracking = object : Signer {
             override val publicKey: ByteArray get() = owner.publicKey
             override suspend fun signHash(digest: ByteArray): ByteArray =

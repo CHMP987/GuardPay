@@ -195,6 +195,68 @@ class OwnerSessionTest {
         assertTrue(r.session.ui.value.local.isEmpty(), "no Enviado and no Error de red")
     }
 
+    /** Counts what reaches the gateway; everything else goes to the in-memory contract. */
+    private class Counting(private val gw: StellarGateway) : StellarGateway by gw {
+        var transfers = 0
+        var cancels = 0
+        override suspend fun submitTransfer(account: StellarAddress, intent: PaymentIntent, owner: Signer): SubmitResult {
+            transfers++
+            return gw.submitTransfer(account, intent, owner)
+        }
+        override suspend fun submitCancel(account: StellarAddress, holdId: Long, signer: Signer): SubmitResult {
+            cancels++
+            return gw.submitCancel(account, holdId, signer)
+        }
+    }
+
+    @Test
+    fun aDoubleTapSignsOnce() = runTest {
+        // A trusted transfer is not deduplicated on chain: the session must not submit it twice.
+        val gw = Counting(fake())
+        val r = rig(gw, this)
+        r.session.fill(ANA.address, "20")
+        r.session.openReview()
+        r.session.sign()
+        r.session.sign()
+        advanceUntilIdle()
+
+        assertEquals(1, gw.transfers)
+        assertEquals(usdc(980), r.session.ui.value.balance)
+    }
+
+    @Test
+    fun aDoubleTapReleasesOnce() = runTest {
+        val inner = fake()
+        val gw = Counting(inner)
+        val r = rig(gw, this)
+        r.session.fill(STRANGER, "150")
+        signAndSettle(r.session)
+        inner.advance(120)
+        r.session.refresh()
+
+        r.session.release(0)
+        r.session.release(0)
+        advanceUntilIdle()
+
+        assertEquals(1, gw.transfers)
+        assertEquals(usdc(850), r.session.ui.value.balance)
+    }
+
+    @Test
+    fun aDoubleTapStopsOnce() = runTest {
+        val gw = Counting(fake())
+        val r = rig(gw, this)
+        r.session.fill(STRANGER, "150")
+        signAndSettle(r.session)
+
+        r.session.askStop(0)
+        r.session.confirmStop()
+        r.session.confirmStop()
+        advanceUntilIdle()
+
+        assertEquals(1, gw.cancels)
+    }
+
     @Test
     fun contractRefusalIsShownAsRejected() = runTest {
         val r = rig(fake(balance = 10), this)
