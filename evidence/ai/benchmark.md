@@ -144,7 +144,7 @@ P7: ver la sección siguiente. CP-7 no está firmado.
 
 ## P7 en la app (12 oct)
 
-**REAL:** teléfono, con la app de debug y la clase de la app `AndroidGuardPayAI`, no el harness del spike. Los mensajes son **SIMULATED**. El prompt, el sampler y el modelo son los del spike.
+**REAL:** en el teléfono, con la app de debug y la clase de la app `AndroidGuardPayAI`, no el harness del spike. Los mensajes son **SIMULATED**. El prompt, el sampler y el modelo son los del spike.
 
 ### Lecturas (`GemmaOnDeviceTest`)
 
