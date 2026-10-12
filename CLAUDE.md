@@ -30,6 +30,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 `iosApp/` (iOS-A): XcodeGen `project.yml`, a SwiftUI shell around `MainViewController()` from `shared/iosMain`, and XCUITest scenes 1–3. It runs only the in-memory simulation (`shared/commonMain/simulation`, also used by Android debug without `testnet.json`). Only CI builds it (`.github/workflows/ios.yml`, job `simulator`); see `evidence/ios/simulator.md`. Compose on iOS shows `GpTextField` to XCUITest as a TextView and does not answer scroll-to-visible, so the test taps by coordinate. A `clickable` parent must not hold `paneTitle` (iOS accessibility crashes merging it).
 
+`spikes/ai-bench/` (Spike B) is a standalone Android app on Kotlin 2.4.0, outside the MVP build. It benchmarks Gemma 4 E2B on LiteRT-LM 0.17.1 (`./gradlew -p spikes/ai-bench assembleDebug`; see its README). The model is never committed. Its Oct 12 Galaxy A54 numbers are in `evidence/ai/benchmark.md`.
+
 `app/README.md` documents the client for humans: structure, platforms, commands, testnet provisioning and limitations. CI: `.github/workflows/ci.yml` (Ubuntu, pushes to `main`/`ios` and PRs to `main`) runs the contracts' `cargo test` and `:app:shared:allTests` + `assembleDebug` + `compileReleaseKotlin`, offline. `.github/workflows/ios.yml` (macOS, pushes to `ios`) links and runs iOS.
 
 ## Commands

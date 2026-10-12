@@ -1,20 +1,82 @@
 # Spike B — benchmark de Gemma
 
-6 oct 2026. **Rojo.** La IA pasa a NICE.
+12 oct 2026. **REAL**: medido en un teléfono físico. Los mensajes son **SIMULATED**.
+
+`[FACT]` En GPU se cumple el resultado esperado del plan: JSON 10/10, primer token < 3 s en 10/10 y ningún OOM.
+
+`[INFERENCE]` Cada análisis completo tarda de 6 a 9 s, por encima de la hipótesis de 4 a 7 s. Por eso se clasifica como **verde con la salvaguarda del amarillo**: la IA es MUST en Android, con streaming y el aviso "analizando…".
+
+La decisión de abrir P7 queda pendiente: CP-7 no está firmado.
 
 ## Test
 
-Spike B: Gemma 4 E2B por la API Kotlin oficial de LiteRT-LM, en el teléfono de la demo, con diez mensajes y números de disco, RAM, latencia, tokens/s, temperatura y batería.
+Spike B: Gemma 4 E2B por la API Kotlin oficial de LiteRT-LM, en un teléfono físico. Se pasan diez mensajes y se miden disco, RAM, carga, latencia, tokens/s, temperatura y batería.
+
+- Harness: [`spikes/ai-bench/`](../../spikes/ai-bench/). Es un build Gradle aparte, fuera del MVP. Ver su README.
+- Modelo: `gemma-4-E2B-it.litertlm`, de HF `litert-community`, con **2 588 147 712 bytes** (2.59 GB) en disco. No está en el repo.
+- Runtime: `com.google.ai.edge.litertlm:litertlm-android:0.17.1`.
+- Teléfono:
+  - Samsung Galaxy A54 5G, SM-A546E, Android 14.
+  - Exynos 1380 (s5e8835) con GPU Mali-G68, arm64-v8a.
+  - RAM: `MemTotal` 7 616 236 kB y `MemAvailable` de 2.86 a 3.05 GB antes de cada corrida.
+- Configuración de cada análisis:
+  - conversación nueva;
+  - el system prompt de `Messages.kt`;
+  - `topK=1`, `seed=0`;
+  - `maxOutputToken=256`;
+  - razonamiento (thinking) apagado.
+- Orden de la prueba:
+  1. carga en frío, con `cacheDir` vacío;
+  2. cierre del motor;
+  3. carga en caliente;
+  4. 10 análisis en primer plano (fg);
+  5. HOME;
+  6. 3 análisis en segundo plano (bg).
+- Backends: CPU (10:44–10:47) y GPU (10:48–10:51), hora del teléfono.
 
 ## Expected
 
-Tabla con números medidos en ese teléfono. Sin números, B está rojo.
+Lo que fija el plan, desde la línea 412:
+
+- **Resultado esperado:** JSON parseable en al menos 8 de 10, primer token en menos de 3 s y ningún OOM en 10 análisis seguidos.
+- **Fallo:** un OOM, un primer token por encima de 10 s o JSON parseable en menos de 5 de 10.
+- **Hipótesis `[INFERENCE]` previa:** 12–20 tok/s, unos 80 tokens y 4–7 s por análisis.
 
 ## Actual
 
-No hay teléfono de la demo en esta corrida. No hay modelo descargado. No hay `spikes/ai-bench/`. `GuardPayAI` en Android e iOS sigue devolviendo `Analysis.Unavailable`.
+| Métrica | CPU | GPU |
+|---|---|---|
+| Carga en frío (`cacheDir` vacío) | 8 324 ms | 47 400 ms |
+| Carga en caliente (mismo proceso) | 441 ms | 4 625 ms |
+| TTFT nativo, 10 fg | 2.10–3.80 s; **9/10 < 3 s** | 1.13–2.25 s; **10/10 < 3 s** |
+| Primer fragmento (reloj de pared), 10 fg | 2 188–3 929 ms; 8/10 < 3 s | 1 246–3 085 ms; 9/10 < 3 s |
+| Análisis completo, 10 fg | 8 550–11 596 ms | 6 318–9 099 ms |
+| Decodificación | 8.58–10.56 tok/s (8 de 10 entre 8.77 y 8.92) | 8.67–9.88 tok/s (9 de 10 en 9.7–9.9) |
+| Prefill | 75–129 tok/s | 115–240 tok/s |
+| Tokens (prefill / salida) | 240–276 / 55–76 | 240–276 / 50–70 |
+| JSON parseable con la regla de `AnalysisParser` | **10/10** | **10/10** |
+| Sugerencia | 10/10 `SUGGEST_HOLD` | 10/10 `SUGGEST_HOLD` |
+| OOM o muerte del proceso | ninguno | ninguno |
+| VmHWM (pico de RSS) tras las cargas | 1 411 984 kB | 2 180 764 kB |
+| VmHWM al terminar | 2 292 548 kB | 2 468 560 kB |
+| `MemAvailable` más bajo | 2 657 244 kB | 1 896 500 kB |
+| Temperatura de batería (antes → tras 10 → final) | 34.3 → 34.7 → 35.0 °C | 35.1 → 35.4 → 35.5 °C |
+| `thermalStatus` | 1 todo el tiempo | 1, y 2 al final |
+| Batería | **no medida** (ver más abajo) | **no medida** |
+| 3 análisis en segundo plano | todos parseables. TTFT 9.4–9.8 s, decode 3.5–6.3 tok/s, total 18.0–28.7 s | todos parseables. bg 1: TTFT 10.66 s, total 19.5 s. bg 2 y 3: TTFT 1.46–1.51 s, total 7.4–9.7 s |
 
-No se midió tamaño en disco, RAM pico, carga en frío, carga en caliente, latencia al primer token, tokens/s, temperatura ni batería. Diez ejecuciones: no corrido. JSON parseable sobre 10: no corrido.
+Datos crudos: [`bench/bench-cpu-1791823473210.jsonl`](bench/bench-cpu-1791823473210.jsonl) y [`bench/bench-gpu-1791823682422.jsonl`](bench/bench-gpu-1791823682422.jsonl). Cada análisis guarda la salida completa (`raw`).
+
+Salvedades:
+
+- **Batería:** el teléfono estuvo conectado por USB (`plugged=2`) durante todo el spike. El porcentaje subió de 72 a 73 % y `chargeCounter` no bajó, así que el consumo **no se pudo medir**. Para medirlo hay que correrlo sin cable, con adb por Wi-Fi: no corrido.
+- **RAM pico:** se tomó como `VmHWM` de `/proc/self/status`, no con Android Studio Profiler. Incluye el modelo mapeado en memoria, así que no es lo mismo que la memoria que el sistema puede reclamar.
+- **"Frío":** el `cacheDir` de LiteRT-LM estaba vacío, pero la caché de páginas del sistema no se vació porque eso requiere root. No es un arranque en frío del teléfono. En GPU la carga en frío incluye compilar los kernels (47 s), y esa compilación queda en `cacheDir`.
+- **Sin control negativo:** los 10 mensajes son estafas. No se probó que un mensaje legítimo reciba `NO_CLEAR_SIGNALS`, así que la tasa de falsos positivos no se midió: no corrido.
+- **Calidad de las señales:** no se evaluó. Solo se verificó la forma del JSON, el umbral de 200 caracteres y la ausencia de seguro/protegido. Un ejemplo de imprecisión: en el mensaje 10 por GPU, `whatItAsks` habla de "una cuenta de un amigo" cuando el mensaje es del nieto.
+- **Segundo plano:** en CPU el primer plano se perdió y los análisis tardaron 2–3 veces más. En el bg 3 de CPU, `foregroundAtEnd=true`: la app volvió a primer plano por una causa no identificada. En GPU solo el primer análisis en segundo plano fue lento. `[INFERENCE]` El MVP analiza con la app abierta, así que el caso que importa es el de primer plano.
+- **GPU:** logcat avisa que falta `libLiteRtTopKOpenClSampler.so`. El muestreo cae al sampler estático, y no se probó si eso limita la velocidad de decodificación.
+- **Muestra:** son 10 análisis por backend en un solo teléfono y en un solo día. No se puede extrapolar a otros teléfonos.
 
 ## Contract
 
@@ -30,22 +92,52 @@ no hay tx
 
 ## Timestamp
 
-2026-10-06. No hay una medición que fechar.
+2026-10-12, de 10:44 a 10:51 (hora del teléfono). La marca `t` de cada línea JSON está en ms epoch.
 
 ## Input
 
-No hubo mensajes pasados al modelo.
+Diez mensajes **SIMULATED**, escritos a partir de los patrones documentados en `docs/GuardPay — Validación Costa Rica y Chile.md`:
+
+1. familiar con número nuevo;
+2. falso BN con "cuenta de resguardo";
+3. comprobante falso;
+4. adelanto por una PlayStation;
+5. WhatsApp secuestrado;
+6. premio con "impuestos";
+7. falso OIJ con fianza;
+8. inversión en USDC;
+9. alquiler desde el extranjero;
+10. nieto en la frontera.
+
+Los textos están en [`spikes/ai-bench/src/main/kotlin/com/guardpay/aibench/Messages.kt`](../../spikes/ai-bench/src/main/kotlin/com/guardpay/aibench/Messages.kt). Ningún mensaje es de una víctima real.
 
 ## Output
 
-No hubo salida del modelo.
+Mensaje 1 por CPU, tal como salió del modelo:
+
+```json
+{"whatItAsks": "Solicitar un SINPE de ₡85.000 de forma urgente.", "signals": ["Solicitud de dinero urgente", "Revelación de número nuevo", "Petición de secreto"], "suggestion": "SUGGEST_HOLD"}
+```
+
+Las otras 25 salidas están en los `.jsonl`.
 
 ## Captura o log
 
-No hay log de inferencia.
+Los registros completos son los `.jsonl` de [`bench/`](bench/). También se emitieron por logcat con el tag `AIBENCH`. No hay video.
 
 ## Conclusión
 
-`[FACT]` Spike B está rojo. `[RECOMMENDATION]` La IA queda en NICE. No se abre P7. La escena 2 de la app se hizo sin pegar el mensaje. La retención no consulta a la IA. Los números no se inventan.
+- `[FACT]` En GPU, el Galaxy A54 cumple los tres umbrales del resultado esperado: JSON 10/10, TTFT < 3 s en 10/10 y ningún OOM. En CPU, el TTFT queda bajo 3 s en 9 de 10 (el mensaje 8 tardó 3.80 s).
+- `[FACT]` La decodificación (~9–10 tok/s) y el análisis completo (6–9 s en GPU) quedaron por debajo de la hipótesis previa (12–20 tok/s; 4–7 s).
+- `[INFERENCE]` El spike queda en verde, con el riesgo de latencia del amarillo.
+- `[RECOMMENDATION]` Si se abre P7:
+  - usar GPU, con CPU como fallback;
+  - mostrar el resultado en streaming junto al aviso "analizando…";
+  - cargar el motor una sola vez por sesión: 4.6 s en caliente, y 47 s la primera vez en GPU;
+  - nunca bloquear el pago esperando a la IA.
+- `[RECOMMENDATION]` Antes de afirmar algo sobre la calidad del análisis:
+  - correr un control negativo con mensajes legítimos;
+  - medir la batería sin cable.
+- Nada de esto prueba que la app detecte estafas reales. Solo prueba que el modelo corre en este teléfono con ese formato de salida.
 
 P7: no corrido. CP-7 no está firmado.

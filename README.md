@@ -240,7 +240,7 @@ flowchart LR
 
 **No iniciado**
 
-- **IA en el teléfono:** la prueba de viabilidad (Spike B) salió en rojo y la fase P7 no se abrió. La app responde que el análisis no está disponible, y la retención no depende de la IA.
+- **IA en el teléfono:** la prueba de viabilidad (Spike B) se midió el 12 oct en un Galaxy A54. Con GPU, el modelo devolvió JSON válido 10 de 10 veces, con el primer token en menos de 3 s y entre 6 y 9 s por análisis ([`evidence/ai/benchmark.md`](evidence/ai/benchmark.md)). La fase P7 no se abrió, así que la app todavía responde que el análisis no está disponible. La retención no depende de la IA.
 - **Entrevistas con usuarios:** sin correr ([`evidence/interviews.md`](evidence/interviews.md)).
 
 Las firmas de revisión humana CP-3, CP-7 y CP-9 siguen pendientes. El detalle por fase está en [`docs/ESTADO-FASES.md`](docs/ESTADO-FASES.md). Toda la evidencia está en [`evidence/`](evidence/), etiquetada **REAL**, **SIMULATED** o **ILLUSTRATIVE**. Lo que no se corrió está escrito como "no corrido".
