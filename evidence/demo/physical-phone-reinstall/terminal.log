@@ -1,0 +1,45 @@
+preparando una cuenta de testnet nueva (claves solo en memoria)…
+deployed hold_registry: CCQ4IQSY3RTVPUU6LIZ7PUP6WH224NNXBRUS3FSPPLCSVB3D47II2BUU
+deployed account: CDMMZ7BEPZLBWPMAVJAKFLCO523R6ZEFXYK7STNOWJ6WALGSK3Q4J75A
+provisioned account=CDMMZ7BEPZLBWPMAVJAKFLCO523R6ZEFXYK7STNOWJ6WALGSK3Q4J75A registry=CCQ4IQSY3RTVPUU6LIZ7PUP6WH224NNXBRUS3FSPPLCSVB3D47II2BUU usdc=CCQVODI5E577DB6ZOHZVYP2UXYS3CYTGX25PUOBOL6262LWU4DK5Y7GQ
+cuenta     CDMMZ7BEPZLBWPMAVJAKFLCO523R6ZEFXYK7STNOWJ6WALGSK3Q4J75A
+registro   CCQ4IQSY3RTVPUU6LIZ7PUP6WH224NNXBRUS3FSPPLCSVB3D47II2BUU
+dueña      GBKYZSLA7DYS6R7MDJEJNEH3DSDD2V6QJY3AJJJWMUU46J5G7NHAJBFS
+guardián   GBM4NHNTQTBAOOS7KQZFIO6R65MMV56KJO6KNN7BRS2T5BQ6XP363INM
+extraño    GDDX35QVDZVHTP6DXKZQSML56A2AI2X7WUSOMRWCUTVEYFYFNVVOXQ6C
+reglas: 1, firmantes: [GBKYZS], guardián firmante: false
+> listo
+[escena 2] la dueña retiene 150 USDC para el extraño (queue)
+  queue: confirmada 31257020d89b483713153db3bfe92ed3bb93d0f547aedd2f3563b64449446e18
+  hold #0 en el registro: Retenido
+[escena 2] la dueña firma el transfer de esos 150 ya, sin esperar
+  simulación: rechazo del contrato, código 7 (HoldNotReady)
+  enviado de todos modos: 3e4779dde3ccadb1cd97b1cb45eddae8d66ef78c5fe9c94bef775c0f0dc820c7
+  resultado en la cadena: FAILED, ledger 5164917, trapped
+  https://stellar.expert/explorer/testnet/tx/3e4779dde3ccadb1cd97b1cb45eddae8d66ef78c5fe9c94bef775c0f0dc820c7
+> listo
+[escena 4] el guardián detiene el hold #0 (cancel)
+  cancel: confirmada 033b78dab771e2460d5e8e3dafda27be9fdcc022187f949046a806c7879a545d
+  hold #0: Cancelled
+[escena 4] la dueña firma el transfer del pago detenido
+  simulación: rechazo del contrato, código 3 (NotAllowed)
+  enviado de todos modos: 151cf5b6c8aff5c9eb8a0a72b0f827b520ccb6d9dcbd9c67517e7cbb75a9f403
+  resultado en la cadena: FAILED, ledger 5164920, trapped
+  https://stellar.expert/explorer/testnet/tx/151cf5b6c8aff5c9eb8a0a72b0f827b520ccb6d9dcbd9c67517e7cbb75a9f403
+> listo
+[escena 5] el guardián firma un transfer de 20 USDC hacia sí mismo
+  simulación: rechazo del contrato, código 3016 (UnauthorizedSigner)
+  enviado de todos modos: 9a4c375306f5095e7c24d0a8a3bfa8d38a76ef39dce28ba21dc797ce881b93d1
+  resultado en la cadena: FAILED, ledger 5164921, trapped
+  https://stellar.expert/explorer/testnet/tx/9a4c375306f5095e7c24d0a8a3bfa8d38a76ef39dce28ba21dc797ce881b93d1
+> listo
+[escena 6] la dueña firma approve de 25 USDC al guardián
+  simulación: rechazo del contrato, código 3 (NotAllowed)
+  enviado de todos modos: 00fc8da06e0a1df0b272772d2e06b9fc30ebd68b563140abdabb32551cf764a0
+  resultado en la cadena: FAILED, ledger 5164923, trapped
+  https://stellar.expert/explorer/testnet/tx/00fc8da06e0a1df0b272772d2e06b9fc30ebd68b563140abdabb32551cf764a0
+[escena 6] add_context_rule en la cuenta
+  simulación: HostError: Error(WasmVm, MissingValue)
+  no hay transacción: la función no existe
+  reglas de la cuenta: 1
+> listo

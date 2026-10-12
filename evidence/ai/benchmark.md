@@ -202,6 +202,12 @@ Son 18 mensajes: las 10 estafas del spike, las 5 inyecciones de [prompt-injectio
 | Controles legítimos | 2/3 `NO_CLEAR_SIGNALS`; 1/3 `SUGGEST_HOLD` (pizza, 20 USDC: **falso positivo**) |
 | Palabras prohibidas en la salida mostrada | 0/18 |
 | `analyzeMessage`, motor ya cargado (17 lecturas por corrida) | 6 224–9 684 ms; **17/17 < 10 s** en las dos corridas |
+
+Tercera corrida, a las 17:03 tras reinstalar la app y descargar el modelo desde cero ([`p7/run3-reinstall.jsonl`](p7/run3-reinstall.jsonl)):
+
+- `[FACT]` Las 18 salidas son idénticas a las de la mañana (`raw`, señales y sugerencia). GPU en 18/18.
+- `[FACT]` La primera lectura, con la carga del motor, tardó 21 068 ms. Con el motor cargado: 6 594–10 145 ms, **15/17 < 10 s**. n8 (10 145 ms) y n13 (10 121 ms) pasan de 10 s por poco.
+- `[INFERENCE]` Las lecturas cerca de 10 s dependen del estado del teléfono, no del modelo.
 | Primera lectura de cada proceso (incluye cargar el motor) | 64 146 ms (caché vacía) y 49 348 ms (caché llena) |
 
 `[FACT]` La caché de LiteRT-LM (`cacheDir/litertlm`, 783 MB entre el programa y los pesos) no evita la carga lenta en un proceso nuevo. Logcat muestra unos 31 s en "Weights preparation on Gpu is disabled for … Mali GPUs". `[INFERENCE]` En este teléfono, cada vez que se abre Pagar en un proceso nuevo, el motor tarda unos 40 s en cargarse en segundo plano.
@@ -215,7 +221,8 @@ Medido con los scripts [`p7/p7ui.py`](p7/p7ui.py) y [`p7/p7video.py`](p7/p7video
   - Al tocar "Descargar el modelo" se vio "Descargando el modelo… 99 %".
   - La app pidió el resto con `Range` a la URL fijada de Hugging Face, comprobó el tamaño y el SHA-256, y dejó el archivo en su lugar.
   - Tardó 16,2 s y el aviso desapareció.
-  - `[FACT]` No se probó una descarga completa de 2,6 GB desde cero en la app (no corrido). Se probaron la reanudación, la redirección, la verificación y el renombre.
+  - `[FACT]` A las 11:30 no se probó una descarga completa de 2,6 GB desde cero. Se probaron la reanudación, la redirección, la verificación y el renombre.
+  - `[FACT]` En la tarde, tras reinstalar la app, sí: 2 588 147 712 bytes en unos 8–9 min, con el SHA-256 fijado. Ver [`../demo/physical-phone-reinstall.md`](../demo/physical-phone-reinstall.md).
 - **Tiempo de lectura en pantalla, con el motor ya cargado:**
   - Se esperó 55 s en Pagar y se grabó la pantalla.
   - Se midió del cuadro en que el botón pasa a "Analizando…" al cuadro en que vuelve a "Revisar el mensaje", con la tarjeta debajo.
