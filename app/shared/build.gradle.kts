@@ -15,9 +15,26 @@ kotlin {
         }
     }
 
-    // Declared but not compiled: nobody on the team has a Mac (gate G3).
-    iosArm64()
-    iosSimulatorArm64()
+    // The klibs compile anywhere. Linking (framework, test executable) needs macOS,
+    // so it only runs in CI (.github/workflows/ios.yml); nobody on the team has a Mac (G3).
+    // stellar-sdk's cinterop bundles no libsodium: -Pgp.sodium points at swift-sodium's
+    // Clibsodium.xcframework, pinned in the workflow. Without it nothing changes here.
+    val sodium = providers.gradleProperty("gp.sodium").orNull
+    val sodiumSlices = mapOf(
+        "iosArm64" to "ios-arm64_arm64e",
+        "iosSimulatorArm64" to "ios-arm64_arm64e_x86_64-simulator",
+    )
+    listOf(iosArm64(), iosSimulatorArm64()).forEach { ios ->
+        ios.binaries.framework {
+            baseName = "Shared"
+            isStatic = true
+        }
+        if (sodium != null) {
+            ios.binaries.all {
+                linkerOpts("-L$sodium/${sodiumSlices.getValue(ios.name)}", "-lsodium")
+            }
+        }
+    }
 
     // Test-only target: renders the Compose UI headless (Skia, no device) for the
     // UI tests and the screenshots in evidence/demo/screens/. There is no desktop app.

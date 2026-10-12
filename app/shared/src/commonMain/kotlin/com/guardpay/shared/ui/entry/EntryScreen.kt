@@ -30,7 +30,8 @@ import com.guardpay.shared.ui.theme.LocalGpType
 /**
  * A. Entrada. [onOwner] / [onGuardian] are null when this build has nothing to
  * connect to (release without contract addresses): the screen says so instead of
- * pretending to sign in.
+ * pretending to sign in. Only one null is a phone that holds one role (debug, two
+ * phones): its other button is off and there is no note.
  */
 @Composable
 fun EntryScreen(simulation: Boolean, onOwner: (() -> Unit)?, onGuardian: (() -> Unit)?) {
@@ -59,7 +60,7 @@ fun EntryScreen(simulation: Boolean, onOwner: (() -> Unit)?, onGuardian: (() -> 
             Point(GpIcons.Hourglass, "Desconocidos: espera y tu guardián puede detenerlo")
             Point(GpIcons.Hand, "Tu guardián no puede mover tu dinero")
         }
-        if (onOwner == null) Note("Esta versión todavía no está conectada a Stellar.")
+        if (onOwner == null && onGuardian == null) Note("Esta versión todavía no está conectada a Stellar.")
     }
 }
 

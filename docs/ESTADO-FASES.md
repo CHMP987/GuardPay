@@ -9,7 +9,7 @@
 | G1 | `12 oct` (Passport, 17:59) | Humano, 5 oct 2026. La entrega no es por Luma (5 oct 16:00). |
 | Inscripción en Passport y campos del formulario | sin contestar | Siguen abiertos dentro de T-001. No inventados. |
 | G2 | sí | `[FACT]` 5 oct 2026. `stellar contract build` de `stellar-accounts` @ `b40c5ea` con soroban-sdk 28.0.0, target `wasm32v1-none`, stellar-cli 28.1.0. Exit 0. Detalle en `docs/DEPENDENCIES.md`. |
-| G3 | no hay Mac | Humano (Persona 2), 5 oct 2026: nadie del equipo tiene Mac. Los klibs de iOS compilan en Windows; nada se enlaza ni corre en iOS. |
+| G3 | no hay Mac | Humano (Persona 2), 5 oct 2026: nadie del equipo tiene Mac. Los klibs de iOS compilan en Windows; nada se enlaza ni corre en iOS en Windows. Desde el 7 oct, un runner de macOS del CI enlaza `shared` y corre la app en el simulador, solo en simulación (`evidence/ios/`). |
 
 ## CP-0
 
@@ -44,12 +44,12 @@ Procedimiento escrito el 6 oct 2026 para poder desplegar. Las semillas de prueba
 | P2 | cerrada para el camino MUST. CP-2 GO. T-049 pendiente. |
 | P3 | deploy en testnet hecho. CP-3 pendiente del humano. |
 | P4 | hecho para Android (6 oct). `evidence/architecture/kmp-layers.md`, `evidence/stellar/gateway-live.md` |
-| P5 | 4 pantallas con datos de testnet, probadas en emulador (6 oct) |
-| P6 | Keystore + biometría o PIN; ciclo completo en testnet desde la app, en emulador. GH-01/GH-24 con el código del cliente, no desde el teléfono. `evidence/smart-account/signing.md` |
+| P5 | 4 pantallas con datos de testnet, probadas en emulador (6 oct) y en el Galaxy A54 (7 oct UTC, `evidence/demo/physical-phone.md`) |
+| P6 | Keystore + biometría o PIN; ciclo completo en testnet desde la app, en emulador. En el A54, `transfer`, `queue` y `cancel` firmados con huella (7 oct UTC). GH-01/GH-24 con el código del cliente, no desde el teléfono. `evidence/smart-account/signing.md` |
 | P7 | no abierto. Spike B rojo, sin números de un teléfono. La IA queda en NICE. CP-7 sin firmar. |
-| P8 | aviso local sin backend, < 60 s medido en emulador. `evidence/guardian/notification.md` |
+| P8 | aviso local sin backend, < 60 s medido en emulador, en el A54 (mismo teléfono para dueña y guardián) y entre dos dispositivos (8 oct: A54 dueña, emulador guardián, aviso 17 s después del ledger del `queue`). `evidence/guardian/notification.md`, `evidence/demo/two-devices-android.md` |
 | P9 | matriz de tres cuentas en `evidence/security/bypass-matrix.md`. GH-29, GH-30 y GH-33: no corrido. GH-28 verde solo en la cuenta de ataques y su wasm. CP-9 sin firmar. |
-| P10 | README, escenas y `docs/SUBMISSION.md`. Passport no enviado. Entrevistas: no corrido. Las seis escenas seguidas no se cronometraron. |
+| P10 | README, escenas y `docs/SUBMISSION.md`. Passport no enviado. Entrevistas: no corrido. Las seis escenas seguidas se cronometraron dos veces el 8 oct: 3:46 y 3:35. La app corrió en el A54 y el emulador, y la terminal en otra cuenta (`evidence/demo/full-rehearsal.md`). |
 
 Definition of Done: implementación + unit + integración + seguridad + criterios de aceptación + evidencia. Compilar no cierra una fase.
 
@@ -91,4 +91,4 @@ Dos corridas de ataques, dos cuentas, dos wasm. No se mezclaron. No se redespleg
 
 GH-29, GH-30 y GH-33 siguen no corrido. No hay `expires_at`, ni cancel de la dueña, ni passkey. T-049 no está autorizado. Spike B sigue rojo. P7 no se abre. La IA queda en NICE. Las entrevistas siguen no corrido. Passport no se envió. Los campos del formulario siguen sin contestar. CP-3, CP-7 y CP-9 siguen sin firmar.
 
-Las seis escenas seguidas, en una sola sentada y por debajo de 5 minutos, no se cronometraron.
+8 oct: las seis escenas seguidas corrieron dos veces en una sola sentada, en 226 s y 215 s, sin fallos (`evidence/demo/full-rehearsal.md`). Las escenas de app usaron la cuenta `CA5Z7JZS…` (A54 dueña, emulador guardián). Las de terminal usaron otra cuenta de testnet con claves en memoria, porque las del Keystore no salen del teléfono. La escena 5 no la firmó la clave del emulador.

@@ -18,4 +18,4 @@ No se grabó otro vídeo para reemplazar este.
 
 ## Lo que no es una toma continua
 
-`[FACT]` Las escenas de la app se midieron dos veces (tiempos en `rehearsal.md`). Las de terminal se corrieron una vez, más tarde, en otra cuenta. Las seis escenas seguidas, en una sola sentada y por debajo de 5 minutos, no se cronometraron.
+`[FACT]` Las escenas de la app se midieron dos veces (tiempos en `rehearsal.md`). Las de terminal se corrieron una vez, más tarde, en otra cuenta. El 8 oct las seis escenas seguidas sí se cronometraron dos veces, en 3:46 y 3:35 (`full-rehearsal.md`), pero esa sentada no se grabó en vídeo: solo hay capturas y el log.

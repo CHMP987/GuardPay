@@ -25,10 +25,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `app/android`:
   - `signing/`: `KeystoreSigner`, an ed25519 key in the Android Keystore (API 33+) with per-use biometric or screen-lock auth, and `BiometricSigningPrompt`.
   - `notifications/`: `HoldWatchService`, a dataSync foreground service that polls every 30 s, and `HoldNotifications`, with deep links to guardian Detalle or the list.
-  - `src/debug/Wiring.kt`: uses the Keystore keys plus `testnet.json` from the app's external files dir when both exist and match, else an in-memory simulation.
+  - `src/debug/Wiring.kt`: uses the Keystore keys plus `testnet.json` from the app's external files dir when they match, else an in-memory simulation. The role comes from which of the phone's keys `testnet.json` names: both, owner only or guardian only (only a guardian phone polls). For two devices, provision with one device's owner G and the other's guardian G, then push the same file to both (`evidence/demo/two-devices-android.md`).
   - `src/release`: has null sessions.
 
-`app/README.md` documents the client for humans: structure, platforms, commands, testnet provisioning and limitations. There is no CI yet.
+`iosApp/` (iOS-A): XcodeGen `project.yml`, a SwiftUI shell around `MainViewController()` from `shared/iosMain`, and XCUITest scenes 1–3. It runs only the in-memory simulation (`shared/commonMain/simulation`, also used by Android debug without `testnet.json`). Only CI builds it (`.github/workflows/ios.yml`, job `simulator`); see `evidence/ios/simulator.md`. Compose on iOS shows `GpTextField` to XCUITest as a TextView and does not answer scroll-to-visible, so the test taps by coordinate. A `clickable` parent must not hold `paneTitle` (iOS accessibility crashes merging it).
+
+`app/README.md` documents the client for humans: structure, platforms, commands, testnet provisioning and limitations. CI: `.github/workflows/ci.yml` (Ubuntu, pushes to `main`/`ios` and PRs to `main`) runs the contracts' `cargo test` and `:app:shared:allTests` + `assembleDebug` + `compileReleaseKotlin`, offline. `.github/workflows/ios.yml` (macOS, pushes to `ios`) links and runs iOS.
 
 ## Commands
 
@@ -48,6 +50,7 @@ Gradle 8.14.3 via the wrapper, JDK 17, Android SDK path in `local.properties` (g
 - Instrumented Keystore tests (Android 13+ with a screen lock): `./gradlew :app:android:installDebugAndroidTest`, then `adb shell am instrument -w -r com.guardpay.android.test/androidx.test.runner.AndroidJUnitRunner`.
 - Emulator used for days 5+: AVD `Medium_Phone_API_37.0` with PIN 1234. The host has 7.4 GB RAM, so Gradle and the emulator do not fit together: run `./gradlew --stop` before booting it, `adb emu kill` before building, and delete any `hs_err_pid*.log` / `replay_pid*.log` an OOM leaves in the root. Prefer `adb install -r -t app/android/build/outputs/apk/debug/android-debug.apk` over `installDebug`. `adb screencap`/`screenrecord` show the biometric prompt as black.
 - Demo rehearsal: `python evidence/demo/rehearsal/rehearse.py TAG 1 23 6` drives the app on the emulator with uiautomator, records each scene and logs timings (scenes 1, 2+3 and 6). Its videos, PNGs and logs land next to the script, so move them before committing. The demo account (Oct 6) is `CDWPPTDMACOEVMBUHBBTPUW2EEDXY6YVUAOZJFTSGGOBAONCAJ7WGFV6`; see `evidence/demo/rehearsal.md`.
+- Full timed rehearsal (all six scenes, two devices plus terminal): write the classpath with `./gradlew -I evidence/demo/full-rehearsal/cp.gradle :app:shared:compileDebugUnitTestKotlin :app:shared:printTestCp -DcpOut=<file>`, stop Gradle, boot the emulator, then run `python evidence/demo/full-rehearsal/full.py OWNER_SERIAL GUARDIAN_SERIAL CLASSPATH_FILE [RUNS]`. `CLASSPATH_FILE` holds the debugUnitTest runtime classpath. The script runs `DemoTerminal` (androidUnitTest), which provisions its own throwaway testnet account with keys kept in memory, and logs to `full.log` next to the script. See `evidence/demo/full-rehearsal.md`.
 - Contracts: `cargo test -p account -p guardian_hold -p hold_registry` from the root, and `stellar contract build` (target `wasm32v1-none`, stellar-cli 28.1.0). Use **Testnet only**.
 
 ## Document authority
@@ -78,7 +81,7 @@ AI-assisted payment safety + human guardian veto + deterministic on-chain enforc
 **Client (Kotlin Multiplatform + Compose Multiplatform):**
 - `commonMain` holds all logic and must compile with no Android, iOS, LiteRT-LM or WebAuthn imports. Layers: `domain` (9 payment states as sealed types), `stellar` (`StellarGateway` interface over `com.soneso.stellar:stellar-sdk:1.14.0`), `signing` (`expect Signer`) and `ai` (`expect GuardPayAI`).
 - `GuardPayAI` has **one** function, `analyzeMessage(text): Analysis`, whose suggestion is `SuggestHold | NoClearSignals`. It has no tool calling and no access to balances, contacts, policy or keys. It must never draft a payment or fill in the destination or amount. Nothing in `ai/` may depend on, or share a graph with, `Signer` or `StellarGateway`; a test enforces this.
-- Android is the demo device. The iOS target is declared but only compiles if a Mac is available.
+- Android is the demo device. iOS runs only in simulation, in the macOS CI simulator (`iosApp/`).
 - **There is no backend**: no server, DB, push (FCM/APNs) or fee sponsor. The guardian is notified by on-device RPC polling plus a local notification.
 
 ## Hard constraints
@@ -94,4 +97,4 @@ AI-assisted payment safety + human guardian veto + deterministic on-chain enforc
 
 - G1: the submission deadline. **Answered Oct 5: Oct 12 (Passport, 17:59).**
 - G2: does the OZ pin `b40c5ea` build with soroban-sdk 28? **Yes** (`docs/DEPENDENCIES.md`).
-- G3: is a Mac available for iOS? **Answered Oct 5: no.** iOS klibs compile on Windows, but nothing is linked or run on iOS; say so in the README.
+- G3: is a Mac available for iOS? **Answered Oct 5: no.** iOS klibs compile on Windows, where nothing is linked or run on iOS. Since Oct 7 the macOS CI links `shared` and runs the app in the simulator, in simulation only; the README says so.

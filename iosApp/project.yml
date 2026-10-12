@@ -1,0 +1,59 @@
+# XcodeGen 2.46.0 spec. `xcodegen generate` writes GuardPay.xcodeproj (not committed).
+# iOS-A: the Compose UI over the in-memory simulation. No signing: CI builds for the
+# simulator with CODE_SIGNING_ALLOWED=NO. No Apple ID, certificate or profile here.
+name: GuardPay
+options:
+  bundleIdPrefix: com.guardpay
+  deploymentTarget:
+    iOS: "15.0"
+packages:
+  # stellar-sdk's cinterop needs libsodium; the SDK's docs add it this way.
+  Sodium:
+    url: https://github.com/jedisct1/swift-sodium
+    exactVersion: 0.11.0
+settings:
+  base:
+    # The Kotlin build script writes outside the sandbox.
+    ENABLE_USER_SCRIPT_SANDBOXING: NO
+    SWIFT_VERSION: "5.9"
+targets:
+  GuardPay:
+    type: application
+    platform: iOS
+    sources: [Sources]
+    dependencies:
+      - package: Sodium
+        product: Clibsodium
+    preBuildScripts:
+      - name: Kotlin framework
+        basedOnDependencyAnalysis: false
+        script: |
+          cd "$SRCROOT/.."
+          ./gradlew :app:shared:embedAndSignAppleFrameworkForXcode
+    info:
+      path: Sources/Info.plist
+      properties:
+        CFBundleDisplayName: GuardPay
+        UILaunchScreen: {}
+        # Compose Multiplatform refuses to start without it.
+        CADisableMinimumFrameDurationOnPhone: true
+        UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait]
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.guardpay.ios
+        TARGETED_DEVICE_FAMILY: "1"
+        FRAMEWORK_SEARCH_PATHS: $(SRCROOT)/../app/shared/build/xcode-frameworks/$(CONFIGURATION)/$(SDK_NAME)
+        OTHER_LDFLAGS: [$(inherited), -framework, Shared]
+    scheme:
+      testTargets: [GuardPayUITests]
+  GuardPayUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources: [UITests]
+    dependencies:
+      - target: GuardPay
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.guardpay.ios.uitests
+        TEST_TARGET_NAME: GuardPay
+        GENERATE_INFOPLIST_FILE: YES
