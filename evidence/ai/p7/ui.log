@@ -1,0 +1,48 @@
+11:31:46 df: /dev/block/dm-55 225G  96G  129G  43% /storage/emulated/0/Android/obb
+11:31:53 part bytes: 2577399808
+11:32:06 home; rss VmHWM:201192 VmRSS:190424
+11:32:17 pay screen; rss VmHWM:201192 VmRSS:192996
+11:32:26 downloading shown after 5.8 s
+11:32:36 progress texts seen: ['Descargando el modelo… 99 %']
+11:32:39 download+check ended after 16.2 s; screen: []
+11:32:39 files: -rw-rw---- 1 shell   ext_data_rw 2588147712 2026-10-12 11:32 gemma-4-E2B-it.litertlm
+-rw-r--r-- 1 shell   ext_data_rw 2588147712 2026-10-12 10:41 gemma-4-E2B-it.litertlm.bak
+11:33:00 analizando visible: True
+11:35:47 home; rss VmHWM:202476 VmRSS:187988
+11:35:57 pay screen; rss VmHWM:586152 VmRSS:586124
+11:36:16 analizando visible: True
+11:36:27 reading on screen after 16.4 s (tap to card)
+11:37:05 card texts: ['· Pedido de dinero', '· Urgencia', '· Solicitud de secreto', 'Te sugerimos retener este pago']
+11:37:05 forbidden on screen: []
+11:37:05 on pay screen; rss VmHWM:2421868 VmRSS:2402996
+11:37:14 left pay screen; screen has Pagar: False rss VmHWM:2421868 VmRSS:363460
+11:37:59 home; rss VmHWM:203420 VmRSS:187080
+11:38:09 pay screen; rss VmHWM:658536 VmRSS:658512
+11:38:59 waited 50 s on Pay; rss VmHWM:2231512 VmRSS:2181248
+11:39:18 analizando visible: True
+11:39:24 reading on screen after 12.3 s (tap to card)
+11:40:02 card texts: ['· Pedido de dinero', '· Urgencia', '· Solicitud de secreto', 'Te sugerimos retener este pago']
+11:40:02 forbidden on screen: []
+11:40:03 on pay screen; rss VmHWM:2309604 VmRSS:2273964
+11:40:11 left pay screen; screen has Pagar: False rss VmHWM:2309604 VmRSS:321952
+11:40:24 home; rss VmHWM:207004 VmRSS:186436
+11:40:34 pay screen; rss VmHWM:933244 VmRSS:933236
+11:41:25 waited 50 s on Pay; rss VmHWM:2241040 VmRSS:2207696
+11:41:43 analizando visible: True
+11:41:50 reading on screen after 12.4 s (tap to card)
+11:42:28 card texts: ['· Pedido de dinero', '· Urgencia', '· Solicitud de secreto', 'Te sugerimos retener este pago']
+11:42:28 forbidden on screen: []
+11:42:28 on pay screen; rss VmHWM:2348560 VmRSS:2321764
+11:42:37 left pay screen; screen has Pagar: False rss VmHWM:2348560 VmRSS:363948
+11:44:43 v1 tapping 55.0 s after opening the message box; rss VmHWM:2207332 VmRSS:2026884
+11:45:14 v1 frames 127 button changed at 1.53 s; back at None s; analysis on screen None s
+11:45:17 v1 card: []
+11:45:21 v1 after back rss VmHWM:2231668 VmRSS:290128
+11:46:39 v2 tapping 55.0 s after opening the message box; rss VmHWM:2232312 VmRSS:2207272
+11:47:09 v2 frames 70 button changed at 1.83 s; back at None s; analysis on screen None s
+11:47:12 v2 card: []
+11:47:16 v2 after back rss VmHWM:2407740 VmRSS:348048
+11:48:34 v3 tapping 55.0 s after opening the message box; rss VmHWM:2243728 VmRSS:2209144
+11:49:05 v3 frames 66 button changed at 1.84 s; back at None s; analysis on screen None s
+11:49:07 v3 card: []
+11:49:11 v3 after back rss VmHWM:2401176 VmRSS:325080

@@ -9,7 +9,7 @@ Es el cliente de GuardPay: la dueña paga y su guardián puede detener un pago r
 | `shared/commonMain/domain` | Los 9 estados de pago como tipos sellados, sus transiciones y el carril (inmediato o con espera). |
 | `shared/commonMain/stellar` | `StellarGateway` y `KmpStellarGateway`, sobre `com.soneso.stellar:stellar-sdk:1.14.0`. También `AuthEntryGuard`, que solo firma la llamada exacta que la app construyó; los decodificadores SCVal; `ContractAbi`; y `TestnetConfig`, que es el `testnet.json` con las direcciones. |
 | `shared/commonMain/signing` | La interfaz `Signer`. Firma un hash de 32 bytes y nada más. |
-| `shared/commonMain/ai` | `GuardPayAI.analyzeMessage(text)`. Hoy es un **stub** que devuelve `Unavailable` (P7 no se ha hecho). No ve saldos, contactos, claves ni la red. |
+| `shared/commonMain/ai` | `GuardPayAI.analyzeMessage(text)`, `AnalysisParser` (JSON estricto) y `ModelStatus`. En Android, `androidMain/ai/AndroidGuardPayAI` corre Gemma 4 E2B con LiteRT-LM 0.17.1 y `GemmaModelFile` descarga el modelo dentro de la app; en iOS devuelve `Unavailable`. Solo recibe el texto del mensaje: no ve saldos, contactos, claves ni la red. |
 | `shared/commonMain/simulation` | `SimulatedStellarGateway`, `SimulatedSigner` y `simulatedSides`: la simulación en memoria que comparten el debug de Android sin `testnet.json` y la app de iOS. |
 | `shared/commonMain/ui` | Compose Multiplatform: las 4 pantallas de la Propuesta visual, guiadas por `OwnerSession` y `GuardianSession`. El guardián solo ve `GuardianChain` (leer y cancelar). `HoldWatcher` convierte cada retención nueva en un aviso y solo lee. |
 | `shared/androidUnitTest` | Tests contra testnet (`*LiveTest`, opcionales) y `TestnetProvisioner`, que despliega una cuenta para unas claves públicas. |
@@ -78,6 +78,12 @@ Tests instrumentados del Keystore (Android 13+ con bloqueo de pantalla; disposit
 adb shell am instrument -w -r com.guardpay.android.test/androidx.test.runner.AndroidJUnitRunner
 ```
 
+La IA en el teléfono (P7). Necesita el modelo `gemma-4-E2B-it.litertlm` en `/sdcard/Android/data/com.guardpay.android/files/`, descargado desde la app o con `adb push`; sin él, la prueba se salta. Lee 10 estafas, 5 inyecciones y 3 mensajes normales, y deja cada lectura en logcat (tag `GPAI`) y en `p7-*.jsonl` en esa carpeta:
+
+```bash
+adb shell am instrument -w -r -e class com.guardpay.android.ai.GemmaOnDeviceTest com.guardpay.android.test/androidx.test.runner.AndroidJUnitRunner
+```
+
 ## Construir e instalar
 
 ```bash
@@ -130,6 +136,7 @@ En ningún paso hay una semilla: solo entran y salen direcciones públicas. La c
 | Aviso al guardián sin backend | `evidence/guardian/notification.md` |
 | Pantallas (SIMULATED) | `evidence/demo/screens/` |
 | Ensayo de las escenas 1, 2, 3 y 6 (REAL) | `evidence/demo/rehearsal.md` |
+| IA en el teléfono (P7) y prompt injection | `evidence/ai/benchmark.md`, `evidence/ai/prompt-injection.md` |
 | iOS: enlace y `commonTest` en el simulador (REAL) | `evidence/ios/ci-link.md` |
 | iOS: la app en el simulador, escenas 1–3 (SIMULATED) | `evidence/ios/simulator.md` |
 
@@ -141,4 +148,4 @@ En ningún paso hay una semilla: solo entran y salen direcciones públicas. La c
 - **Las dos claves se crean en cada teléfono** en debug. `testnet.json` decide el rol: si nombra las dos, el teléfono hace de dueña y de guardián; si nombra una, solo ese rol. El aviso entre dos dispositivos corrió con un A54 y un emulador; con dos teléfonos físicos no se ha probado.
 - **Los pagos inmediatos no se releen.** Un pago a un contacto sigue en cadena, pero desaparece de "Recientes" al reiniciar la app.
 - **El guardián no se puede cambiar** y no hay recuperación de cuenta.
-- **La IA es un stub.**
+- **La IA solo corre en Android** y necesita el modelo de 2,6 GB, que se descarga dentro de la app. La descarga completa desde cero no se probó en la app (solo la reanudación). En un proceso nuevo, el motor tarda unos 40 s en cargarse en el A54; hasta entonces, "Revisar el mensaje" espera. 1 de 3 mensajes normales se marcó como sospechoso. No se midió la batería.
