@@ -1,12 +1,12 @@
-# Día 8: la app en el teléfono físico (Galaxy A54)
+# Día 8: la app en el teléfono físico
 
-**Veredicto: las escenas 1, 2, 3 y 6 corrieron en un teléfono físico contra testnet**, con la firma del Keystore liberada por huella. Dueña y guardián estaban en el **mismo** teléfono. (8 oct: las escenas 2 y 3 corrieron después con la dueña en este A54 y el guardián en un emulador, en `two-devices-android.md`.)
+**Veredicto: las escenas 1, 2, 3 y 6 corrieron en un teléfono físico contra testnet**, con la firma del Keystore liberada por huella. Dueña y guardián estaban en el **mismo** teléfono. (8 oct: las escenas 2 y 3 corrieron después con la dueña en este teléfono y el guardián en un emulador, en `two-devices-android.md`.)
 
 | | |
 | --- | --- |
 | Etiqueta | **REAL**: testnet + teléfono físico. Hashes copiados de Horizon, todos `successful`. |
 | Fecha | 2026-10-07, 05:14–05:20 UTC (6 oct, 23:14–23:20 hora local, UTC−6), ledgers 5065294–5065354 |
-| Dispositivo | Samsung Galaxy A54 (SM-A546E), Android 14 (API 34), con huella |
+| Dispositivo | Teléfono, Android 14 (API 34), con huella |
 | App | APK de debug de `8123191`. `assembleDebug` dijo que estaba al día con el código, y es el mismo APK instalado en el teléfono. |
 | Quién tocó | La escena 1 la hizo la persona a mano. Las escenas 2, 3 y 6 las hizo `physical-phone/phone.py` (el guion del día 6 sin escribir el PIN). **La huella la puso la persona** en cada diálogo. |
 
@@ -17,13 +17,13 @@ account   CBGZSYKWUI6WBYZPYXYTMPEJONDDDVD6GRLL2GTBT2ZI5CVAKCMUCZCD
 registry  CCLG6N2TLOGLZEEPNUUOLRNM34ILD6VFU7JLL2U3V5BF3SDM3DLE2KMT
 policy    CCGIEMIU3D7IEGVZUKZTNSQN4UHPHE2RWXKTAVIS4666MDMIH3DZBJJI
 usdc      CAYIFEM765S2SKUJ57JJJ5HSKNGTND5WSMYHALB47EIOG37X5KOUVHHX   (SAC de prueba, no el USDC de Circle)
-owner     GDA3N4HGO2DU6K5C5LV6Z2MNZ47AARFMHZN2UMM23JJMLMXYIKJTPJXD   (Keystore del A54, guardpay-owner)
-guardian  GASFV2FMIMHTKNROP2EL6LESZHX3LKGT2QJZVU3IXSMCREJY3A4GE4RP   (Keystore del A54, guardpay-guardian)
+owner     GDA3N4HGO2DU6K5C5LV6Z2MNZ47AARFMHZN2UMM23JJMLMXYIKJTPJXD   (Keystore del teléfono, guardpay-owner)
+guardian  GASFV2FMIMHTKNROP2EL6LESZHX3LKGT2QJZVU3IXSMCREJY3A4GE4RP   (Keystore del teléfono, guardpay-guardian)
 contacto  GBREUZTSZW5JM7B3NP6B3KPHP3GUKEZL67UXCE6Y2TNJKFDRJ5D2Y3KO   ("Mamá")
 stranger  GALVMKSSOCH5QOOQHCFI53LBQUIZ2HDED3KYN7MCAAJL7ZQFITADTAXK
 ```
 
-Es una de las cuatro cuentas que el equipo tiene en testnet. **No es la cuenta de la demo** (`CDWPPTDM…`). Se provisionó el 6 oct con `DeviceProvisioningLiveTest` para las claves del Keystore del A54. Saldo inicial de 500 USDC y tope diario de 50.
+Es una de las cuatro cuentas que el equipo tiene en testnet. **No es la cuenta de la demo** (`CDWPPTDM…`). Se provisionó el 6 oct con `DeviceProvisioningLiveTest` para las claves del Keystore del teléfono. Saldo inicial de 500 USDC y tope diario de 50.
 
 ## Transacciones
 
@@ -86,7 +86,7 @@ Quedan en la máquina de CHMP987.
 
 ## No corrido
 
-- Dos teléfonos físicos. Dos dispositivos (A54 más emulador) corrió el 8 oct: `two-devices-android.md`.
+- Dos teléfonos físicos. Dos dispositivos (teléfono más emulador) corrió el 8 oct: `two-devices-android.md`.
 - La escena 1 con el guion (se hizo a mano), y sus tiempos.
 - Reiniciar la app entre escenas: los pagos inmediatos siguen viviendo solo en memoria (`rehearsal.md`).
 - La IA: sigue siendo un stub.

@@ -30,7 +30,7 @@ Estado del entorno comprobado en esta máquina `[FACT]`: JDK 17 instalado; Andro
 
 - [x] Android Studio instalado el 5 oct (build 262.9437.185, en `C:\Program Files\Android\Android Studio`). Usa el SDK que ya existe en `%LOCALAPPDATA%\Android\Sdk`.
 - [x] Plugin de Kotlin Multiplatform 262.9437.115-AS cargado (verificado en `idea.log`, 5 oct). Android Studio apunta al SDK existente.
-- [x] **Teléfono Android conectado y autorizado por `adb`:** Samsung Galaxy A54 (SM-A546E), Android 14 (API 34), 7,3 GB de RAM visibles. `[INFERENCE]` Cumple con margen la RAM que necesita Gemma 4 E2B (R4), pero su chip es Exynos 1380, no Snapdragon: las cifras de tok/s del plan no aplican directamente. `[UNVERIFIED]` hasta que Ant corra el Spike B en este teléfono.
+- [x] **Teléfono Android conectado y autorizado por `adb`:** Android 14 (API 34), 7,3 GB de RAM visibles. `[INFERENCE]` Cumple con margen la RAM que necesita Gemma 4 E2B (R4), pero su chip es Exynos 1380, no Snapdragon: las cifras de tok/s del plan no aplican directamente. `[UNVERIFIED]` hasta que Ant corra el Spike B en este teléfono.
 - [ ] Segundo dispositivo para el guardián: otro Android, un emulador, o el iPhone por la ruta sin Mac de §7.
 - [x] Leer la demo de smart accounts de `Soneso/kmp-stellar-sdk` v1.14.0. Es la referencia del Spike C.
 - [ ] Leer `GuardPay — Propuesta visual.md` §5 (colores), §7 (pantallas), §8 (estados) y §9 (guardián).
@@ -102,15 +102,15 @@ Va **después** de la congelación y nunca bloquea la entrega. Todo el trabajo d
 
 | Día | Qué | Salida |
 | --- | --- | --- |
-| 8 (7 oct), mañana | Cerrar la depuración del Galaxy A54: la app actual con la cuenta del teléfono, los flujos de pagar, retener y detener, y logcat. | `evidence/demo/physical-phone.md` (REAL o "no corrido") |
+| 8 (7 oct), mañana | Cerrar la depuración del teléfono: la app actual con la cuenta del teléfono, los flujos de pagar, retener y detener, y logcat. | `evidence/demo/physical-phone.md` (REAL o "no corrido") |
 | 8, tarde | **Hito 0, CI en macOS:** `.github/workflows/ios.yml` en `macos-15` con Xcode 16.x fijado. Enlaza el framework de `shared` para el simulador con libsodium. | El framework enlaza, o el error de enlace queda anotado |
 | 9 (8 oct) | **Hito A, simulador:** `iosApp/` con XcodeGen y Compose `App()` en modo simulación. El CI arranca el simulador, abre la app y saca captura y log. | `evidence/ios/simulator.md` (SIMULATED) con la captura |
 | 10 (9 oct) | **Yo:** `.ipa` sin firmar como artefacto del CI. **Abraham** (el iPhone es suyo; yo no tengo) lo instala con Sideloadly y su Apple ID secundario: Hito A en el iPhone. Después **Hito B:** yo escribo `KeychainSigner` en `iosMain`; Abraham reinstala y mueve `keys.json` y `testnet.json` por archivos compartidos. Pasos en §7.1. | El iPhone abre la app; el iPhone firma en testnet |
-| 11 (10 oct) | **Variante de dos dispositivos:** el iPhone de Abraham es el guardián y mi A54 la dueña. Escenas 2 y 3 entre los dos teléfonos, coordinadas por llamada. | `evidence/ios/two-devices.md` (REAL), con hashes de Horizon |
+| 11 (10 oct) | **Variante de dos dispositivos:** el iPhone de Abraham es el guardián y mi teléfono la dueña. Escenas 2 y 3 entre los dos teléfonos, coordinadas por llamada. | `evidence/ios/two-devices.md` (REAL), con hashes de Horizon |
 | 11 oct | Congelación de iOS: README (fila "Plataformas") y `ESTADO-FASES.md` con lo que de verdad corrió. Merge de `ios` a `main` solo si todo está verde. | README honesto |
 | 12 oct | Entrega. Nada nuevo. | — |
 
-**Prioridad dentro de estos días:** primero el A54 y lo que pidan Abraham y Ant para la entrega (cuenta de la demo, Passport y vídeo); después iOS.
+**Prioridad dentro de estos días:** primero el teléfono y lo que pidan Abraham y Ant para la entrega (cuenta de la demo, Passport y vídeo); después iOS.
 
 ---
 
@@ -125,7 +125,7 @@ Va **después** de la congelación y nunca bloquea la entrega. Todo el trabajo d
 | P8 | Un `queue` en el teléfono de la dueña genera una notificación en el del guardián en menos de 60 s, con el destino leído de la cadena. Capturas y tiempos en `evidence/guardian/notification.md`. |
 | iOS-0 | El CI de macOS enlaza el framework de `shared` para `iosSimulatorArm64` con libsodium, y el log queda en `evidence/ios/`. |
 | iOS-A | La app abre en el simulador del CI y en el iPhone, en modo simulación, con el aviso "Simulación: nada de esto está en Stellar". Captura en `evidence/ios/simulator.md` (SIMULATED). Android y `allTests` siguen verdes. |
-| iOS-B | Un `cancel` firmado en el iPhone con `KeychainSigner` detiene en testnet un `queue` hecho en el A54. Hashes de Horizon en `evidence/ios/two-devices.md` (REAL). La clave no aparece en logs. El guardián sigue sin ser firmante: se comprueba al provisionar. |
+| iOS-B | Un `cancel` firmado en el iPhone con `KeychainSigner` detiene en testnet un `queue` hecho en el teléfono. Hashes de Horizon en `evidence/ios/two-devices.md` (REAL). La clave no aparece en logs. El guardián sigue sin ser firmante: se comprueba al provisionar. |
 
 "Compila" no es terminado.
 
@@ -194,19 +194,19 @@ G3 sigue siendo "nadie tiene Mac", pero hay un iPhone. La ruta es compilar en un
    - `[FACT]` **Es más débil que el Keystore de Android:** Secure Enclave no soporta ed25519, así que la semilla entra en la memoria de la app para firmar. Se dice tal cual en el README.
    - Provisión sin semillas, igual que en Android. La app escribe `keys.json` con sus direcciones G, `DeviceProvisioningLiveTest` despliega la cuenta y `testnet.json` vuelve al iPhone.
    - Los archivos se mueven con la app Dispositivos de Apple en Windows, gracias a `UIFileSharingEnabled` y `LSSupportsOpeningDocumentsInPlace`.
-5. **Variante de dos dispositivos.** El iPhone es el guardián y el A54 la dueña. Cubre el "dos dispositivos: no corrido" de `evidence/demo/rehearsal.md`.
+5. **Variante de dos dispositivos.** El iPhone es el guardián y el teléfono la dueña. Cubre el "dos dispositivos: no corrido" de `evidence/demo/rehearsal.md`.
    - La pantalla del guardián no necesita IA, y en el iPhone solo firma `cancel`.
-   - `[FACT]` Hoy `src/debug/Wiring.kt:91` exige que **las dos** claves del teléfono coincidan con `testnet.json`. La variante necesita un modo "solo dueña" en el A54. Es un cambio pequeño en el debug de Android, y va en la rama `ios`.
-   - Provisión: `-Pgp.owner` con la G del A54 y `-Pgp.guardian` con la G del iPhone. Es una **quinta cuenta**, así que hay que acordar con el equipo cuál va en la demo.
+   - `[FACT]` Hoy `src/debug/Wiring.kt:91` exige que **las dos** claves del teléfono coincidan con `testnet.json`. La variante necesita un modo "solo dueña" en el teléfono. Es un cambio pequeño en el debug de Android, y va en la rama `ios`.
+   - Provisión: `-Pgp.owner` con la G del teléfono y `-Pgp.guardian` con la G del iPhone. Es una **quinta cuenta**, así que hay que acordar con el equipo cuál va en la demo.
 6. **Aviso al guardián en iOS.** Sondeo del RPC solo con la app en primer plano, más `UNUserNotificationCenter`. No hay sondeo en segundo plano porque no hay backend ni APNs. En la demo la app está abierta, y se dice así.
 
 ### 7.1 Reparto con Abraham (revisado 7 oct)
 
-`[FACT]` Yo no tengo iPhone; Abraham sí. Desde el día 10, todo lo que pasa en el iPhone lo hace él. Yo sigo con el código, el CI, el A54 y la evidencia.
+`[FACT]` Yo no tengo iPhone; Abraham sí. Desde el día 10, todo lo que pasa en el iPhone lo hace él. Yo sigo con el código, el CI, el teléfono y la evidencia.
 
 | Quién | Qué |
 | --- | --- |
-| Yo | Job del CI que publica el `.ipa` sin firmar (rama `ios`); `KeychainSigner`; modo "solo dueña" en el debug del A54; provisión con `DeviceProvisioningLiveTest`; evidencia en `evidence/ios/`. |
+| Yo | Job del CI que publica el `.ipa` sin firmar (rama `ios`); `KeychainSigner`; modo "solo dueña" en el debug del teléfono; provisión con `DeviceProvisioningLiveTest`; evidencia en `evidence/ios/`. |
 | Abraham | Instalar y reinstalar el `.ipa`; su Apple ID secundario; Modo desarrollador; capturas y log del iPhone; mover `keys.json` y `testnet.json`; hacer de guardián en la variante de dos dispositivos. |
 
 **Antes de empezar (Abraham):** iPhone con iOS 16 o superior. En el PC: Sideloadly y, en Windows, el iTunes que no es de la Store. Un Apple ID **secundario**: nunca el principal, y nunca se escribe en el repo, en el CI ni en un chat. La firma gratis dura 7 días: si instala el 9 oct, llega al 12.
@@ -222,8 +222,8 @@ G3 sigue siendo "nadie tiene Mac", pero hay un iPhone. La ruta es compilar en un
 **Hito B y dos dispositivos:**
 1. Cuando yo suba `KeychainSigner`, Abraham reinstala el `.ipa` nuevo y abre la app. La app crea la clave, pidiendo Face ID o el código, y escribe `keys.json`.
 2. Abraham copia `keys.json` del iPhone con la app Dispositivos de Apple (Windows) o con Finder (Mac) y me pasa la G del guardián. Son solo direcciones públicas; ninguna semilla sale del iPhone.
-3. Yo provisiono con `-Pgp.owner` = la G del A54 y `-Pgp.guardian` = la G del iPhone, compruebo que el guardián no es firmante y le paso `testnet.json`. Abraham lo copia de vuelta a la app.
-4. Por llamada: yo hago el pago de 150 USDC en el A54 (Retenido); Abraham lo ve en el modo guardián y lo detiene, confirmando con Face ID. Yo anoto los hashes de Horizon en `evidence/ios/two-devices.md` (REAL).
+3. Yo provisiono con `-Pgp.owner` = la G del teléfono y `-Pgp.guardian` = la G del iPhone, compruebo que el guardián no es firmante y le paso `testnet.json`. Abraham lo copia de vuelta a la app.
+4. Por llamada: yo hago el pago de 150 USDC en el teléfono (Retenido); Abraham lo ve en el modo guardián y lo detiene, confirmando con Face ID. Yo anoto los hashes de Horizon en `evidence/ios/two-devices.md` (REAL).
 
 ### Riesgos
 

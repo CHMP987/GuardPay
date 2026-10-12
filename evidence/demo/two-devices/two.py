@@ -38,7 +38,7 @@ def type_into(d, label, value):
     adb(d, "shell", "input", "tap", str(x), str(y)); adb(d, "shell", "input", "text", value)
     adb(d, "shell", "input", "keyevent", "4"); time.sleep(1)
 
-# owner, A54
+# owner, phone
 adb(OWN, "shell", "monkey", "-p", "com.guardpay.android", "-c", "android.intent.category.LAUNCHER", "1"); time.sleep(3)
 if find(OWN, "Entrar a mi", tries=3): tap(OWN, "Entrar a mi")
 wait_for(OWN, "Saldo", 40); shot(OWN, "a54-01-inicio"); dump(OWN, "a54-01-inicio")
@@ -46,7 +46,7 @@ t0 = time.time()
 tap(OWN, "Pagar"); tap(OWN, "Otra cuenta"); time.sleep(1)
 type_into(OWN, "Otra cuenta", STRANGER); type_into(OWN, "Monto (USDC)", "150"); tap(OWN, "Revisar")
 wait_for(OWN, "Firmar y retener", 20); shot(OWN, "a54-02-revisa"); tap(OWN, "Firmar y retener")
-log("owner: waiting for the fingerprint on the A54")
+log("owner: waiting for the fingerprint on the phone")
 dt = wait_for(OWN, "Retenido", 240); queued = time.time()
 log("owner: Retenido shown", round(queued - t0, 1), "s after Pagar;", round(dt, 1), "s after Firmar y retener (includes the human's fingerprint)")
 time.sleep(1.5); shot(OWN, "a54-03-retenido"); dump(OWN, "a54-03-retenido")
@@ -58,7 +58,7 @@ while time.time() - queued < 150:
     if "Pago retenido: 150 USDC" in n: seen = time.time(); break
     time.sleep(1)
 if not seen: raise SystemExit("no notification on the emulator within 150 s")
-log("guardian: notification", round(seen - queued, 1), "s after Retenido showed on the A54")
+log("guardian: notification", round(seen - queued, 1), "s after Retenido showed on the phone")
 adb(GUA, "shell", "cmd", "statusbar", "expand-notifications"); time.sleep(2); shot(GUA, "emu-04-aviso")
 tap(GUA, "Pago retenido: 150"); t1 = time.time()
 wait_for(GUA, "Puedes detenerlo", 30); time.sleep(1); shot(GUA, "emu-05-detalle"); dump(GUA, "emu-05-detalle")
@@ -80,5 +80,5 @@ if not ok:
     for _ in range(20):
         if find(OWN, "Detenido"): ok = True; break
         time.sleep(2)
-log("owner: Detenido visible on the A54:", ok, round(time.time() - t2, 1), "s after the guardian's Detenido")
+log("owner: Detenido visible on the phone:", ok, round(time.time() - t2, 1), "s after the guardian's Detenido")
 shot(OWN, "a54-07-final"); dump(OWN, "a54-07-final")

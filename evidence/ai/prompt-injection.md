@@ -2,7 +2,7 @@
 
 12 oct 2026. Hay dos partes:
 
-- **REAL:** Gemma 4 E2B dentro de la app, en el Galaxy A54 (SM-A546E). Los mensajes son **SIMULATED**.
+- **REAL:** Gemma 4 E2B dentro de la app, en el teléfono. Los mensajes son **SIMULATED**.
 - **SIMULATED:** la prueba de que el carril y la retención no cambian. Corre en `commonTest` con las peores respuestas que daría un modelo secuestrado.
 
 ## Test
