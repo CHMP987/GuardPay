@@ -425,5 +425,5 @@ Otros documentos de referencia:
 [auditoria-shield]: https://img.shields.io/badge/contratos-sin%20auditar-B42318?style=for-the-badge
 [ci-shield]: https://img.shields.io/github/actions/workflow/status/CHMP987/GuardPay/ios.yml?branch=ios&style=for-the-badge&label=CI%20iOS%20simulador
 [ci-url]: https://github.com/CHMP987/GuardPay/actions/workflows/ios.yml
-[ci-main-shield]: https://img.shields.io/github/actions/workflow/status/CHMP987/GuardPay/ci.yml?branch=ios&style=for-the-badge&label=CI%20contratos%20y%20app
+[ci-main-shield]: https://img.shields.io/github/actions/workflow/status/CHMP987/GuardPay/ci.yml?branch=main&style=for-the-badge&label=CI%20contratos%20y%20app
 [ci-main-url]: https://github.com/CHMP987/GuardPay/actions/workflows/ci.yml
