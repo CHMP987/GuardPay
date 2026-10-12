@@ -6,6 +6,8 @@
 
 `[INFERENCE]` Cada análisis completo tarda de 6 a 9 s, por encima de la hipótesis de 4 a 7 s. Por eso se clasifica como **verde con la salvaguarda del amarillo**: la IA es MUST en Android, con streaming y el aviso "analizando…".
 
+`[FACT]` En la repetición de la tarde, GPU **no** repitió ese resultado: un primer token tardó 129 s, por encima del umbral de fallo de 10 s. Ver [Repetición](#repetición-12-oct-1600).
+
 P7 se abrió el mismo día. Lo medido dentro de la app está en [P7 en la app](#p7-en-la-app-12-oct). CP-7 sigue sin firmar.
 
 ## Test
@@ -140,7 +142,48 @@ Los registros completos son los `.jsonl` de [`bench/`](bench/). También se emit
   - medir la batería sin cable.
 - Nada de esto prueba que la app detecte estafas reales. Solo prueba que el modelo corre en este teléfono con ese formato de salida.
 
-P7: ver la sección siguiente. CP-7 no está firmado.
+P7: ver más abajo. CP-7 no está firmado.
+
+## Repetición (12 oct, 16:00)
+
+**REAL:** el mismo harness, modelo, teléfono, mensajes y orden de la prueba que arriba. Los mensajes son **SIMULATED**. Esta vez GPU corrió primero (16:00–16:07) y CPU después (16:07–16:11), hora del teléfono.
+
+Antes de correrla se restauró el modelo: se bajó en el PC de la URL fijada en `GemmaModelFile`, se comprobaron el tamaño y el SHA-256 y se copió con `adb push`. En el teléfono, el SHA-256 coincidió con el fijado.
+
+| Métrica | CPU | GPU |
+|---|---|---|
+| Carga en frío / en caliente | 6 143 / 424 ms | 102 393 / 9 868 ms |
+| TTFT nativo, 10 fg | 2.37–4.10 s; **9/10 < 3 s** (el mensaje 8 tardó 4.10 s) | 1.31–129.49 s; **7/10 < 3 s**. Mensaje 1: 3.03 s; mensaje 3: 5.76 s; **mensaje 8: 129.49 s** |
+| Primer fragmento (reloj de pared), 10 fg | 2 516–4 232 ms | 1 426–129 816 ms |
+| Análisis completo, 10 fg | 8 582–12 027 ms | 6 642–15 058 ms, y 136 988 ms en el mensaje 8 |
+| Decodificación | 8.35–9.76 tok/s | 5.32–9.77 tok/s |
+| Prefill | 69–113 tok/s | 46–204 tok/s; 2 tok/s en el mensaje 8 |
+| JSON parseable / sugerencia | **10/10** / 10/10 `SUGGEST_HOLD` | **10/10** / 10/10 `SUGGEST_HOLD` |
+| OOM o muerte del proceso | ninguno | ninguno |
+| VmHWM tras las cargas / al terminar | 1 381 444 / 2 276 280 kB | 2 147 916 / 2 333 048 kB |
+| `MemAvailable` más bajo | 2 976 860 kB | 1 897 328 kB |
+| Temperatura de batería (antes → tras 10 → final) | 36.5 → 36.7 → 37.2 °C | 35.8 → 36.3 → 36.5 °C |
+| `thermalStatus` | 2 todo el tiempo | 1, y 2 desde el final de los 10 fg |
+| Batería | **no medida** | **no medida** |
+| 3 análisis en segundo plano | todos parseables. TTFT 10.13–15.31 s, decode 2.86–3.56 tok/s, total 26.7–34.3 s | todos parseables. TTFT 1.28–1.35 s, total 6.7–8.8 s |
+
+Datos crudos: [`bench/bench-gpu-1791842452753.jsonl`](bench/bench-gpu-1791842452753.jsonl) y [`bench/bench-cpu-1791842839888.jsonl`](bench/bench-cpu-1791842839888.jsonl).
+
+Salvedades:
+
+- **Primer plano en GPU:** en los mensajes 1 a 7 por GPU, `foregroundAtEnd=false`, aunque eran análisis "en primer plano". Pasa a `true` justo en el mensaje 8, el de 129 s. `[INFERENCE]` La pantalla del teléfono se apagó o se bloqueó durante la prueba, y el mensaje 8 coincide con esa transición. `[UNVERIFIED]` No se registró el estado de la pantalla, así que la causa no está comprobada. En CPU, los 10 fg tienen `foregroundAtEnd=true`.
+- **Carga en frío en GPU:** 102 s, contra 47 s en la mañana. No se investigó por qué.
+- **Batería:** el teléfono volvió a estar conectado por USB (`plugged=2`) y cargando (63 → 65 %). El consumo no se midió: no corrido.
+- **Térmica:** CPU corrió justo después de GPU, ya con `thermalStatus` 2.
+- Valen las demás salvedades de arriba: no hay control negativo, la calidad de las señales no se evaluó y es un solo teléfono.
+
+Conclusión de la repetición:
+
+- `[FACT]` JSON 10/10 y ningún OOM en los dos backends, igual que en la mañana.
+- `[FACT]` CPU repitió el resultado de la mañana: TTFT < 3 s en 9/10.
+- `[FACT]` GPU no lo repitió: TTFT < 3 s en 7/10, y un TTFT de 129 s cae en el criterio de **fallo** del plan (primer token > 10 s).
+- `[INFERENCE]` Con la causa probable (pantalla apagada o bloqueada), el riesgo para la demo es que la IA se atrase si el teléfono se bloquea con Pagar abierto. Pagar nunca espera a la IA, así que el pago no se bloquea.
+- `[RECOMMENDATION]` Para cerrar la duda, repetir GPU con la pantalla forzada encendida (`svc power stayon usb`) y registrar el estado de la pantalla en cada análisis. No corrido.
 
 ## P7 en la app (12 oct)
 
