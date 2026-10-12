@@ -12,6 +12,10 @@ kotlin {
     androidTarget {
         compilerOptions {
             jvmTarget.set(JvmTarget.JVM_17)
+            // LiteRT-LM 0.17.1 (P7) is built with Kotlin 2.4 and pulls kotlin-stdlib 2.4.0;
+            // this 2.2.20 compiler only reads metadata one version ahead. Android only:
+            // commonMain, jvm() and iOS never see LiteRT-LM.
+            freeCompilerArgs.add("-Xskip-metadata-version-check")
         }
     }
 
@@ -50,6 +54,9 @@ kotlin {
             implementation(compose.foundation)
             implementation(compose.ui)
             implementation(compose.components.resources)
+        }
+        androidMain.dependencies {
+            implementation(libs.litertlm.android)
         }
         commonTest.dependencies {
             implementation(kotlin("test"))
@@ -179,7 +186,7 @@ tasks.matching { it.name == "allTests" }.configureEach { dependsOn(checkDependen
 // "Verificado". Scans string literals (comments stripped) in the shared UI and the
 // Android app, plus Android string resources.
 val uiTextSources = fileTree("src/commonMain/kotlin/com/guardpay/shared/ui") { include("**/*.kt") } +
-    fileTree(rootProject.file("app/android/src")) { include("**/*.kt", "**/res/**/strings*.xml") }
+    fileTree(rootProject.file("app/android/src")) { include("**/*.kt", "**/res/**/strings*.xml"); exclude("androidTest/**") }
 val checkUiVocabulary by tasks.registering {
     group = "verification"
     description = "Fails if a UI string says seguro, protegido or verificado."
@@ -234,3 +241,14 @@ val checkGuardianSurface by tasks.registering {
 
 tasks.named("check") { dependsOn(checkGuardianSurface) }
 tasks.matching { it.name == "allTests" }.configureEach { dependsOn(checkGuardianSurface) }
+
+// LiteRT-LM 0.17.1 (P7) asks for kotlin-stdlib/reflect 2.4.0. The 2.2.20 compiler crashes
+// inlining the 2.4 stdlib, so keep the catalog's Kotlin. Its coroutines 1.11.0 stays:
+// LiteRT-LM calls a 1.11 method and crashes on 1.10.2 (seen on the A54, Oct 12).
+configurations.configureEach {
+    resolutionStrategy.eachDependency {
+        if (requested.group == "org.jetbrains.kotlin" && (requested.name.startsWith("kotlin-stdlib") || requested.name == "kotlin-reflect")) {
+            useVersion(libs.versions.kotlin.get())
+        }
+    }
+}

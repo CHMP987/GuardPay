@@ -6,7 +6,7 @@
 
 `[INFERENCE]` Cada análisis completo tarda de 6 a 9 s, por encima de la hipótesis de 4 a 7 s. Por eso se clasifica como **verde con la salvaguarda del amarillo**: la IA es MUST en Android, con streaming y el aviso "analizando…".
 
-La decisión de abrir P7 queda pendiente: CP-7 no está firmado.
+P7 se abrió el mismo día. Lo medido dentro de la app está en [P7 en la app](#p7-en-la-app-12-oct). CP-7 sigue sin firmar.
 
 ## Test
 
@@ -140,4 +140,57 @@ Los registros completos son los `.jsonl` de [`bench/`](bench/). También se emit
   - medir la batería sin cable.
 - Nada de esto prueba que la app detecte estafas reales. Solo prueba que el modelo corre en este teléfono con ese formato de salida.
 
-P7: no corrido. CP-7 no está firmado.
+P7: ver la sección siguiente. CP-7 no está firmado.
+
+## P7 en la app (12 oct)
+
+**REAL:** Galaxy A54 (SM-A546E), con la app de debug y la clase de la app `AndroidGuardPayAI`, no el harness del spike. Los mensajes son **SIMULATED**. El prompt, el sampler y el modelo son los del spike.
+
+### Lecturas (`GemmaOnDeviceTest`)
+
+Son 18 mensajes: las 10 estafas del spike, las 5 inyecciones de [prompt-injection.md](prompt-injection.md) y 3 mensajes legítimos de control. Hubo dos corridas, a las 11:19 y a las 11:22 (hora del teléfono). Las salidas fueron idénticas, porque con `topK=1` el resultado es determinista.
+
+| Métrica | Valor |
+|---|---|
+| Backend | GPU en 18/18, en las dos corridas |
+| JSON válido para el parser, estafas | **10/10** (umbral de la prueba: ≥ 8) |
+| `SUGGEST_HOLD`, estafas | 10/10 |
+| `SUGGEST_HOLD`, inyecciones | 4/5 (ver prompt-injection.md) |
+| Controles legítimos | 2/3 `NO_CLEAR_SIGNALS`; 1/3 `SUGGEST_HOLD` (pizza, 20 USDC: **falso positivo**) |
+| Palabras prohibidas en la salida mostrada | 0/18 |
+| `analyzeMessage`, motor ya cargado (17 lecturas por corrida) | 6 224–9 684 ms; **17/17 < 10 s** en las dos corridas |
+| Primera lectura de cada proceso (incluye cargar el motor) | 64 146 ms (caché vacía) y 49 348 ms (caché llena) |
+
+`[FACT]` La caché de LiteRT-LM (`cacheDir/litertlm`, 783 MB entre el programa y los pesos) no evita la carga lenta en un proceso nuevo. Logcat muestra unos 31 s en "Weights preparation on Gpu is disabled for … Mali GPUs". `[INFERENCE]` En este teléfono, cada vez que se abre Pagar en un proceso nuevo, el motor tarda unos 40 s en cargarse en segundo plano.
+
+### En la pantalla Pagar (uiautomator)
+
+Medido con los scripts [`p7/p7ui.py`](p7/p7ui.py) y [`p7/p7video.py`](p7/p7video.py). El mensaje es la estafa 1 sin tildes, porque `adb input text` no las escribe.
+
+- **Descarga dentro de la app:**
+  - Se dejó un `.part` de 2 577 399 808 bytes, a unos 10 MB del final.
+  - Al tocar "Descargar el modelo" se vio "Descargando el modelo… 99 %".
+  - La app pidió el resto con `Range` a la URL fijada de Hugging Face, comprobó el tamaño y el SHA-256, y dejó el archivo en su lugar.
+  - Tardó 16,2 s y el aviso desapareció.
+  - `[FACT]` No se probó una descarga completa de 2,6 GB desde cero en la app (no corrido). Se probaron la reanudación, la redirección, la verificación y el renombre.
+- **Tiempo de lectura en pantalla, con el motor ya cargado:**
+  - Se esperó 55 s en Pagar y se grabó la pantalla.
+  - Se midió del cuadro en que el botón pasa a "Analizando…" al cuadro en que vuelve a "Revisar el mensaje", con la tarjeta debajo.
+  - Resultados: **7,52 s, 8,20 s y 7,55 s**. Criterio de aceptación: < 10 s.
+- **Tocar pronto:** si se toca unos 13 s después de abrir Pagar, el motor aún está cargando. Desde el toque hasta la tarjeta fueron 16,4 s, medido con `uiautomator dump`, que suma hasta unos 3,3 s por sondeo.
+- **Tarjeta:** "Solicitar un SINPE de 85000 de forma urgente." y las señales "Pedido de dinero", "Urgencia" y "Solicitud de secreto". Debajo dice "Te sugerimos retener este pago". En las 5 lecturas de pantalla no apareció ninguna palabra prohibida.
+- **Liberación:** con el motor cargado, el RSS del proceso era de 2,03–2,40 GB. Al salir de Pagar bajó a 0,29–0,36 GB en las 7 veces que se midió.
+- **Streaming:** la respuesta se recibe por partes (`sendMessageAsync`). Mientras tanto se ve "Analizando…" en el botón, y en pantalla solo aparece el resultado ya parseado. `[INFERENCE]` Mostrar el JSON a medias sería mostrar texto crudo del modelo, y P7 lo prohíbe.
+
+Archivos:
+
+- Capturas: [`p7/ui-1-no-descargado.png`](p7/ui-1-no-descargado.png), [`p7/ui-2-descargando.png`](p7/ui-2-descargando.png) y [`p7/ui-3-resultado.png`](p7/ui-3-resultado.png).
+- Videos: [`p7/video-1.mp4`](p7/video-1.mp4) a [`p7/video-3.mp4`](p7/video-3.mp4), y los cuadros del botón en [`p7/video-boton-analizando.png`](p7/video-boton-analizando.png).
+- Log: [`p7/ui.log`](p7/ui.log). Los `back at None` de las líneas `v1`–`v3` vienen de una primera versión del análisis. Los tiempos de arriba salen de volver a correr el análisis de `p7video.py` sobre los mismos videos.
+
+### Conclusión de P7
+
+- `[FACT]` Se cumple la aceptación de P7 en el A54: con el motor cargado, una estafa muestra señales en 7,5–8,2 s en pantalla, y `analyzeMessage` tarda menos de 10 s en 34/34 lecturas.
+- `[FACT]` La primera lectura después de abrir Pagar puede tardar unos 40–50 s si el motor no terminó de cargar. Pagar nunca espera a la IA.
+- `[FACT]` Hubo un falso positivo en 3 controles. La muestra es chica y de un solo teléfono, así que no mide la tasa real de falsos positivos.
+- `[RECOMMENDATION]` En la demo, abrir Pagar y pegar el mensaje unos 45 s antes de tocar "Revisar el mensaje".

@@ -1,6 +1,7 @@
 package com.guardpay.shared.ui.owner
 
 import com.guardpay.shared.ai.Analysis
+import com.guardpay.shared.ai.ModelStatus
 import com.guardpay.shared.domain.HeldPayment
 import com.guardpay.shared.domain.HoldStatus
 import com.guardpay.shared.domain.LanePrediction
@@ -276,6 +277,12 @@ class OwnerSession(
     fun chooseHold() = editForm { it.copy(ownerChoseHold = true) }
     fun setMessage(text: String) = editForm { it.copy(message = text, analysis = null) }
 
+    /** The on-device model, for the Pay screen. Only the message field depends on it. */
+    val model: StateFlow<ModelStatus> get() = reader.model
+    fun downloadModel() = reader.download()
+    fun openReader() = reader.open()
+    fun closeReader() = reader.close()
+
     /** Sends the pasted text to the AI. The result is shown; it never changes the form. */
     fun analyzeMessage() {
         val text = _ui.value.form.message
@@ -289,7 +296,10 @@ class OwnerSession(
             } catch (e: Exception) {
                 Analysis.Unavailable
             }
-            _ui.update { s -> if (s.form.message == text) s.copy(form = s.form.copy(analysis = analysis, analyzing = false)) else s }
+            // A reading of a message the owner has since edited is dropped, but the button comes back.
+            _ui.update { s ->
+                s.copy(form = s.form.copy(analysis = if (s.form.message == text) analysis else s.form.analysis, analyzing = false))
+            }
         }
     }
 

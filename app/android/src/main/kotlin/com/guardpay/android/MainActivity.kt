@@ -28,7 +28,7 @@ import com.guardpay.shared.ui.theme.GpColor
 /** Keeps the navigator and both sessions across rotation; their coroutines die with it. */
 class AppModel(app: Application) : AndroidViewModel(app) {
     val nav = Navigator()
-    val sessions: Sessions = Wiring.sessions(app, nav, viewModelScope, aiMessageReader())
+    val sessions: Sessions = Wiring.sessions(app, nav, viewModelScope, aiMessageReader(app))
 }
 
 class MainActivity : ComponentActivity() {

@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -26,6 +27,7 @@ import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import com.guardpay.shared.ai.ModelStatus
 import com.guardpay.shared.domain.HoldReason
 import com.guardpay.shared.domain.LanePrediction
 import com.guardpay.shared.domain.LedgerTime
@@ -131,8 +133,9 @@ fun PayScreen(session: OwnerSession, onBack: () -> Unit) {
 
             Collapsible("¿Te pidieron este pago por mensaje? Pégalo y lo revisamos") {
                 GpTextField(form.message, session::setMessage, "Mensaje", singleLine = false, placeholder = "Pega aquí el mensaje")
+                ModelNote(session)
                 GpButton(
-                    if (form.analyzing) "Revisando…" else "Revisar el mensaje",
+                    if (form.analyzing) "Analizando…" else "Revisar el mensaje",
                     session::analyzeMessage,
                     kind = ButtonKind.Secondary,
                     enabled = form.message.isNotBlank() && !form.analyzing,
@@ -147,6 +150,38 @@ fun PayScreen(session: OwnerSession, onBack: () -> Unit) {
         }
         if (form.reviewOpen && prediction != null) ReviewSheet(s, session, prediction)
     }
+}
+
+/**
+ * Where the on-device model stands, under the message field. The model only reads the
+ * message; downloading it is the owner's choice and paying never waits for it.
+ */
+@Composable
+private fun ModelNote(session: OwnerSession) {
+    DisposableEffect(session) {
+        session.openReader()
+        onDispose { session.closeReader() }
+    }
+    when (val m = session.model.collectAsState().value) {
+        ModelStatus.Unsupported -> Note("Análisis no disponible en este dispositivo.")
+        is ModelStatus.NotDownloaded -> {
+            Note("El análisis corre en tu teléfono y el mensaje no sale de él. Necesita descargar el modelo una vez (${gigabytes(m.totalBytes)}).")
+            GpButton("Descargar el modelo", session::downloadModel, kind = ButtonKind.Secondary)
+        }
+        is ModelStatus.Downloading -> Note(
+            if (m.totalBytes > 0) "Descargando el modelo… ${m.bytes * 100 / m.totalBytes} %" else "Descargando el modelo…"
+        )
+        ModelStatus.DownloadFailed -> {
+            Note("La descarga no terminó. Puedes reintentarla o pagar sin el análisis.")
+            GpButton("Reintentar la descarga", session::downloadModel, kind = ButtonKind.Secondary)
+        }
+        ModelStatus.OnDevice -> Unit
+    }
+}
+
+private fun gigabytes(bytes: Long): String {
+    val tenths = (bytes + 50_000_000) / 100_000_000
+    return "${tenths / 10},${tenths % 10} GB"
 }
 
 @Composable

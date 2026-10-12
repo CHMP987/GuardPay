@@ -119,7 +119,7 @@ flowchart TD
 | **Dueña** | Pagar a sus contactos, retener pagos a destinos nuevos y enviarlos tras la espera | Saltarse la espera, aprobar a terceros (`approve`) ni usar otras monedas desde la cuenta |
 | **Guardián** | Ver y detener los pagos retenidos de la dueña | Firmar pagos, mover fondos, cambiar reglas. No es firmante de la cuenta. |
 | **Contrato** | Decidir si una operación sale, espera o se rechaza | Mover dinero por su cuenta: el registro no tiene ninguna función que transfiera fondos |
-| **IA** *(prevista)* | Leer un mensaje y sugerir precaución | Firmar, rellenar destino o monto, ni ver saldos, contactos o claves. **Hoy no está activa.** |
+| **IA** *(solo Android)* | Leer un mensaje y sugerir precaución, en el teléfono | Firmar, rellenar destino o monto, ni ver saldos, contactos o claves. El mensaje no sale del teléfono. |
 
 <p align="right">(<a href="#readme-top">volver arriba</a>)</p>
 
@@ -136,7 +136,7 @@ flowchart TD
 | Pantalla "Reglas de esta cuenta" leída de la cadena | ✅ Implementado |
 | Aviso al guardián sin servidor (consulta local cada 30 s) | 🟡 Funciona con la app activa. Puede llegar tarde si el sistema detiene el servicio. |
 | App en iOS | 🟡 Solo en simulación, en el simulador del CI de macOS |
-| Análisis de mensajes con IA en el teléfono | ⏳ No iniciado. Hoy la app responde que el análisis no está disponible. |
+| Análisis de mensajes con IA en el teléfono | ✅ Android (P7, 12 oct): Gemma 4 E2B con LiteRT-LM, descargado dentro de la app. En iOS dice que no está disponible. |
 | Cambiar de guardián o recuperar la cuenta | ❌ No existe |
 | Avisos push (FCM/APNs) o con la app cerrada | ❌ No existe; no hay backend por diseño |
 
@@ -240,7 +240,7 @@ flowchart LR
 
 **No iniciado**
 
-- **IA en el teléfono:** la prueba de viabilidad (Spike B) se midió el 12 oct en un Galaxy A54. Con GPU, el modelo devolvió JSON válido 10 de 10 veces, con el primer token en menos de 3 s y entre 6 y 9 s por análisis ([`evidence/ai/benchmark.md`](evidence/ai/benchmark.md)). La fase P7 no se abrió, así que la app todavía responde que el análisis no está disponible. La retención no depende de la IA.
+- **IA en el teléfono:** la prueba de viabilidad (Spike B) se midió el 12 oct en un Galaxy A54. Con GPU, el modelo devolvió JSON válido 10 de 10 veces, con el primer token en menos de 3 s y entre 6 y 9 s por análisis ([`evidence/ai/benchmark.md`](evidence/ai/benchmark.md)). P7 se hizo el mismo día. En la app, con el motor cargado, una estafa muestra señales en 7,5–8,2 s. La primera lectura tras abrir Pagar puede tardar 40–60 s, mientras el modelo se carga en la GPU. De 3 mensajes normales, 1 se marcó como sospechoso. La retención no depende de la IA: cinco inyecciones de prompt no cambiaron el carril ([`evidence/ai/prompt-injection.md`](evidence/ai/prompt-injection.md)).
 - **Entrevistas con usuarios:** sin correr ([`evidence/interviews.md`](evidence/interviews.md)).
 
 Las firmas de revisión humana CP-3, CP-7 y CP-9 siguen pendientes. El detalle por fase está en [`docs/ESTADO-FASES.md`](docs/ESTADO-FASES.md). Toda la evidencia está en [`evidence/`](evidence/), etiquetada **REAL**, **SIMULATED** o **ILLUSTRATIVE**. Lo que no se corrió está escrito como "no corrido".

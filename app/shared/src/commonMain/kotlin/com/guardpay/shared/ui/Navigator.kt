@@ -2,6 +2,9 @@ package com.guardpay.shared.ui
 
 import androidx.compose.runtime.mutableStateListOf
 import com.guardpay.shared.ai.Analysis
+import com.guardpay.shared.ai.ModelStatus
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 
 /** A payment the owner can open: a registry record, or something only this app saw. */
 sealed interface PaymentKey {
@@ -65,4 +68,18 @@ class Navigator(start: Screen = Screen.Entry) {
  */
 fun interface MessageReader {
     suspend fun read(text: String): Analysis
+
+    /** The model on this device. A platform without one stays [ModelStatus.Unsupported]. */
+    val model: StateFlow<ModelStatus> get() = unsupported
+
+    /** Starts (or resumes) the model download the owner asked for. */
+    fun download() {}
+
+    /** The Pay screen opened: load the model so the first reading does not wait for it. */
+    fun open() {}
+
+    /** The Pay screen closed: free the model. It does not stay resident. */
+    fun close() {}
 }
+
+private val unsupported: StateFlow<ModelStatus> = MutableStateFlow(ModelStatus.Unsupported)
