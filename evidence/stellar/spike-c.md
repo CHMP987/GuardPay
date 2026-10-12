@@ -52,6 +52,37 @@ Las dos se volvieron a consultar con `getTransaction` directo al RPC, sin pasar 
 
 https://stellar.expert/explorer/testnet/tx/2c7c671fc37dbf919613e3bca699d223582c40afe49d4a176e5168d551ab2d26
 
+## Re-corrida (12 oct 2026)
+
+**REAL** (testnet, salida literal). Comando: `./gradlew -p spikes/kmp-signing run`. Mismo montaje que arriba: la cuenta es OZ v0.7.0 de la demo del SDK y las claves son nuevas, en memoria. Veredicto: **sigue VERDE**.
+
+| Caso | Resultado |
+| --- | --- |
+| Digest SDK = digest independiente | **MATCH** (`3f9a8e0f…9cba`) |
+| N1: firma sin `context_rule_ids` | **RECHAZADO**: `Error(Auth, InvalidAction)` / `Error(Crypto, InvalidInput)` |
+| N2: una clave que no es firmante | **RECHAZADO**: `Error(Auth, InvalidAction)` / `Error(Crypto, InvalidInput)` |
+| Positivo | **SUCCESS** |
+
+```
+smart account C        = CALXYKAS2S7PK5UAGEPMSURIOHM3RPF6SOLZSLGBLJZIENDDZ3LUWU5W
+fee payer G            = GDCEIDXAARPBLZE2W6ZU2PMPOK2BTZHCDULVMBL3KEJSLMJSJCJBS5OH
+owner ed25519 pubkey   = 9e7e57ac1808fb1a52df55491095281ed8568f0018d44c9a06bade5a428f6756
+auth credential arm    = AddressV2
+signature_payload      = 649e91f99200eb2d134e0053e4a2339105e023045f47a8a2f7373aeefb1e44cf
+xdr(context_rule_ids)  = 0000001000000001000000010000000300000000
+digest (SDK)           = 3f9a8e0f12f6e37521799f1e65076655a238cb90af95f644459b2954b5169cba
+digest (independiente) = 3f9a8e0f12f6e37521799f1e65076655a238cb90af95f644459b2954b5169cba
+```
+
+Las dos transacciones se consultaron después con `getTransaction` directo al RPC:
+
+| Tx | Hash | Ledger (UTC) | Estado |
+| --- | --- | --- | --- |
+| Fondeo G → C (20 XLM) | `172e4cbeabe3200bbdb7a982df454ab828e2675cf31ebc5a6fa981c9705559c4` | 5161481 (18:49:52) | SUCCESS |
+| **`transfer` C → G (1 XLM) firmado en Kotlin** | `e7a958235f64f3c1ac74062933ffb896dca224a36da2e3771c62d12a8b50c3e2` | 5161483 (18:50:02) | SUCCESS |
+
+También el 12 oct, contra los contratos de producción (OZ `b40c5ea`), corrió `KmpStellarGatewayLiveTest`: 1/1, 232 s. Es la corrida 5 de `evidence/stellar/gateway-live.md`.
+
 ## Qué demuestra y qué no
 
 - `[FACT]` kmp-stellar-sdk 1.14.0 produce, desde Kotlin y con ed25519 puro, una firma que el `__check_auth` de una cuenta OZ v0.7.0 acepta en testnet.
@@ -68,8 +99,8 @@ https://stellar.expert/explorer/testnet/tx/2c7c671fc37dbf919613e3bca699d223582c4
 
 | Test | Estado |
 | --- | --- |
-| C2 contra la cuenta del Spike A (`b40c5ea`) | **no corrido** (la cuenta aún no existe) |
+| C2 contra la cuenta del Spike A (`b40c5ea`) | Lo cubre la cuenta de producción (`b40c5ea`), en las corridas 4 (6 oct) y 5 (12 oct) de `evidence/stellar/gateway-live.md` |
 | C3 / GH-33: firmante passkey (WebAuthn) | **no corrido** (SHOULD) |
-| Firma ed25519 desde Android (Keystore) | **no corrido** (P6) |
+| Firma ed25519 desde Android (Keystore) | Hecho en P6: `evidence/smart-account/signing.md` |
 
 Fallback de R5: **no hizo falta**. No se llegó a ningún escalón.

@@ -5,6 +5,8 @@ members = [
     "contracts/guardian_hold",
     "contracts/hold_registry",
 ]
+# Spike A (spikes/guardian-hold) is its own workspace.
+exclude = ["spikes"]
 
 # stellar-accounts (vendored) inherits these when resolved as a path dep of this workspace.
 [workspace.package]

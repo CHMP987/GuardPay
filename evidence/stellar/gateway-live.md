@@ -89,3 +89,38 @@ shape     contextRuleCount=1, signers=[dueña], policies=[guardian_hold]
 - [INFERENCE] Los códigos `3016`, `7` y `3` vienen de los contratos de producción y de OZ. Su significado exacto no se cruzó con INTERFACES.md en este documento.
 - La misma ruta, firmada con el Keystore desde la app en el emulador, está en `evidence/smart-account/signing.md`.
 - No corrido: el tope de comisión y `SubmissionOutcomeUnknownException` contra la red.
+
+## Corrida 5: contratos de producción (12 oct)
+
+| | |
+| --- | --- |
+| Etiqueta | **REAL** (testnet, salida literal) |
+| Fecha | 2026-10-12, 18:50–18:55 UTC, ledgers 5161507–5161538, 232 s, 1 test, 0 fallos |
+| Contratos | wasm de producción. `guardian_hold` es `CCGIEMIU…BJJI`, el mismo de `deployment.md`. La cuenta y el registro son nuevos, de esta corrida. |
+| Comando | `./gradlew :app:shared:testDebugUnitTest -PliveTestnet --tests "*KmpStellarGatewayLiveTest"` |
+
+```
+account   CD6ZQZIALDSYT56ILTTSQJQTIM2KDULDIM4CP4ZO2S7ZCFAHGMA3ZQS6
+registry  CCTDZKCOVZQI6RRZU5GWUQUFBGPDRIEYAXQO5HYQQPF7EZRFVY65KEEI
+usdc      CA2UZU2CDY4G4FNZENCE5SDBUZTTGIY22Q7W2B6WIMCMCM7HEVZROPFH   (SAC de prueba)
+shape     contextRuleCount=1, signers=[dueña], policies=[guardian_hold]
+```
+
+| Caso | Resultado | Hash |
+| --- | --- | --- |
+| La dueña transfiere 10 a un contacto | Confirmed | `6a63e53b95570599f367642115b1610cb490d98bf3740c91bf6b0f2a2aa188ce` |
+| GH-01: el atacante firma por el gateway | `Rejected(code=3016)` en la simulación | — |
+| GH-01: mapa de firmantes vacío, a la red | FAILED | `7324484e793e75f764d2875c4383a610dee00e3b23f8da02ef225bde6e59a300` |
+| La dueña encola 150 (hold 0) | Confirmed | `545d8ce2c6cb2027423c465b08eebca5590e808468ff5724b2c2c224ca899762` |
+| La dueña encola 60 (hold 1) | Confirmed | `383fa8ea0b4656b2d402474a1ab64fca906f5e6ad9f933ccacb2039025692b5e` |
+| `transfer` del hold 0 antes de madurar | `Rejected(code=7)` en la simulación | — |
+| La dueña intenta `cancel` | Rejected en la simulación | — |
+| El guardián cancela el hold 1 | Confirmed | `809986d7c1b888fbd4871c9672c8c337823673904128a41770356ea2b7d97280` |
+| GH-24: `transfer` sin firma de la dueña, a la red | FAILED | `803ab5734fcd679807d780315ef4c33c8516220ee75925b4c47d45e8730fb030` |
+| GH-24: `transfer` con firma del atacante, a la red | FAILED | `41a980917ec12af4f049732ebfa77dd33c018288fc2fdfe4ac0c067cf3c5c404` |
+| La dueña envía el hold 0 madurado | Confirmed | `aa55b169fee6154818d7457de87757748203a822a585ac5a4ab4c7835031da8f` |
+| `transfer` del hold 1 ya detenido | `Rejected(code=3)` en la simulación | — |
+
+- [FACT] Los hashes se tomaron de la salida del test. Después se consultaron con `getTransaction` en el RPC: los Confirmed dan `SUCCESS` y los tres a la red de GH-01/GH-24 dan `FAILED`.
+- [FACT] El resultado es el mismo que el de la corrida 4.
+

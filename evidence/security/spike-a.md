@@ -26,13 +26,41 @@ A0, A1 y los 13 tests GH listados pasan en la corrida de verificación T-028 (6 
 | GH-25 | pasa | `execute`/`upgrade`/admin → `Abort` |
 | GH-26 | pasa | `HostError: Error(Auth, InvalidAction)` |
 
+
+## Re-corrida (12 oct 2026)
+
+**REAL** (salida literal de `cargo test`, 19:04 UTC). Veredicto: **sigue GO**.
+
+- `[FACT]` Desde el 6 oct los comandos de este documento ya no corrían. Daban `current package believes it's in a workspace when it's not`. Había dos causas:
+  - El `Cargo.toml` raíz pasó a ser el workspace de producción (T-034, `4566df9`).
+  - Los manifests del spike apuntaban a `.scratch/oz-g2`, que no se versiona y ya no existe.
+- Arreglo:
+  - El workspace raíz excluye `spikes/`.
+  - `spikes/guardian-hold/Cargo.toml` es su propio workspace, con miembros `account`, `guardian_hold` y `hold_registry`.
+  - `stellar-accounts` ahora apunta a `vendor/stellar-contracts/packages/accounts`, el OZ vendorizado del pin `b40c5ea` (T-034).
+  - En `Cargo.lock` solo se agregaron los tres miembros. No cambió ninguna versión.
+- `[FACT]` `cargo test --manifest-path spikes/guardian-hold/Cargo.toml --workspace`: **26 passed, 0 failed** (1 + 5 + 3 + 4 + 5 + 3 + 1 + 4). Los literales coinciden con los del 6 oct:
+  - A1: `A1 veredicto R6: pasa`, CPU budget 122372, `write_entries=2`.
+  - GH-01, GH-06(a) y GH-24(a): `Contract(2)`.
+  - GH-05: `Contract(7)`.
+  - GH-04: `hold id=0 ready_at=1700000120`.
+  - GH-09(a)(b) y GH-24(b): `UnauthorizedSigner`.
+  - GH-13: `ContextRuleNotFound` / `Abort`.
+  - GH-20 a GH-23: `Contract(3)`.
+  - GH-25: `Abort` en las seis entradas.
+  - GH-26: `Error(Auth, InvalidAction)`.
+- `[FACT]` A0 contra el OZ vendorizado: `cargo test -p stellar-accounts do_check_auth_rule_selection_downgrade_fails` desde la raíz da `should panic ... ok`.
+- `[FACT]` Los contratos de producción (`cargo test -p account -p guardian_hold -p hold_registry`) pasan: 36/36.
+- Los snapshots de `test_snapshots/` solo cambiaron en el fin de línea, así que no se commitearon.
+- Para que la compilación no deje archivos en el repo: `CARGO_TARGET_DIR=target/spike-a` (`target/` está en `.gitignore`).
+
 ---
 
 ## A0 — digest liga `context_rule_ids`
 
 `[FACT]` pasa (T-019; no repetido en T-028).
 
-Directorio: `.scratch/oz-g2`
+Directorio: `.scratch/oz-g2` (el 12 oct se repitió contra `vendor/stellar-contracts`; ver "Re-corrida")
 
 ```
 cargo test -p stellar-accounts do_check_auth_rule_selection_downgrade_fails -- --nocapture
