@@ -39,7 +39,7 @@
   </tr>
 </table>
 
-<p align="center"><sub>Capturas reales del 8 oct 2026, en Stellar Testnet: dueña en un Samsung Galaxy A54 y guardián en un emulador Android. Fuente: <a href="evidence/demo/full-rehearsal.md"><code>evidence/demo/full-rehearsal.md</code></a>.</sub></p>
+<p align="center"><sub>Capturas reales del 8 oct 2026, en Stellar Testnet: dueña en un teléfono Android y guardián en un emulador. Fuente: <a href="evidence/demo/full-rehearsal.md"><code>evidence/demo/full-rehearsal.md</code></a>.</sub></p>
 
 > [!IMPORTANT]
 > GuardPay es un **MVP que corre solo en Stellar Testnet**, con dinero de prueba. Los contratos **no están auditados**. No es un producto listo para usar con fondos reales.
@@ -129,10 +129,10 @@ flowchart TD
 | --- | --- |
 | Pago inmediato a contactos de confianza dentro de un tope diario | ✅ Implementado y probado en testnet |
 | Retención de 120 s para destinos nuevos o montos sobre el tope (la dueña también puede elegir retener un pago a un contacto) | ✅ Implementado y probado en testnet |
-| El guardián detiene un pago desde el aviso en su teléfono | ✅ Probado entre dos dispositivos: un Galaxy A54 y un emulador |
+| El guardián detiene un pago desde el aviso en su teléfono | ✅ Probado entre dos dispositivos: un teléfono y un emulador |
 | El guardián no es firmante y no puede mover fondos | ✅ Comprobado en cadena y con ataques ([escena 5](evidence/demo/scene-5.md)) |
 | El contrato rechaza `approve`, pagos retenidos sin esperar y pagos detenidos | ✅ Rechazos registrados en testnet ([ensayo completo](evidence/demo/full-rehearsal.md)) |
-| Clave de firma en el Android Keystore con huella o PIN | ✅ Implementado. Probado en emulador y en un Galaxy A54. |
+| Clave de firma en el Android Keystore con huella o PIN | ✅ Implementado. Probado en emulador y en un teléfono. |
 | Pantalla "Reglas de esta cuenta" leída de la cadena | ✅ Implementado |
 | Aviso al guardián sin servidor (consulta local cada 30 s) | 🟡 Funciona con la app activa. Puede llegar tarde si el sistema detiene el servicio. |
 | App en iOS | 🟡 Solo en simulación, en el simulador del CI de macOS |
@@ -173,8 +173,8 @@ Las escenas de terminal (2, 4, 5 y 6) usaron otra cuenta de testnet con claves d
 Más material:
 
 - [Los 9 estados de pago a 360 dp](evidence/demo/screens/): Borrador, Firmando, Retenido, Listo para enviar, Enviado, Detenido, Vencido, Rechazado y Error de red. Son **simulados**: la interfaz real dibujada sin red.
-- [Dos dispositivos](evidence/demo/two-devices-android.md): dueña en el Galaxy A54 y guardián en el emulador. Es **real**.
-- [Teléfono físico](evidence/demo/physical-phone.md): escenas 1, 2, 3 y 6 en el Galaxy A54. Es **real**.
+- [Dos dispositivos](evidence/demo/two-devices-android.md): dueña en el teléfono y guardián en el emulador. Es **real**.
+- [Teléfono físico](evidence/demo/physical-phone.md): escenas 1, 2, 3 y 6 en el teléfono. Es **real**.
 - [Vídeos de los ensayos](evidence/demo/video.md).
 
 <p align="right">(<a href="#readme-top">volver arriba</a>)</p>
@@ -226,8 +226,8 @@ flowchart LR
 **Implementado y probado en testnet**
 
 - Los tres contratos, desplegados en Stellar Testnet ([`evidence/stellar/deployment.md`](evidence/stellar/deployment.md)).
-- La entrada y las cuatro pantallas de la app con datos de testnet: Inicio, Pagar, Detalle y Guardián. Probadas en un emulador y en un Galaxy A54.
-- La firma con huella o PIN: `transfer`, `queue` y `cancel` firmados desde el A54.
+- La entrada y las cuatro pantallas de la app con datos de testnet: Inicio, Pagar, Detalle y Guardián. Probadas en un emulador y en un teléfono.
+- La firma con huella o PIN: `transfer`, `queue` y `cancel` firmados desde el teléfono.
 - El aviso al guardián sin servidor, medido por debajo de 60 s ([`evidence/guardian/notification.md`](evidence/guardian/notification.md)).
 - La demo completa de seis escenas, dos veces por debajo de 5 minutos.
 - Ataques documentados en una matriz por cuenta ([`evidence/security/bypass-matrix.md`](evidence/security/bypass-matrix.md)).
@@ -240,7 +240,7 @@ flowchart LR
 
 **No iniciado**
 
-- **IA en el teléfono:** la prueba de viabilidad (Spike B) se midió el 12 oct en un Galaxy A54. Con GPU, el modelo devolvió JSON válido 10 de 10 veces, con el primer token en menos de 3 s y entre 6 y 9 s por análisis ([`evidence/ai/benchmark.md`](evidence/ai/benchmark.md)). P7 se hizo el mismo día. En la app, con el motor cargado, una estafa muestra señales en 7,5–8,2 s. La primera lectura tras abrir Pagar puede tardar 40–60 s, mientras el modelo se carga en la GPU. De 3 mensajes normales, 1 se marcó como sospechoso. La retención no depende de la IA: cinco inyecciones de prompt no cambiaron el carril ([`evidence/ai/prompt-injection.md`](evidence/ai/prompt-injection.md)).
+- **IA en el teléfono:** la prueba de viabilidad (Spike B) se midió el 12 oct en un teléfono. Con GPU, el modelo devolvió JSON válido 10 de 10 veces, con el primer token en menos de 3 s y entre 6 y 9 s por análisis ([`evidence/ai/benchmark.md`](evidence/ai/benchmark.md)). P7 se hizo el mismo día. En la app, con el motor cargado, una estafa muestra señales en 7,5–8,2 s. La primera lectura tras abrir Pagar puede tardar 40–60 s, mientras el modelo se carga en la GPU. De 3 mensajes normales, 1 se marcó como sospechoso. La retención no depende de la IA: cinco inyecciones de prompt no cambiaron el carril ([`evidence/ai/prompt-injection.md`](evidence/ai/prompt-injection.md)).
 - **Entrevistas con usuarios:** sin correr ([`evidence/interviews.md`](evidence/interviews.md)).
 
 Las firmas de revisión humana CP-3, CP-7 y CP-9 siguen pendientes. El detalle por fase está en [`docs/ESTADO-FASES.md`](docs/ESTADO-FASES.md). Toda la evidencia está en [`evidence/`](evidence/), etiquetada **REAL**, **SIMULATED** o **ILLUSTRATIVE**. Lo que no se corrió está escrito como "no corrido".
@@ -256,7 +256,7 @@ Las firmas de revisión humana CP-3, CP-7 y CP-9 siguen pendientes. El detalle p
 - **El diálogo de firma no muestra el pago.** El sistema muestra "Firmar en Stellar", pero la clave firma un hash sin ver destino ni monto. Lo mitigan la retención en cadena y la vista del guardián, no la clave.
 - **El aviso depende de que el servicio siga vivo.** No hay servidor, FCM ni APNs. El teléfono del guardián consulta la red cada 30 s desde un servicio en primer plano. Si el sistema lo detiene (ahorro de batería, restricciones del fabricante, cierre forzado o el tope de unas 6 h/día de `dataSync` en Android 15+), el aviso llega cuando se abra la app o se toque "Actualizar". Consultar cada 30 s no es aceptable en batería para producción.
 - **Configuración por dispositivo.** En el build de depuración, cada teléfono crea las claves de dueña y de guardián, y un archivo `testnet.json` decide su rol: ambos, solo dueña o solo guardián.
-- **Las pruebas cubren poco hardware.** Se probó en un emulador Android (API 37) y en un Galaxy A54. El ciclo retener → esperar → enviar y los casos GH-01/GH-24 no se repitieron en el teléfono físico.
+- **Las pruebas cubren poco hardware.** Se probó en un emulador Android (API 37) y en un teléfono. El ciclo retener → esperar → enviar y los casos GH-01/GH-24 no se repitieron en el teléfono físico.
 - **Los pagos inmediatos no se releen.** Un pago a un contacto queda en la cadena, pero desaparece de "Recientes" si se reinicia la app. Los pagos retenidos sí se vuelven a leer del registro.
 - **La demo cronometrada no usó una sola cuenta.** Las escenas de app y las de terminal corrieron sobre cuentas distintas, y las manejó un guion, no una persona presentando.
 - **El build de release no se conecta a nada todavía.**

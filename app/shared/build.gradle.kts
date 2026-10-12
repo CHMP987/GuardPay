@@ -244,7 +244,7 @@ tasks.matching { it.name == "allTests" }.configureEach { dependsOn(checkGuardian
 
 // LiteRT-LM 0.17.1 (P7) asks for kotlin-stdlib/reflect 2.4.0. The 2.2.20 compiler crashes
 // inlining the 2.4 stdlib, so keep the catalog's Kotlin. Its coroutines 1.11.0 stays:
-// LiteRT-LM calls a 1.11 method and crashes on 1.10.2 (seen on the A54, Oct 12).
+// LiteRT-LM calls a 1.11 method and crashes on 1.10.2 (seen on the phone, Oct 12).
 configurations.configureEach {
     resolutionStrategy.eachDependency {
         if (requested.group == "org.jetbrains.kotlin" && (requested.name.startsWith("kotlin-stdlib") || requested.name == "kotlin-reflect")) {

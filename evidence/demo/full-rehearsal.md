@@ -2,13 +2,13 @@
 
 **Veredicto: las seis escenas del plan (§13) corrieron dos veces seguidas en una sola sentada y sin fallos: 226,4 s (3:46) y 215,0 s (3:35). Las dos quedaron por debajo de 5 minutos.**
 
-Las escenas de app corrieron en el A54 (dueña) y en un emulador (guardián), sobre la cuenta del día 10. Las de terminal corrieron en vivo dentro de la misma sentada, pero sobre **otra cuenta de testnet**, preparada al inicio con claves desechables.
+Las escenas de app corrieron en el teléfono (dueña) y en un emulador (guardián), sobre la cuenta del día 10. Las de terminal corrieron en vivo dentro de la misma sentada, pero sobre **otra cuenta de testnet**, preparada al inicio con claves desechables.
 
 | | |
 | --- | --- |
-| Etiqueta | **REAL**: testnet, A54 físico más emulador más terminal. Todos los hashes se copiaron de Horizon. |
+| Etiqueta | **REAL**: testnet, teléfono físico más emulador más terminal. Todos los hashes se copiaron de Horizon. |
 | Fecha | 2026-10-08, de 16:38:41 a 16:46:33 UTC, ledgers 5090795–5090875 |
-| Dueña | Samsung Galaxy A54, Keystore `guardpay-owner`. **La huella la puso la persona**, 4 veces en total. |
+| Dueña | Teléfono, Keystore `guardpay-owner`. **La huella la puso la persona**, 4 veces en total. |
 | Guardián (app) | Emulador `Medium_Phone_API_37.0`, Keystore `guardpay-guardian`, PIN de prueba del AVD |
 | Terminal | `DemoTerminal` (`app/shared/src/androidUnitTest/.../stellar/DemoTerminal.kt`), un `main` de Kotlin con `java -cp`. Al arrancar prepara su propia cuenta, y sus claves de dueña, guardián y extraño solo viven en memoria: no se imprimen ni se guardan. |
 | App | El mismo APK de debug del día 10 (`8285692`) |
@@ -18,7 +18,7 @@ Las escenas de app corrieron en el A54 (dueña) y en un emulador (guardián), so
 
 | Uso | Cuenta | Registro | Firmante | Guardián |
 | --- | --- | --- | --- | --- |
-| Escenas de app (1, 2, 3 y la pantalla de la 6) | `CA5Z7JZSGBUXGVV7FDW5B6M66PJCAXHYIQJDG7GXZST3VFTOQE4ARA2J` | `CDW5KKA…TAX6` | `GDA3N4…` (Keystore del A54) | `GCCKC6…` (Keystore del emulador) |
+| Escenas de app (1, 2, 3 y la pantalla de la 6) | `CA5Z7JZSGBUXGVV7FDW5B6M66PJCAXHYIQJDG7GXZST3VFTOQE4ARA2J` | `CDW5KKA…TAX6` | `GDA3N4…` (Keystore del teléfono) | `GCCKC6…` (Keystore del emulador) |
 | Escenas de terminal (2, 4, 5 y 6) | `CBE2VJ37HF6JM3CQHBPRPYOAKFGGWVKUWYWT67ISQ5EBBBKAD6NWXLRB` | `CA3TNH2IY2AJZ73GQNT6NSOPAJCGRWHSRTTY44FGNUUMRXEQJ5MPQQKK` | `GCUSBH…` (en memoria) | `GBQKLI…` (en memoria) |
 
 - [FACT] Las dos cuentas usan el wasm de `account` `986956cc…cf3b` y el de `hold_registry` `031173c2…d0cb`, y tienen la misma política, `CCGIEMIU3D7IEGVZUKZTNSQN4UHPHE2RWXKTAVIS4666MDMIH3DZBJJI`.
@@ -33,7 +33,7 @@ Los tomó el guion en el host. Cada búsqueda en pantalla es un volcado de uiaut
 | --- | --- | --- |
 | 1. Pagar 10 a Mamá → Enviado | 37,9 s. "Enviado" llegó 21,3 s después de "Firmar y enviar". | 36,6 s (20,4 s) |
 | 2. Retener 150 a una cuenta nueva → Retenido; envío inmediato rechazado | 68,6 s: 51,5 s en la app y 15,7 s en la terminal | 73,9 s: 54,2 s y 18,3 s |
-| 3. El guardián lo detiene desde el aviso → Detenido | 53 s. El aviso ya estaba a los 17,4 s del Retenido. "Detenido" salió 15,8 s después del PIN. El A54 mostró Detenido. | 47 s (19,8 s; 15,4 s; el A54 también) |
+| 3. El guardián lo detiene desde el aviso → Detenido | 53 s. El aviso ya estaba a los 17,4 s del Retenido. "Detenido" salió 15,8 s después del PIN. El teléfono mostró Detenido. | 47 s (19,8 s; 15,4 s; el teléfono también) |
 | 4. Transfer del pago detenido → rechazado | 16,1 s | 12,7 s |
 | 5. El guardián firma un transfer hacia sí mismo → rechazado | 4,4 s | 4,5 s |
 | 6. `approve` rechazado; `add_context_rule` no existe; la app muestra 1 regla | 44,5 s: 14,1 s en la terminal y el resto para llegar a la pantalla de reglas | 38,5 s (8,1 s) |
@@ -48,14 +48,14 @@ Todas aparecen como `successful` en Horizon.
 
 | Corrida | Escena | Acción | Firmante | Hash | Ledger (UTC) |
 | --- | --- | --- | --- | --- | --- |
-| 1 | 1 | `transfer` de 10 a Mamá en el SAC `CBLQQ7PQ…` | dueña (A54) | `3bc84bcb6992f7df1c8b40d2f67c2c88faf3a6cca3f2d8ea2aa84438329734fd` | 5090795 (16:39:22) |
-| 1 | 2 | `queue` de 150 en el registro `CDW5KKA…` | dueña (A54) | `f8f0f100874f982c4debb15e048a83890c1f60a39cbb51837d1c402255503f8d` | 5090806 (16:40:17) |
+| 1 | 1 | `transfer` de 10 a Mamá en el SAC `CBLQQ7PQ…` | dueña (teléfono) | `3bc84bcb6992f7df1c8b40d2f67c2c88faf3a6cca3f2d8ea2aa84438329734fd` | 5090795 (16:39:22) |
+| 1 | 2 | `queue` de 150 en el registro `CDW5KKA…` | dueña (teléfono) | `f8f0f100874f982c4debb15e048a83890c1f60a39cbb51837d1c402255503f8d` | 5090806 (16:40:17) |
 | 1 | 3 | `cancel` | guardián (emulador) | `ca727e0cec94e3d68a62be3b4c24ef5830e61c3bac01deec7f2807b17cb3f981` | 5090819 (16:41:22) |
-| 2 | 1 | `transfer` de 10 a Mamá | dueña (A54) | `cf8634aeb541c68d8a02dfdffdd56897bee4fea7ff78bc9d516543d304d40d72` | 5090844 (16:43:27) |
-| 2 | 2 | `queue` de 150 | dueña (A54) | `97760c203cbc65e8e0968416710f2e72dc371bbb3716869a19888d0a68ad5ab0` | 5090855 (16:44:22) |
+| 2 | 1 | `transfer` de 10 a Mamá | dueña (teléfono) | `cf8634aeb541c68d8a02dfdffdd56897bee4fea7ff78bc9d516543d304d40d72` | 5090844 (16:43:27) |
+| 2 | 2 | `queue` de 150 | dueña (teléfono) | `97760c203cbc65e8e0968416710f2e72dc371bbb3716869a19888d0a68ad5ab0` | 5090855 (16:44:22) |
 | 2 | 3 | `cancel` | guardián (emulador) | `4d08f3ce2bab5aa098454fbd62b4dea785a28528d07e7e2e609e65bf01eeff17` | 5090868 (16:45:27) |
 
-- [FACT] En Horizon, los dos `cancel` los envió `GCCKC6…`, la clave del emulador. Los `transfer` y los `queue` los envió `GDA3N4…`, la del A54. Las direcciones de contrato salen de decodificar los parámetros de cada operación.
+- [FACT] En Horizon, los dos `cancel` los envió `GCCKC6…`, la clave del emulador. Los `transfer` y los `queue` los envió `GDA3N4…`, la del teléfono. Las direcciones de contrato salen de decodificar los parámetros de cada operación.
 
 ## Transacciones de la terminal (cuenta `CBE2VJ37…`)
 
@@ -90,16 +90,16 @@ En las escenas que se rechazan, la terminal hace dos cosas:
 
 ## Capturas (REAL, reducidas al 50 %)
 
-En las del A54 se recortó la barra de estado. Hay una captura por escena y corrida, de `r1-…` a `r2-…`:
+En las del teléfono se recortó la barra de estado. Hay una captura por escena y corrida, de `r1-…` a `r2-…`:
 
 | Captura | Qué muestra |
 | --- | --- |
-| [r1-1-enviado](full-rehearsal/r1-1-enviado.png), [r2-1-enviado](full-rehearsal/r2-1-enviado.png) | A54: Pago a Mamá, Enviado |
-| [r1-2-retenido](full-rehearsal/r1-2-retenido.png), [r2-2-retenido](full-rehearsal/r2-2-retenido.png) | A54: Retenido, "Diego puede detenerlo" |
+| [r1-1-enviado](full-rehearsal/r1-1-enviado.png), [r2-1-enviado](full-rehearsal/r2-1-enviado.png) | Teléfono: Pago a Mamá, Enviado |
+| [r1-2-retenido](full-rehearsal/r1-2-retenido.png), [r2-2-retenido](full-rehearsal/r2-2-retenido.png) | Teléfono: Retenido, "Diego puede detenerlo" |
 | [r1-3-aviso](full-rehearsal/r1-3-aviso.png), [r2-3-aviso](full-rehearsal/r2-3-aviso.png) | Emulador: aviso "Pago retenido: 150 USDC" |
 | [r1-3-detenido](full-rehearsal/r1-3-detenido.png), [r2-3-detenido](full-rehearsal/r2-3-detenido.png) | Emulador: Detenido por ti |
-| [r1-3-telefono](full-rehearsal/r1-3-telefono.png), [r2-3-telefono](full-rehearsal/r2-3-telefono.png) | A54: Detenido por Diego |
-| [r1-6-reglas](full-rehearsal/r1-6-reglas.png), [r2-6-reglas](full-rehearsal/r2-6-reglas.png) | A54: "Esta cuenta tiene 1 regla", la política GuardianHold y "Diego… No es firmante de esta cuenta" |
+| [r1-3-telefono](full-rehearsal/r1-3-telefono.png), [r2-3-telefono](full-rehearsal/r2-3-telefono.png) | Teléfono: Detenido por Diego |
+| [r1-6-reglas](full-rehearsal/r1-6-reglas.png), [r2-6-reglas](full-rehearsal/r2-6-reglas.png) | Teléfono: "Esta cuenta tiene 1 regla", la política GuardianHold y "Diego… No es firmante de esta cuenta" |
 
 La terminal no tiene capturas: su salida completa está en `full.log`. El diálogo de huella no aparece en ninguna captura, porque `screencap` lo muestra negro.
 

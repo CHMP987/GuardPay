@@ -16,7 +16,7 @@ Spike B: Gemma 4 E2B por la API Kotlin oficial de LiteRT-LM, en un teléfono fí
 - Modelo: `gemma-4-E2B-it.litertlm`, de HF `litert-community`, con **2 588 147 712 bytes** (2.59 GB) en disco. No está en el repo.
 - Runtime: `com.google.ai.edge.litertlm:litertlm-android:0.17.1`.
 - Teléfono:
-  - Samsung Galaxy A54 5G, SM-A546E, Android 14.
+  - Teléfono físico con Android 14.
   - Exynos 1380 (s5e8835) con GPU Mali-G68, arm64-v8a.
   - RAM: `MemTotal` 7 616 236 kB y `MemAvailable` de 2.86 a 3.05 GB antes de cada corrida.
 - Configuración de cada análisis:
@@ -127,7 +127,7 @@ Los registros completos son los `.jsonl` de [`bench/`](bench/). También se emit
 
 ## Conclusión
 
-- `[FACT]` En GPU, el Galaxy A54 cumple los tres umbrales del resultado esperado: JSON 10/10, TTFT < 3 s en 10/10 y ningún OOM. En CPU, el TTFT queda bajo 3 s en 9 de 10 (el mensaje 8 tardó 3.80 s).
+- `[FACT]` En GPU, el teléfono cumple los tres umbrales del resultado esperado: JSON 10/10, TTFT < 3 s en 10/10 y ningún OOM. En CPU, el TTFT queda bajo 3 s en 9 de 10 (el mensaje 8 tardó 3.80 s).
 - `[FACT]` La decodificación (~9–10 tok/s) y el análisis completo (6–9 s en GPU) quedaron por debajo de la hipótesis previa (12–20 tok/s; 4–7 s).
 - `[INFERENCE]` El spike queda en verde, con el riesgo de latencia del amarillo.
 - `[RECOMMENDATION]` Si se abre P7:
@@ -144,7 +144,7 @@ P7: ver la sección siguiente. CP-7 no está firmado.
 
 ## P7 en la app (12 oct)
 
-**REAL:** Galaxy A54 (SM-A546E), con la app de debug y la clase de la app `AndroidGuardPayAI`, no el harness del spike. Los mensajes son **SIMULATED**. El prompt, el sampler y el modelo son los del spike.
+**REAL:** en el teléfono, con la app de debug y la clase de la app `AndroidGuardPayAI`, no el harness del spike. Los mensajes son **SIMULATED**. El prompt, el sampler y el modelo son los del spike.
 
 ### Lecturas (`GemmaOnDeviceTest`)
 
@@ -190,7 +190,7 @@ Archivos:
 
 ### Conclusión de P7
 
-- `[FACT]` Se cumple la aceptación de P7 en el A54: con el motor cargado, una estafa muestra señales en 7,5–8,2 s en pantalla, y `analyzeMessage` tarda menos de 10 s en 34/34 lecturas.
+- `[FACT]` Se cumple la aceptación de P7 en el teléfono: con el motor cargado, una estafa muestra señales en 7,5–8,2 s en pantalla, y `analyzeMessage` tarda menos de 10 s en 34/34 lecturas.
 - `[FACT]` La primera lectura después de abrir Pagar puede tardar unos 40–50 s si el motor no terminó de cargar. Pagar nunca espera a la IA.
 - `[FACT]` Hubo un falso positivo en 3 controles. La muestra es chica y de un solo teléfono, así que no mide la tasa real de falsos positivos.
 - `[RECOMMENDATION]` En la demo, abrir Pagar y pegar el mensaje unos 45 s antes de tocar "Revisar el mensaje".
