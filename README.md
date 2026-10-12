@@ -285,6 +285,8 @@ APK de depuración, que queda en `app/android/build/outputs/apk/debug/`:
 ./gradlew :app:android:assembleDebug
 ```
 
+El APK de debug ya armado está en [`downloads/android-debug.apk`](downloads/android-debug.apk). El commit del que salió y su SHA-256 están en [`downloads/README.md`](downloads/README.md).
+
 Pruebas de los contratos:
 
 ```bash
