@@ -1,6 +1,32 @@
 # Deploy en testnet
 
-Red: Test SDF Network ; September 2015. Sin mainnet. Hay dos releases. Las cuentas no tienen `upgrade`, así que cada cuenta queda con la política con la que se desplegó.
+Red: Test SDF Network ; September 2015. Sin mainnet. Hay tres releases. Las cuentas no tienen `upgrade`, así que cada cuenta queda con la política y el registro con los que se desplegó.
+
+## Release B-2 (13 oct 2026)
+
+| | |
+| --- | --- |
+| Etiqueta | **REAL** (testnet; hash de la salida del test, consultado después con `getTransaction` en el RPC: `SUCCESS`) |
+| Fecha | 2026-10-13, 11:11 hora local (17:11:37 UTC), ledger 5177582 |
+| Origen del wasm | Artefacto `wasm` de [`ci.yml`](../../.github/workflows/ci.yml), corrida 38435932911, sobre `main` en `e3e8b4b` |
+| Comando | `./gradlew :app:shared:testDebugUnitTest -PliveTestnet -Pgp.wasmDir=<artefacto> --tests "*RegistryReleaseLiveTest"` |
+
+B-2 cambia solo `hold_registry`: un índice de retenciones activas en lugar de recorrer todos los registros ([F-02](../../AUDIT_REPORT.md#f-02), [`registry-cost.md`](registry-cost.md)). `account` y `guardian_hold` no cambiaron y tienen el mismo sha256 que en la release F-01, así que la política compartida sigue siendo `CBTIF2BF…FMW`. Cada cuenta despliega su propio registro, así que no hace falta desplegar nada compartido.
+
+`RegistryReleaseLiveTest` compara `hold_registry.wasm` con el `wasm.sha256` del artefacto y lo sube desde una cuenta desechable fondeada con FriendBot (clave en memoria, nunca impresa). No despliega nada.
+
+| Contrato | sha256 | Tamaño |
+| --- | --- | --- |
+| `hold_registry.wasm` | `6db027bcba999fe9ad4268bc55c8266e1a1c80a97e0a60ef10416b201988ffd4` | 12144 B |
+
+| Paso | Hash | Ledger |
+| --- | --- | --- |
+| Upload de `hold_registry` | `057bfb48b9ecb0b88f295d47534c1698e0d8e57804e67b7df91add168d7a1a35` | 5177582 |
+
+- [FACT] `TestnetProvisioner.HOLD_REGISTRY_WASM` es ahora `6db027bc…`. `GUARDIAN_HOLD` y `ACCOUNT_WASM` no cambian. Lo usan `KmpStellarGatewayLiveTest`, `DeviceProvisioningLiveTest` y `DemoTerminal`.
+- [FACT] El ciclo completo se corrió con una cuenta nueva y este registro: [`gateway-live.md`, corrida 7](gateway-live.md#corrida-7-registro-con-índice-b-2-13-oct). `getLedgerEntries` sobre la instancia de su registro `CABOICPT…` devuelve el ejecutable `6db027bc…`, no `a57f01b7…`.
+- [FACT] El teléfono (dueña) y el emulador (guardián) pasaron a la cuenta nueva `CDHRWCRP…`, con este registro: [`two-devices-b2.md`](../demo/two-devices-b2.md).
+- [FACT] Las cuentas anteriores siguen con su registro: `CB4PUYVY…`, `CA6VCI3O…` y las de F-01 con `a57f01b7…`; `CDBJMS…`, `CC6FFXGG…`, `CDWPPT…` y `CA5Z7J…` con el del 6 oct.
 
 ## Release F-01 (12 oct 2026)
 
@@ -42,7 +68,7 @@ Red: Test SDF Network ; September 2015. Sin mainnet. Hay dos releases. Las cuent
 - [FACT] `TestnetProvisioner` usa desde ahora esta política y estos wasm (`GUARDIAN_HOLD`, `ACCOUNT_WASM`, `HOLD_REGISTRY_WASM`). Lo usan `KmpStellarGatewayLiveTest`, `DeviceProvisioningLiveTest` y `DemoTerminal`.
 - [FACT] El ciclo completo con F-01 se corrió contra esta política: [`gateway-live.md`, corrida 6](gateway-live.md#corrida-6-política-f-01-12-oct).
 - [FACT] Siguen con la política anterior `CCGIEMIU…`: la cuenta publicada `CDBJMS…`, la de ataques `CC6FFXGG…`, la del emulador `CDWPPT…` y la de dos dispositivos `CA5Z7J…`.
-- [FACT] 13 oct: `DeviceProvisioningLiveTest` creó `CB4PUYVY…` con esta política, con la dueña en el teléfono y el guardián en el emulador. Los dos dispositivos apuntan ahora a esa cuenta: [`two-devices-f01.md`](../demo/two-devices-f01.md).
+- [FACT] 13 oct: `DeviceProvisioningLiveTest` creó `CB4PUYVY…` con esta política, con la dueña en el teléfono y el guardián en el emulador. Los dos dispositivos apuntaron a esa cuenta hasta la release B-2: [`two-devices-f01.md`](../demo/two-devices-f01.md).
 
 ## Release del 6 oct (política anterior a F-01)
 

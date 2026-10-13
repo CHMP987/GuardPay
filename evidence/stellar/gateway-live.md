@@ -164,3 +164,69 @@ shape     contextRuleCount=1, signers=[dueña], policies=[CBTIF2BF…FMW]
 - [FACT] El caso probado es el de sobre el tope. Con la política del 6 oct, ese envío se rechazaba aun con el hold madurado ([F-01](../../AUDIT_REPORT.md#f-01)). Esta corrida es la primera en testnet con la política corregida.
 - No corrido en testnet: una retención a un contacto dentro del tope.
 - [FACT] En cada hold, `readyAt − createdAt = 120` s.
+
+## Corrida 7: registro con índice B-2 (13 oct)
+
+| | |
+| --- | --- |
+| Etiqueta | **REAL** (testnet, salida literal) |
+| Fecha | 2026-10-13, 11:13–11:17 hora local (17:13:47–17:17:37 UTC), ledgers 5177608–5177654, 1 test, 0 fallos |
+| Contratos | `guardian_hold` es `CBTIF2BF…FMW`, el mismo de la corrida 6. El registro sale del wasm `6db027bc…` de la [release B-2](deployment.md#release-b-2-13-oct-2026) (el índice de [F-02](../../AUDIT_REPORT.md#f-02)). La cuenta y el registro son nuevos, de esta corrida. |
+| Comando | `./gradlew :app:shared:testDebugUnitTest -PliveTestnet --tests "*KmpStellarGatewayLiveTest"` |
+
+```
+account   CA3JTEZJMM6T2SCQ4G5NGP32MQTHNJQENQKAJR4VZ4BHFWHVCXY3ET37
+registry  CABOICPTT56X4HTKRBANLIQKZ4DVNOZJSDADG34FZGZC7LBXEE62CQ4G
+usdc      CCY7MRGWI5YBXTTAPXMJ6FLYCSTXJ3T76KRFVQHRKKNAJRJ6LD3UATRH   (SAC de prueba)
+shape     contextRuleCount=1, signers=[dueña], policies=[CBTIF2BF…FMW]
+```
+
+| Caso | Resultado | Hash |
+| --- | --- | --- |
+| La dueña transfiere 10 a un contacto | Confirmed | `0b353e9431e950c9c5148d3792259f61ab680923bf7a2528ed63c599c5cb10b9` |
+| GH-01: el atacante firma por el gateway | `Rejected(code=3016)` en la simulación | — |
+| GH-01: mapa de firmantes vacío, a la red | FAILED | `65e8073f0499741fc2b10cd1bdbbab83083f3ce1ad45d26f3706dec804a9fdc1` |
+| La dueña encola 150 a un destino nuevo (hold 0) | Confirmed | `7e2db4e6acff83f880447fa83bccc66d5a4aed2b26569a08426738dd7287290f` |
+| La dueña encola 60 a un destino nuevo (hold 1) | Confirmed | `aa955ec238cf557698b8ca7c71e2b986d0b675473571bf74b81429c33f705543` |
+| La dueña encola 60 al contacto, más de lo que queda del tope (40) (hold 2, F-01) | Confirmed | `6f4e1f3c14188cf4466d67a719ad2817706bc0e9f0cba726718063a120fde1db` |
+| `transfer` del hold 0 antes de madurar | `Rejected(code=7)` en la simulación | — |
+| F-01: `transfer` de 60 al contacto antes de que madure el hold 2 | `Rejected(code=7)` en la simulación | — |
+| La dueña intenta `cancel` | Rejected en la simulación | — |
+| El guardián cancela el hold 1 | Confirmed | `c23e8ae4f4991048659a8689a95e0e5c3d4c5e436b81b0ddfa1ec6c9fc87099b` |
+| GH-24: `transfer` sin firma de la dueña, a la red | FAILED | `ee5ebdf2f5d40d30c509fde7a59ae6eeb37e91d38c03db134e3cbbb9b84b195d` |
+| GH-24: `transfer` con firma del atacante, a la red | FAILED | `52b307d6f709588325dd19cac566dbe05d3b3706faecd02a2da89f65ab631935` |
+| La dueña envía el hold 0 madurado | Confirmed | `27916736a5fd332fcc55f8ac83d777684e3af61b9ec0a8487a8ecdf6af13e638` |
+| F-01: la dueña envía el hold 2 madurado al contacto | Confirmed | `c74a77513f4589f70a02032f92947a3cfd15e3876c40fb258d04c3b50813acd1` |
+| `transfer` del hold 1 ya detenido | `Rejected(code=3)` en la simulación | — |
+
+- [FACT] Los hashes se tomaron de la salida del test. Después se consultaron con `getTransaction` en el RPC: los Confirmed dan `SUCCESS` y los tres a la red de GH-01/GH-24 dan `FAILED`.
+- [FACT] El test pasó, así que se cumplieron sus lecturas finales: estados `[Executed, Cancelled, Executed]`, gasto del día 10, saldo de la cuenta 280 y saldo del contacto 70. Son los mismos resultados que en la corrida 6, con el registro anterior.
+- [FACT] Lectura del registro `CABOICPT…` con `getLedgerEntries` después de la corrida:
+  - la instancia tiene el ejecutable `6db027bc…`;
+  - `Hold(cuenta, 0)` existe (los registros se conservan);
+  - `RetainedIds(cuenta)` es un vector vacío, porque las tres retenciones terminaron;
+  - no hay entrada `Active` para los holds 0 y 2: se borraron al enviarse.
+- [FACT] En cada hold, `readyAt − createdAt = 120` s.
+- Una cuenta con cientos de registros se corrió después, en la corrida 8.
+
+## Corrida 8: escala, 400 registros (13 oct)
+
+| | |
+| --- | --- |
+| Etiqueta | **REAL** (testnet, salida literal) |
+| Fecha | 2026-10-13, 20:22:02–22:03:17 UTC, ledgers 5179867–5181082, 1 test, 0 fallos, 6 114 s |
+| Contratos | `guardian_hold` es `CBTIF2BF…FMW`. Registro nuevo del wasm `6db027bc…` (release B-2). |
+| Comando | `./gradlew :app:shared:testDebugUnitTest -PliveTestnet --tests "*RegistryScaleLiveTest"` |
+
+```
+account   CBRFYHU6CM2XVFPIQ6VATN2F24LK737II6YGDEJ6ZFILCSFQHGTKK44Z
+registry  CAYBBDVW7FVDMQXQ6O43353NOMWA3LGIGBQINUMW24MVWQ6AZ2NXBDCW
+usdc      CDXTXNBPCWJWHXC5NFCHX2G6JMKVWIM45YN7JCXTWHF47PBW6TJ4MLOO   (SAC de prueba)
+```
+
+`RegistryScaleLiveTest` usa el gateway de la app con claves desechables. La dueña encola 400 retenciones de 1 a un desconocido y el guardián cancela cada una. Después, con esos registros detrás, corren un pago a un contacto, dos `queue`, un `cancel` y la liberación madurada de 150.
+
+- [FACT] Todas las transacciones dieron `Confirmed`. Los recursos de cada una, con sus hashes, están en [`registry-cost.md`](registry-cost.md#resultado-en-testnet-con-400-registros-13-oct).
+- [FACT] Con 400 registros, el footprint de `queue` sigue en 15 entradas y el de la liberación en 18, igual que con 0.
+- [FACT] Al final, los dos últimos holds son `[Cancelled, Executed]`, el desconocido tiene 150 y la cuenta 330.
+- [FACT] La prueba imprime también los límites de Soroban de la red (`ConfigSetting`); están en `registry-cost.md`.

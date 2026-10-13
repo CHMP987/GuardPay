@@ -53,7 +53,7 @@ Especialmente relevante:
 Los hallazgos abiertos están en [`AUDIT_REPORT.md`](AUDIT_REPORT.md#3-hallazgos), y las limitaciones aceptadas en [`README.md`](README.md#limitaciones-conocidas). Entre ellos:
 
 - F-01: una retención a un contacto de confianza no se liberaba por el registro. Está corregido en el código y la política nueva está en testnet desde el 12 oct, pero las cuentas creadas antes (la publicada y la de ataques) mantienen la política anterior. El teléfono y el emulador se reprovisionaron con la política nueva el 13 oct, y desde ellos una retención a un contacto se envió al madurar sin gastar tope.
-- F-02: el registro desplegado recorre todos sus registros en cada operación, y pasa el límite de 400 entradas hacia los 390 registros. El código ya usa un índice, pero ese registro no está desplegado.
+- F-02: en las cuentas creadas antes del 13 oct, el registro recorre todos sus registros en cada operación y pasa el límite de 400 entradas hacia los 390 registros. Las cuentas nuevas usan desde el 13 oct un registro con índice (release B-2), probado en testnet con 400 registros por cuenta.
 - F-04: el guardián no se puede cambiar y no hay recuperación de cuenta.
 - F-16: el diálogo de firma no muestra destino ni monto.
 

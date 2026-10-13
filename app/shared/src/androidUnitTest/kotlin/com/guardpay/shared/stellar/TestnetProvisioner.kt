@@ -61,13 +61,26 @@ internal class TestnetProvisioner(
      */
     suspend fun uploadRelease(wasm: Map<String, ByteArray>): Release {
         val source = KeyPair.random()
+        val ids = upload(source, wasm)
+        val policy = deploy("guardian_hold", source, ids.getValue("guardian_hold.wasm"), emptyList())
+        return Release(ids, policy, hashes.toList())
+    }
+
+    /**
+     * Uploads wasm without deploying anything, for a release that changes only a
+     * contract each account deploys for itself (the registry). Returns file name to
+     * wasm id, and the upload hashes in [uploadHashes].
+     */
+    suspend fun uploadOnly(wasm: Map<String, ByteArray>): Map<String, String> = upload(KeyPair.random(), wasm)
+
+    val uploadHashes: List<Pair<String, String>> get() = hashes.toList()
+
+    private suspend fun upload(source: KeyPair, wasm: Map<String, ByteArray>): Map<String, String> {
         fund(source.getAccountId())
-        val ids = wasm.mapValues { (name, bytes) ->
+        return wasm.mapValues { (name, bytes) ->
             run("upload $name", source, InvokeHostFunctionOperation.uploadContractWasm(bytes))
             sha256Hex(bytes)
         }
-        val policy = deploy("guardian_hold", source, ids.getValue("guardian_hold.wasm"), emptyList())
-        return Release(ids, policy, hashes.toList())
     }
 
     suspend fun provision(owner: String, guardian: String, contacts: Int = 1, strangers: Int = 1): Provisioned {
@@ -142,7 +155,9 @@ internal class TestnetProvisioner(
         // guardian_hold CCGIEMIU…, account 986956cc…, hold_registry 031173c2….
         const val GUARDIAN_HOLD = "CBTIF2BF7YGCR6OT7TQMHGGMY6BVHKPOAJV5BYZQ2P3IWKSEXYHLWFMW"
         const val ACCOUNT_WASM = "d60dd1d299a98f886ad48027dd0499aaee07742fb7dd7051ada355e852cf40f9"
-        const val HOLD_REGISTRY_WASM = "a57f01b70e0583fb7abf8ff30ce4414094dd08c27c53349ad8c89bb0438f93d0"
+        // The indexed registry (B-2), from RegistryReleaseLiveTest with CI run 38435932911.
+        // The F-01 registry was a57f01b7…, which scans every record.
+        const val HOLD_REGISTRY_WASM = "6db027bcba999fe9ad4268bc55c8266e1a1c80a97e0a60ef10416b201988ffd4"
         const val UNIT = 10_000_000L // 7 decimals, like USDC on Stellar
         const val DAILY_CAP = 50 * UNIT
         const val FUNDING = 500 * UNIT

@@ -1,0 +1,12 @@
+Revisa tu pago
+Destino
+Mamá
+Monto
+60 USDC
+Activo
+USDC
+Carril
+Con espera
+Esperará en el contrato hasta las 16:44. Diego podrá detenerlo. Después tendrás que firmar otra vez para enviarlo.
+Firmar y retener
+Cambiar

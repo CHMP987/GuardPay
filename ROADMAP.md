@@ -89,7 +89,7 @@ Criterios de aceptación:
 - `SimulatedStellarGateway` se comporta igual que el contrato en esos casos, con una prueba que lo compare.
 - Si cambia el contrato, las cuentas desplegadas se redespliegan en testnet y la evidencia se actualiza.
 
-Estado (12 oct 2026, rama `fix-f01`): los cuatro primeros criterios están cumplidos en el código. Ver la corrección en [F-01](AUDIT_REPORT.md#f-01-correccion). El último está cumplido en parte (12 oct): el CI compiló el wasm, la política nueva `CBTIF2BF…` está en testnet, una cuenta nueva corrió el ciclo con F-01 y `evidence/stellar/deployment.md` está actualizado. El 13 oct se reprovisionaron el teléfono (dueña) y el emulador (guardián) con una cuenta nueva con F-01 (`evidence/demo/two-devices-f01.md`). Desde ellos, una retención de 10 a un contacto (dentro del tope) salió al madurar sin gastar tope. El caso sobre el tope desde la app no se corrió. Con la corrección, todo `transfer` de USDC recorre el registro, lo que hace más urgente B-2.
+Estado (12 oct 2026, rama `fix-f01`): los cuatro primeros criterios están cumplidos en el código. Ver la corrección en [F-01](AUDIT_REPORT.md#f-01-correccion). El último está cumplido en parte (12 oct): el CI compiló el wasm, la política nueva `CBTIF2BF…` está en testnet, una cuenta nueva corrió el ciclo con F-01 y `evidence/stellar/deployment.md` está actualizado. El 13 oct se reprovisionaron el teléfono (dueña) y el emulador (guardián) con una cuenta nueva con F-01 (`evidence/demo/two-devices-f01.md`). Desde ellos, una retención de 10 a un contacto (dentro del tope) salió al madurar sin gastar tope. El 13 oct, con la cuenta del registro B-2, el caso sobre el tope también corrió desde la app: 60 USDC retenidos, madurados y enviados, y el registro quedó `Executed` ([`two-devices-b2.md`](evidence/demo/two-devices-b2.md)). Con la corrección, todo `transfer` de USDC recorre el registro, lo que hace más urgente B-2.
 
 ### B-2 · Medir y acotar el recorrido lineal del registro (F-02)
 
@@ -105,7 +105,18 @@ Estado (13 oct 2026, rama `registry-cost`): los tres criterios están cumplidos 
 - El registro usa ahora un índice de retenciones activas, y el costo ya no crece con los registros.
 - `hold_registry` tiene 10 pruebas propias.
 
-Falta el despliegue: subir el wasm nuevo del registro, cambiar `TestnetProvisioner.HOLD_REGISTRY_WASM` y provisionar cuentas nuevas. Las cuentas actuales mantienen el registro anterior.
+Despliegue (13 oct 2026, rama `registry-deploy`): hecho.
+
+- El wasm del registro nuevo (CI 38435932911) se midió: las entradas quedan fijas entre 0 y 500 registros.
+- Se subió a testnet, y `TestnetProvisioner.HOLD_REGISTRY_WASM` apunta a él ([`deployment.md`, release B-2](evidence/stellar/deployment.md#release-b-2-13-oct-2026)).
+- Una cuenta nueva corrió el ciclo completo con él, y el teléfono y el emulador pasaron a otra cuenta nueva.
+
+Cierre (13 oct 2026): hecho.
+
+- Los límites reales de testnet y una cuenta con 400 retenciones terminadas están en [`registry-cost.md`](evidence/stellar/registry-cost.md#resultado-en-testnet-con-400-registros-13-oct): pagar, retener, detener y liberar siguen costando lo mismo que con 0.
+- Desde el teléfono y el emulador, con la cuenta nueva: una retención detenida por el guardián y una sobre el tope enviada al madurar ([`two-devices-b2.md`](evidence/demo/two-devices-b2.md)).
+
+Las cuentas creadas antes mantienen el registro anterior, porque no tienen `upgrade`.
 
 ### B-3 · Cambio de guardián y recuperación (F-04)
 
@@ -162,6 +173,8 @@ Criterios de aceptación:
 - `docs/DEPENDENCIES.md` cita las versiones actuales.
 - El comentario de `GuardPayAI.kt` nombra la tarea correcta.
 - `AGENTS.md` se revisa o se marca como histórico.
+
+Estado (13 oct 2026, PR #25): hecho. Los cuatro criterios están cumplidos; ver la corrección en [F-12](AUDIT_REPORT.md#f-12).
 
 ### B-11 · Cobertura en hardware y plataformas
 
