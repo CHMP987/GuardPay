@@ -1,0 +1,4 @@
+¿Detienes este pago?
+¿Detienes este pago de 20 USDC? Laura no podrá enviarlo. Si de verdad quiere pagar, tendrá que crear uno nuevo y esperar otra vez. Esto no se puede deshacer.
+Detener el pago
+Volver

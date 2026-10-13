@@ -41,7 +41,7 @@ Hallazgos principales:
 | ID | Severidad | Título | Estado |
 | --- | --- | --- | --- |
 | [F-01](#f-01) | ALTA | Un pago retenido a un contacto de confianza nunca se libera por el registro | Corregido en el código (rama `fix-f01`). Política nueva desplegada en testnet el 12 oct y probada con una cuenta nueva; las cuentas anteriores siguen con la política vieja |
-| [F-02](#f-02) | ALTA | El registro recorre todos los registros de la cuenta en cada `queue` y cada liberación | Medido el 13 oct: pasa el límite de 400 entradas hacia los 390 registros. Corregido con un índice y desplegado en testnet el 13 oct (release B-2) para las cuentas nuevas; las anteriores siguen con el registro que recorre |
+| [F-02](#f-02) | ALTA | El registro recorre todos los registros de la cuenta en cada `queue` y cada liberación | Medido el 13 oct: pasa el límite de 400 entradas hacia los 390 registros. Corregido con un índice y desplegado en testnet el 13 oct (release B-2) para las cuentas nuevas; probado con 400 registros y desde los dos dispositivos. Las anteriores siguen con el registro que recorre |
 | [F-03](#f-03) | MEDIA | La simulación libera retenciones a contactos que el contrato rechaza | Corregido junto con F-01 (rama `fix-f01`) |
 | [F-04](#f-04) | MEDIA | Un solo guardián fijo, sin cambio ni recuperación | Documentado en el repositorio |
 | [F-05](#f-05) | MEDIA | Contratos sin auditoría profesional y OpenZeppelin fijado a un pre-release | Documentado en el repositorio |
@@ -118,7 +118,7 @@ Cada hallazgo indica su estado de verificación y su confianza. Los hallazgos BA
 - [FACT] Redespliegue (12 oct, REAL): el job `wasm` del CI construyó el wasm (`guardian_hold.wasm` `ceec440a…be34`) y se desplegó la política `CBTIF2BF7YGCR6OT7TQMHGGMY6BVHKPOAJV5BYZQ2P3IWKSEXYHLWFMW` (`evidence/stellar/deployment.md`, release F-01). `KmpStellarGatewayLiveTest` corrió el ciclo con una cuenta nueva: retuvo 60 para un contacto cuando quedaban 40 de tope; el envío antes de madurar dio `Rejected(code=7)`, y después de madurar salió (`ab668c03…6e57`) y quedó `Executed` sin gastar tope (`evidence/stellar/gateway-live.md`, corrida 6).
 - [FACT] Reprovisión (13 oct, REAL): el teléfono (dueña) y el emulador (guardián) apuntan a la cuenta nueva `CB4PUYVY…`, con `CBTIF2BF…` (`evidence/demo/two-devices-f01.md`). `CDWPPT…` y `CA5Z7J…` siguen en testnet con `CCGIEMIU…`, pero ningún dispositivo las usa.
 - [FACT] Caso dentro del tope en testnet (13 oct, REAL), desde la app: el teléfono retuvo 10 USDC a un contacto (`14782c60…6d12`), el guardián en el emulador no lo detuvo, y al madurar la dueña lo envió (`ed8d5531…22bd`). El tope siguió en 50 y el guardián pasó a ver "Enviado" (`evidence/demo/two-devices-f01.md`).
-- No corrido: el caso sobre el tope desde la app, y leer el registro por RPC fuera de la app después del envío.
+- [FACT] Caso sobre el tope en testnet (13 oct, REAL), desde la app, con la cuenta `CDHRWCRP…` (registro B-2): el teléfono pagó 60 USDC a un contacto cuando quedaban 50 de tope, el pago quedó retenido (`0c63af5b…eb5c`), el guardián no lo detuvo y al madurar la dueña lo envió (`4c234fad…5e18`). Leído por RPC fuera de la app, el registro queda `Executed` y sin entrada activa (`evidence/demo/two-devices-b2.md`).
 
 <a id="f-02"></a>
 ### F-02 · El registro recorre todos los registros de la cuenta en cada `queue` y cada liberación
@@ -127,7 +127,7 @@ Cada hallazgo indica su estado de verificación y su confianza. Los hallazgos BA
 | --- | --- |
 | Categoría | Disponibilidad / límites de recursos |
 | Severidad | ALTA |
-| Estado | Medido en el entorno de pruebas local (13 oct 2026). **Corregido** ([ver abajo](#f-02-correccion)) y desplegado en testnet para las cuentas nuevas (release B-2, 13 oct). Las cuentas anteriores siguen con el registro que recorre. |
+| Estado | Medido en el entorno de pruebas local (13 oct 2026). **Corregido** ([ver abajo](#f-02-correccion)) y desplegado en testnet para las cuentas nuevas (release B-2, 13 oct). Probado en testnet con 400 registros y desde la app en dos dispositivos (13 oct). Las cuentas anteriores siguen con el registro que recorre. |
 | Confianza | Media |
 | Dependencias | Riesgo R6 del plan (recursos dentro de `__check_auth`) |
 
@@ -159,9 +159,8 @@ Cada hallazgo indica su estado de verificación y su confianza. Los hallazgos BA
 - [FACT] Despliegue (REAL, testnet, 13 oct): el wasm `6db027bc…` se subió en `057bfb48…1a35` y `TestnetProvisioner.HOLD_REGISTRY_WASM` apunta a él. La política y la cuenta no cambiaron.
   - Una cuenta nueva corrió el ciclo completo con ese registro ([`gateway-live.md`, corrida 7](evidence/stellar/gateway-live.md#corrida-7-registro-con-índice-b-2-13-oct)).
   - El teléfono (dueña) y el emulador (guardián) apuntan a la cuenta nueva `CDHRWCRP…` ([`two-devices-b2.md`](evidence/demo/two-devices-b2.md)).
-- No corrido:
-  - la lectura de los límites reales de testnet;
-  - una transacción en testnet con cientos de registros.
+- [FACT] Límites reales de testnet (REAL, 13 oct, ledger 5179805, `getLedgerEntries` de las `ConfigSetting`): 400 M instrucciones, 400 entradas de footprint, 200 lecturas y 200 escrituras de disco por transacción. Son los mismos que usó la medición local.
+- [FACT] Escala en testnet (REAL, 13 oct, `RegistryScaleLiveTest`): una cuenta nueva con el registro B-2 acumuló 400 retenciones detenidas por el guardián y siguió operando. Con 400 registros detrás, el pago a contacto, `queue`, `cancel` y una liberación madurada entraron con el mismo footprint que con 0: 15, 15, 6 y 18 entradas de 400 ([`registry-cost.md`](evidence/stellar/registry-cost.md#resultado-en-testnet-con-400-registros-13-oct), [`gateway-live.md`, corrida 8](evidence/stellar/gateway-live.md#corrida-8-escala-400-registros-13-oct)).
 - [FACT] Las cuentas creadas antes de la release B-2 siguen con el registro anterior y mantienen el límite, porque no tienen `upgrade`: `CB4PUYVY…`, `CA6VCI3O…`, `CA5Z7J…`, `CDWPPT…`, `CDBJMS…` y `CC6FFXGG…`.
 
 <a id="f-03"></a>
@@ -312,7 +311,7 @@ Cada hallazgo indica su estado de verificación y su confianza. Los hallazgos BA
 | --- | --- |
 | Categoría | Documentación |
 | Severidad | BAJA |
-| Estado | Confirmado por lectura |
+| Estado | **Corregido** (B-10, PR #25, 13 oct 2026) |
 | Confianza | Alta |
 
 **Evidencia.**
@@ -325,6 +324,13 @@ Cada hallazgo indica su estado de verificación y su confianza. Los hallazgos BA
 - [UNVERIFIED] `AGENTS.md` parece anterior al estado actual; no se revisó en detalle.
 
 **Recomendación.** [RECOMMENDATION] Actualizar `ESTADO-FASES.md`, `DEPENDENCIES.md` y el comentario en un cambio separado.
+
+**Corrección (13 oct 2026, B-10, PR #25).**
+
+- [FACT] `docs/ESTADO-FASES.md`, fila P7: dice que la descarga desde cero se probó el 12 oct; la batería sigue sin medir.
+- [FACT] `docs/DEPENDENCIES.md` tiene una medición del 13 oct y una tabla con los pines actuales.
+- [FACT] El comentario de `GuardPayAI.kt` nombra `checkDependencyGraph`.
+- [FACT] `AGENTS.md` lleva una nota de documento histórico y sus comandos se corrigieron.
 
 <a id="f-13"></a>
 ### F-13 · `hold_registry` no tiene pruebas propias
@@ -438,6 +444,7 @@ Entorno: Windows 11, cargo 1.98.0, Gradle 8.14.3 (wrapper), JDK 17.
 | B-2: `registry_cost` con el wasm desplegado y con `GP_REGISTRY=source` | 33 filas cada una; ver `evidence/stellar/registry-cost.md` | REAL, entorno local, 13 oct 2026 |
 | B-2: `registry_cost` con el wasm del registro nuevo (CI 38435932911) | 33 filas, todas dentro de los límites; entradas fijas entre 0 y 500 registros | REAL, entorno local, 13 oct 2026 |
 | B-2: `RegistryReleaseLiveTest`, `KmpStellarGatewayLiveTest` y `DeviceProvisioningLiveTest` con `-PliveTestnet` | Upload del registro, corrida 7 (1 test, 0 fallos) y cuenta de los dispositivos; ver `deployment.md`, `gateway-live.md` y `two-devices-b2.md` | REAL, testnet, 13 oct 2026 |
+| B-2: `RegistryScaleLiveTest` con `-PliveTestnet` (400 registros) | 1 test, 0 fallos, 6 114 s; footprint fijo entre 0 y 400 registros | REAL, testnet, 13 oct 2026; ver `registry-cost.md` y `gateway-live.md`, corrida 8 |
 | Corrección F-01: `./gradlew :app:shared:jvmTest --rerun`, `:app:shared:testDebugUnitTest --rerun`, `:app:shared:allTests`, `:app:android:assembleDebug :app:android:compileReleaseKotlin` | Todo `BUILD SUCCESSFUL`. jvmTest: 133, 0 fallos. testDebugUnitTest: 119, 0 fallos. Las cuatro comprobaciones pasaron | REAL, 12 oct 2026; `testReleaseUnitTest` no corrido |
 | Consulta de 5 hashes en Horizon testnet | 5 existen, `successful: true` | REAL, solo lectura |
 
@@ -480,7 +487,7 @@ Comprobados por lectura de código y, cuando se indica, por pruebas que corriero
 | T-08 | Contrato | Un pago detenido no sale | IMPLEMENTADA Y VERIFICADA | `evidence/demo/scene-4.md` | `cargo test`; Horizon (cola) | El `transfer` fallido no se consultó |
 | T-09 | Contrato | `ready_at` lo calcula el registro (120 s) | IMPLEMENTADA Y VERIFICADA | `hold_registry/src/lib.rs:12`, `:124` | `cargo test` | — |
 | T-10 | Contrato | El guardián no puede mover fondos | IMPLEMENTADA Y VERIFICADA | `evidence/demo/scene-5.md`; código | `cargo test` | — |
-| T-11 | Contrato | Escala del registro con muchas retenciones | IMPLEMENTADA Y VERIFICADA (código y testnet, release B-2) | F-02; `evidence/stellar/registry-cost.md` | `registry_cost` (opt-in); `lookups_do_not_grow_with_history`; corrida 7 | Las cuentas anteriores a B-2 siguen recorriendo; sin transacción en testnet con cientos de registros |
+| T-11 | Contrato | Escala del registro con muchas retenciones | IMPLEMENTADA Y VERIFICADA (código y testnet, release B-2) | F-02; `evidence/stellar/registry-cost.md` | `registry_cost` (opt-in); `lookups_do_not_grow_with_history`; corridas 7 y 8 | Las cuentas anteriores a B-2 siguen recorriendo. En testnet se probó hasta 400 registros, no miles |
 | T-12 | Contrato | Cambio de guardián / recuperación | NO ENCONTRADA | F-04 | — | Documentado como limitación |
 | T-13 | Cliente | 9 estados de pago y transiciones | IMPLEMENTADA Y VERIFICADA | `domain/` | `PaymentStateTest` | — |
 | T-14 | Cliente | Predicción de carril | IMPLEMENTADA Y VERIFICADA | `domain/Lane.kt` | `LaneTest` | Informativa; el contrato decide |

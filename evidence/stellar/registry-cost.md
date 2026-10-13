@@ -132,8 +132,57 @@ La tabla muestra entradas de ledger. Las filas 10, 50, 300, 350, 380 y 400 diero
 
 Este wasm se subió a testnet y es el que usan las cuentas nuevas: [`deployment.md`, release B-2](deployment.md#release-b-2-13-oct-2026).
 
-## No corrido
+## Límites reales de testnet (13 oct)
 
-- Los límites reales de testnet. No se leyeron las `ConfigSetting` de la red; los números de arriba son la instantánea del SDK.
-- Una transacción en testnet con muchos registros. En testnet se corrió el ciclo completo con el registro nuevo, con 3 retenciones ([`gateway-live.md`, corrida 7](gateway-live.md#corrida-7-registro-con-índice-b-2-13-oct)).
+| | |
+| --- | --- |
+| Etiqueta | **REAL**: `getLedgerEntries` de las `ConfigSetting` en el RPC de testnet, ledger 5179805 (13 oct, ~20:16 UTC) |
+| Lectura | `RegistryScaleLiveTest.logNetworkLimits`, que las imprime en cada corrida |
+
+| Límite por transacción | Testnet | Instantánea del SDK usada arriba |
+| --- | ---: | ---: |
+| Instrucciones (`tx_max_instructions`) | 400 000 000 | 400 M |
+| Entradas de footprint (`tx_max_footprint_entries`) | 400 | 400 |
+| Lecturas de disco (`tx_max_disk_read_entries`) | 200 | 200 |
+| Escrituras (`tx_max_write_ledger_entries`) | 200 | 200 |
+| Bytes leídos de disco (`tx_max_disk_read_bytes`) | 200 000 | — |
+| Bytes escritos (`tx_max_write_bytes`) | 132 096 | — |
+| Memoria (`tx_memory_limit`) | 41 943 040 | — |
+| Tamaño de la transacción (`tx_max_size_bytes`) | 132 096 | — |
+
+- [FACT] Los cuatro límites con los que se comparó la medición local son iguales en testnet. El veredicto de arriba (el registro anterior se bloquea hacia los 390 registros; el nuevo, no) vale con los límites reales.
+- [FACT] Por ledger, testnet admite 580 M instrucciones y 1 000 lecturas y escrituras de disco.
+
+## Resultado en testnet con 400 registros (13 oct)
+
+| | |
+| --- | --- |
+| Etiqueta | **REAL**: testnet, `RegistryScaleLiveTest` con `-PliveTestnet` (`gp.records` = 400), claves desechables generadas en la corrida |
+| Fecha | 2026-10-13, 20:22:02–22:03:17 UTC, ledgers 5179867–5181082. La prueba duró 6 114 s |
+| Cuenta | `CBRFYHU6CM2XVFPIQ6VATN2F24LK737II6YGDEJ6ZFILCSFQHGTKK44Z`, registro `CAYBBDVW7FVDMQXQ6O43353NOMWA3LGIGBQINUMW24MVWQ6AZ2NXBDCW` (wasm `6db027bc…` de la release B-2) |
+| Resultado | Pasó |
+
+La prueba hace un pago a un contacto, luego 400 veces `queue` (dueña) más `cancel` (guardián), y después repite cada operación con los 400 registros detrás. Al final, una retención de 150 madura y se libera. Los recursos son los que declaró la transacción que entró (simulación más el margen del gateway, 8 M instrucciones), leídos con `getTransaction`.
+
+| Operación | Registros detrás | Instrucciones | Footprint (ro + rw) | Bytes leídos de disco | Bytes escritos | Hash |
+| --- | ---: | ---: | ---: | ---: | ---: | --- |
+| Pago a contacto | 0 | 10 487 127 | 15 (11 + 4) | 116 | 904 | `db016862…843d` |
+| `queue` | 0 | 10 544 219 | 15 (10 + 5) | 0 | 1 004 | `f5dfb2ca…031e` |
+| `cancel` | 0 | 8 821 750 | 6 (3 + 3) | 0 | 544 | `99255b71…6697` |
+| Pago a contacto | 400 | 10 482 949 | 15 (11 + 4) | 116 | 904 | `27246321…2ac8` |
+| `queue` | 400 | 10 573 406 | 15 (10 + 5) | 0 | 1 004 | `0bfe0e9f…b1dc` |
+| `cancel` | 401 | 8 821 750 | 6 (3 + 3) | 0 | 544 | `03999693…6cfb` |
+| `queue` | 401 | 10 573 406 | 15 (10 + 5) | 0 | 1 004 | `e9b3e7d9…7551` |
+| Liberación madurada | 402 | 11 755 429 | 18 (11 + 7) | 116 | 1 448 | `1ea7f73b…893e` |
+
+Preparación: SAC de prueba `bbcaefee…df2a`, trustlines `c1d276fb…22b9` y `a49e7c1a…59a7`, mint `ed6ddbef…4919`.
+
+- [FACT] Con 400 registros detrás, el footprint, los bytes leídos y los bytes escritos son los mismos que con 0. Las instrucciones de `queue` subieron 29 187 (0,28 %) y las del pago bajaron 4 178.
+- [FACT] El ritmo fue estable: 25 registros cada 333–400 s, del primero al último tramo.
+- [FACT] Tras los 400 ciclos, `readHolds` devolvió 400 registros, todos `Cancelled`. Al final, los dos últimos eran `Cancelled` y `Executed` (la liberación), y los saldos fueron 150 para el desconocido y 330 para la cuenta.
+- [FACT] Las 12 transacciones de la tabla y la preparación devuelven `SUCCESS` en `getTransaction`.
+- [INFERENCE] Con el registro anterior, 400 registros pasan el límite de 400 entradas de footprint (ver arriba, hacia los 390). Con el índice, la cuenta siguió operando sin acercarse al límite: 18 de 400 entradas en la operación más cara.
+- [UNVERIFIED] No se probó con miles de registros. El índice no recorre registros terminados, así que no se espera que cambie; `readHolds` del cliente lee en lotes de 100 claves y su tiempo sí crece con el historial.
+
+## No corrido
 - [FACT] Las cuentas creadas antes de la release B-2 siguen con el registro anterior, `a57f01b7…` o el del 6 oct, y sin `upgrade` no pueden cambiarlo. Siguen expuestas a este límite: `CB4PUYVY…`, `CA6VCI3O…`, `CA5Z7J…`, `CDWPPT…`, `CDBJMS…` y `CC6FFXGG…`.

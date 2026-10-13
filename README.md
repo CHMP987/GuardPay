@@ -182,7 +182,7 @@ Lo pendiente está en [`ROADMAP.md`](ROADMAP.md) y el detalle por fase en [`docs
 - **El guardián no se puede cambiar**, y no hay recuperación de cuenta.
 - **El diálogo de firma no muestra el pago.** El sistema muestra "Firmar en Stellar", pero la clave firma un hash sin ver el destino ni el monto. Eso lo cubren la retención en cadena y la vista del guardián; la clave no lo cubre.
 - **El aviso depende de que el servicio siga vivo.** El teléfono del guardián consulta la red cada 30 s desde un servicio en primer plano. El sistema puede detenerlo por ahorro de batería, restricciones del fabricante, un cierre forzado o el tope de unas 6 h al día de los servicios `dataSync` en Android 15+. Si lo detiene, el aviso llega cuando se abre la app o se toca "Actualizar". Una consulta cada 30 s gasta demasiada batería para producción.
-- **Las cuentas anteriores al 13 oct usan un registro que recorre todos sus registros.** En ellas, cada `queue` y cada `transfer` de USDC lee todos los registros de la cuenta, y en una prueba local se supera el límite de 400 entradas por transacción hacia los 390 registros ([`registry-cost.md`](evidence/stellar/registry-cost.md)). Las cuentas nuevas, entre ellas la de los dispositivos, usan desde el 13 oct un registro con índice cuyo costo no crece. Las anteriores no pueden cambiarlo ([F-02](AUDIT_REPORT.md#f-02)).
+- **Las cuentas anteriores al 13 oct usan un registro que recorre todos sus registros.** En ellas, cada `queue` y cada `transfer` de USDC lee todos los registros de la cuenta, y en una prueba local se supera el límite de 400 entradas por transacción hacia los 390 registros ([`registry-cost.md`](evidence/stellar/registry-cost.md)). Las cuentas nuevas, entre ellas la de los dispositivos, usan desde el 13 oct un registro con índice cuyo costo no crece: en testnet, una cuenta con 400 retenciones terminadas siguió pagando, reteniendo y liberando con el mismo footprint que con 0 ([`registry-cost.md`](evidence/stellar/registry-cost.md#resultado-en-testnet-con-400-registros-13-oct)). Las anteriores no pueden cambiarlo ([F-02](AUDIT_REPORT.md#f-02)).
 - **Los pagos inmediatos no se releen.** Un pago a un contacto queda en la cadena, pero desaparece de "Recientes" si se reinicia la app. Los pagos retenidos sí se vuelven a leer del registro.
 - **Las pruebas cubren poco hardware.** Se probó en un emulador Android (API 37) y en un teléfono. El ciclo retener → esperar → enviar y los casos GH-01 y GH-24 no se repitieron en el teléfono físico. No hubo dos teléfonos físicos.
 - **La demo cronometrada usó dos cuentas.** Las escenas de app y las de terminal corrieron sobre cuentas distintas, y las manejó un guion, no una persona presentando.
@@ -499,7 +499,7 @@ Cada hash pertenece a la cuenta de su columna, y el wasm va con la cuenta.
 - Las escenas de terminal de la demo cronometrada usaron una quinta cuenta desechable, `CBE2VJ37…`.
 - Todas estas cuentas usan la política del 6 oct, `CCGIEMIU…`. La política F-01, `CBTIF2BF…`, la usan solo las cuentas creadas después de la release F-01 (12 oct, 22:25 hora local); la primera es `CA6VCI3O…` ([`gateway-live.md`, corrida 6](evidence/stellar/gateway-live.md#corrida-6-política-f-01-12-oct)).
 - El 13 oct, el teléfono (dueña) y el emulador (guardián) pasaron a la cuenta `CB4PUYVY…`, con la política F-01. Ya ningún dispositivo apunta a `CDWPPTDM…` ni a `CA5Z7JZS…` ([`two-devices-f01.md`](evidence/demo/two-devices-f01.md)).
-- Ese mismo día pasaron a `CDHRWCRP…`, con la misma política y el registro con índice de la release B-2 ([`two-devices-b2.md`](evidence/demo/two-devices-b2.md)). `CB4PUYVY…` queda con el registro anterior.
+- Ese mismo día pasaron a `CDHRWCRP…`, con la misma política y el registro con índice de la release B-2 ([`two-devices-b2.md`](evidence/demo/two-devices-b2.md)). Desde ellos, el guardián detuvo una retención de 20 y la dueña envió 60 sobre el tope al madurar. `CB4PUYVY…` queda con el registro anterior.
 
 </details>
 
@@ -580,7 +580,6 @@ Esto es un resumen. Los criterios de aceptación están en [`ROADMAP.md`](ROADMA
   - hacer entrevistas con usuarios (A-4);
   - conectar el build de release (A-7).
 - **Recomendaciones del auditor (parte B):**
-  - acotar el registro (B-2);
   - cambiar de guardián y recuperar la cuenta (B-3);
   - una auditoría externa (B-4);
   - endurecer el CI (B-8);

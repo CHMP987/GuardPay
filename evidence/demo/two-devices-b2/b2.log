@@ -1,0 +1,15 @@
+22:32:11 UTC owner: waiting for the fingerprint on the phone (hold 20)
+22:32:41 UTC owner: Retenido 20 shown 29.9 s after Firmar y retener (includes the human's fingerprint)
+22:34:16 UTC guardian: notification 20 94.9 s after Retenido showed on the phone
+22:35:00 UTC guardian: PIN entered
+22:41:56 UTC resume: the guardian retries the stop on the Detalle already open
+22:42:43 UTC guardian: PIN entered 25.2 s after Detener el pago
+22:42:56 UTC guardian: Detenido shown 38.3 s after Detener el pago (includes the PIN)
+22:43:04 UTC owner: Detenido shown on the phone 45.5 s after the guardian's Detener el pago
+22:43:43 UTC owner: waiting for the fingerprint on the phone (hold 60)
+22:44:05 UTC owner: Retenido 60 shown 21.3 s after Firmar y retener (includes the human's fingerprint)
+22:44:17 UTC guardian: notification 60 12.6 s after Retenido showed on the phone
+22:44:36 UTC guardian: Detalle open; not stopping it
+22:53:59 UTC resume: the phone shows the matured hold of 60
+22:56:18 UTC owner: Enviado 60 shown on the phone; the human tapped Firmar y enviar and gave the fingerprint by hand (the script lost the screen to another app)
+22:56:18 UTC guardian: Enviado on Detalle

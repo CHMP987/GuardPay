@@ -207,4 +207,26 @@ shape     contextRuleCount=1, signers=[dueña], policies=[CBTIF2BF…FMW]
   - `RetainedIds(cuenta)` es un vector vacío, porque las tres retenciones terminaron;
   - no hay entrada `Active` para los holds 0 y 2: se borraron al enviarse.
 - [FACT] En cada hold, `readyAt − createdAt = 120` s.
-- No corrido en testnet: una cuenta con cientos de registros.
+- Una cuenta con cientos de registros se corrió después, en la corrida 8.
+
+## Corrida 8: escala, 400 registros (13 oct)
+
+| | |
+| --- | --- |
+| Etiqueta | **REAL** (testnet, salida literal) |
+| Fecha | 2026-10-13, 20:22:02–22:03:17 UTC, ledgers 5179867–5181082, 1 test, 0 fallos, 6 114 s |
+| Contratos | `guardian_hold` es `CBTIF2BF…FMW`. Registro nuevo del wasm `6db027bc…` (release B-2). |
+| Comando | `./gradlew :app:shared:testDebugUnitTest -PliveTestnet --tests "*RegistryScaleLiveTest"` |
+
+```
+account   CBRFYHU6CM2XVFPIQ6VATN2F24LK737II6YGDEJ6ZFILCSFQHGTKK44Z
+registry  CAYBBDVW7FVDMQXQ6O43353NOMWA3LGIGBQINUMW24MVWQ6AZ2NXBDCW
+usdc      CDXTXNBPCWJWHXC5NFCHX2G6JMKVWIM45YN7JCXTWHF47PBW6TJ4MLOO   (SAC de prueba)
+```
+
+`RegistryScaleLiveTest` usa el gateway de la app con claves desechables. La dueña encola 400 retenciones de 1 a un desconocido y el guardián cancela cada una. Después, con esos registros detrás, corren un pago a un contacto, dos `queue`, un `cancel` y la liberación madurada de 150.
+
+- [FACT] Todas las transacciones dieron `Confirmed`. Los recursos de cada una, con sus hashes, están en [`registry-cost.md`](registry-cost.md#resultado-en-testnet-con-400-registros-13-oct).
+- [FACT] Con 400 registros, el footprint de `queue` sigue en 15 entradas y el de la liberación en 18, igual que con 0.
+- [FACT] Al final, los dos últimos holds son `[Cancelled, Executed]`, el desconocido tiene 150 y la cuenta 330.
+- [FACT] La prueba imprime también los límites de Soroban de la red (`ConfigSetting`); están en `registry-cost.md`.

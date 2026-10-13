@@ -93,7 +93,8 @@ tasks.withType<Test>().configureEach {
     if (!liveTestnet) exclude("**/*LiveTest*")
     // DeviceProvisioningLiveTest: the phone's public G addresses (from its keys.json).
     // PolicyReleaseLiveTest: gp.wasmDir, the directory of CI's wasm artifact.
-    listOf("gp.owner", "gp.guardian", "gp.wasmDir").forEach { k -> findProperty(k)?.let { systemProperty(k, it) } }
+    // RegistryScaleLiveTest: gp.records, how many finished holds to create (default 400).
+    listOf("gp.owner", "gp.guardian", "gp.wasmDir", "gp.records").forEach { k -> findProperty(k)?.let { systemProperty(k, it) } }
     systemProperty("gp.out", layout.buildDirectory.file("testnet.json").get().asFile.absolutePath)
 }
 
