@@ -52,7 +52,7 @@ Especialmente relevante:
 
 Los hallazgos abiertos están en [`AUDIT_REPORT.md`](AUDIT_REPORT.md#3-hallazgos), y las limitaciones aceptadas en [`README.md`](README.md#limitaciones-conocidas). Entre ellos:
 
-- F-01: una retención a un contacto de confianza no se liberaba por el registro. Está corregido en el código y la política nueva está en testnet desde el 12 oct, pero las cuentas creadas antes (la publicada y la de ataques) mantienen la política anterior. El teléfono y el emulador se reprovisionaron con la política nueva el 13 oct.
+- F-01: una retención a un contacto de confianza no se liberaba por el registro. Está corregido en el código y la política nueva está en testnet desde el 12 oct, pero las cuentas creadas antes (la publicada y la de ataques) mantienen la política anterior. El teléfono y el emulador se reprovisionaron con la política nueva el 13 oct, y desde ellos una retención a un contacto se envió al madurar sin gastar tope.
 - F-02: el registro recorre todos sus registros en cada operación.
 - F-04: el guardián no se puede cambiar y no hay recuperación de cuenta.
 - F-16: el diálogo de firma no muestra destino ni monto.

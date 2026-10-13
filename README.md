@@ -52,7 +52,7 @@
 > [!IMPORTANT]
 > GuardPay es un **MVP que corre solo en Stellar Testnet**, con dinero de prueba. Los contratos **no están auditados**. No es un producto listo para usar con fondos reales.
 >
-> La corrección [F-01](AUDIT_REPORT.md#f-01) (enviar un pago retenido a un contacto de confianza) está desplegada en testnet desde el 12 oct, pero solo la usan las cuentas nuevas. Desde el 13 oct, el teléfono (dueña) y el emulador (guardián) apuntan a una cuenta nueva con F-01, pero el envío de una retención a un contacto todavía no se probó desde ellos. La cuenta publicada y la de ataques siguen con la política anterior.
+> La corrección [F-01](AUDIT_REPORT.md#f-01) (enviar un pago retenido a un contacto de confianza) está desplegada en testnet desde el 12 oct, pero solo la usan las cuentas nuevas. Desde el 13 oct, el teléfono (dueña) y el emulador (guardián) usan una cuenta nueva con F-01, y desde ellos se retuvo y se envió un pago a un contacto dentro del tope ([`two-devices-f01.md`](evidence/demo/two-devices-f01.md)). La cuenta publicada y la de ataques siguen con la política anterior.
 
 <details>
   <summary><b>Contenido</b></summary>
@@ -152,7 +152,7 @@ flowchart TD
 | Tres contratos desplegados (`account`, `guardian_hold`, `hold_registry`) | ✅ | Testnet. Release del 6 oct y release F-01 del 12 oct, con el wasm del CI. Las cuentas creadas antes de la release F-01 siguen con la política del 6 oct. El teléfono y el emulador se reprovisionaron con F-01 el 13 oct. | [`deployment.md`](evidence/stellar/deployment.md) |
 | Pago inmediato a contactos de confianza dentro del tope diario | ✅ | Testnet | [`scene-1.md`](evidence/demo/scene-1.md) |
 | Retención de 120 s para destinos nuevos | ✅ | Testnet | [`scene-2.md`](evidence/demo/scene-2.md) |
-| Retener un pago a un contacto y enviarlo después (sobre el tope, o porque la dueña eligió retenerlo) | 🟡 | Testnet, sobre el tope, con una cuenta desechable de la prueba en vivo. Dentro del tope, solo en los contratos y en la simulación. El teléfono y el emulador ya tienen una cuenta con F-01 (13 oct), pero el caso no se probó desde ellos. | [F-01](AUDIT_REPORT.md#f-01), [`gateway-live.md`, corrida 6](evidence/stellar/gateway-live.md#corrida-6-política-f-01-12-oct) |
+| Retener un pago a un contacto y enviarlo después (sobre el tope, o porque la dueña eligió retenerlo) | ✅ | Testnet. Sobre el tope, con una cuenta desechable de la prueba en vivo. Dentro del tope, desde la app: el teléfono retuvo 10 a un contacto, el guardián en el emulador lo vio, y al madurar salió sin gastar tope. | [F-01](AUDIT_REPORT.md#f-01), [`gateway-live.md`, corrida 6](evidence/stellar/gateway-live.md#corrida-6-política-f-01-12-oct), [`two-devices-f01.md`](evidence/demo/two-devices-f01.md) |
 | El guardián detiene un pago desde el aviso | ✅ | Testnet, entre un teléfono y un emulador | [`scene-3.md`](evidence/demo/scene-3.md), [`two-devices-android.md`](evidence/demo/two-devices-android.md) |
 | El guardián no es firmante y no puede mover fondos | ✅ | Testnet, comprobado en la cadena y con ataques | [`scene-5.md`](evidence/demo/scene-5.md), [`rules-onchain.md`](evidence/smart-account/rules-onchain.md) |
 | El contrato rechaza `approve`, los envíos retenidos sin esperar y los pagos detenidos | ✅ | Testnet | [`full-rehearsal.md`](evidence/demo/full-rehearsal.md), [`bypass-matrix.md`](evidence/security/bypass-matrix.md) |
@@ -177,7 +177,7 @@ Lo pendiente está en [`ROADMAP.md`](ROADMAP.md) y el detalle por fase en [`docs
 
 - **Solo testnet.** El activo es un token de prueba (un SAC emitido por la dueña), no el USDC de Circle. La dueña es la administradora de ese token. `mint` y `clawback` no pasan por la política, y no se ejecutaron con esa clave.
 - **Contratos sin auditar.** OpenZeppelin está fijado a un commit previo a una versión estable (`b40c5ea`), no al tag v0.7.2.
-- **Las cuentas creadas antes de la release F-01 corren la política anterior.** La cuenta publicada, la de ataques y las cuentas anteriores de los dispositivos no pueden enviar un pago retenido a un contacto de confianza ([F-01](AUDIT_REPORT.md#f-01)). Las cuentas no tienen `upgrade`, así que cada dispositivo se reprovisiona con una cuenta nueva. El teléfono y el emulador ya se reprovisionaron el 13 oct ([`two-devices-f01.md`](evidence/demo/two-devices-f01.md)).
+- **Las cuentas creadas antes de la release F-01 corren la política anterior.** La cuenta publicada, la de ataques y las cuentas anteriores de los dispositivos no pueden enviar un pago retenido a un contacto de confianza ([F-01](AUDIT_REPORT.md#f-01)). Las cuentas no tienen `upgrade`, así que cada dispositivo se reprovisiona con una cuenta nueva. El teléfono y el emulador ya se reprovisionaron el 13 oct, y desde ellos una retención a un contacto se envió sin gastar tope ([`two-devices-f01.md`](evidence/demo/two-devices-f01.md)).
 - **Si el guardián no mira, nadie detiene nada.** La espera es fija, de 120 segundos. Un pago retenido que ya maduró no caduca dentro del contrato.
 - **El guardián no se puede cambiar**, y no hay recuperación de cuenta.
 - **El diálogo de firma no muestra el pago.** El sistema muestra "Firmar en Stellar", pero la clave firma un hash sin ver el destino ni el monto. Eso lo cubren la retención en cadena y la vista del guardián; la clave no lo cubre.
@@ -474,7 +474,7 @@ No se demuestra:
 - mainnet;
 - iOS en un dispositivo;
 - la IA en iOS;
-- enviar desde la app en un teléfono una retención a un contacto de confianza, o en testnet una que quepa en el tope ([F-01](AUDIT_REPORT.md#f-01));
+- enviar desde la app una retención a un contacto que supere el tope (en testnet solo con una cuenta desechable, [F-01](AUDIT_REPORT.md#f-01));
 - que el aviso llegue con la app cerrada;
 - que el guardián se pueda cambiar;
 - un vencimiento a los 600 s.
@@ -579,7 +579,6 @@ Esto es un resumen. Los criterios de aceptación están en [`ROADMAP.md`](ROADMA
   - hacer entrevistas con usuarios (A-4);
   - conectar el build de release (A-7).
 - **Recomendaciones del auditor (parte B):**
-  - probar desde el teléfono el envío de una retención a un contacto con la política F-01 (B-1);
   - acotar el registro (B-2);
   - cambiar de guardián y recuperar la cuenta (B-3);
   - una auditoría externa (B-4);
