@@ -99,6 +99,14 @@ Criterios de aceptación:
 - Si el límite de Soroban se alcanza con un uso plausible, el registro deja de recorrer todos los registros (por ejemplo, un índice de retenciones activas).
 - `hold_registry` tiene pruebas unitarias propias (F-13).
 
+Estado (13 oct 2026, rama `registry-cost`): los tres criterios están cumplidos en el código.
+
+- La medición está en [`evidence/stellar/registry-cost.md`](evidence/stellar/registry-cost.md). Con el wasm desplegado, el límite de 400 entradas se supera hacia los 390 registros.
+- El registro usa ahora un índice de retenciones activas, y el costo ya no crece con los registros.
+- `hold_registry` tiene 10 pruebas propias.
+
+Falta el despliegue: subir el wasm nuevo del registro, cambiar `TestnetProvisioner.HOLD_REGISTRY_WASM` y provisionar cuentas nuevas. Las cuentas actuales mantienen el registro anterior.
+
 ### B-3 · Cambio de guardián y recuperación (F-04)
 
 Criterios de aceptación:

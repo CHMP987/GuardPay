@@ -1,5 +1,7 @@
 //! Hold records. This contract never moves tokens.
 //! `ready_at` is `created_at` plus the deploy-time retention, never a caller argument.
+//! Records are never deleted. Lookups go through an index of the retained holds
+//! (F-02), so no call reads more entries as the account's history grows.
 
 #![no_std]
 
@@ -68,6 +70,10 @@ enum DataKey {
     GuardianHold,
     NextId(Address),
     Hold(Address, u64),
+    /// (account, token, destination, amount) -> id of the one retained hold with that binding.
+    Active(Address, Address, Address, i128),
+    /// account -> ids of its retained holds, oldest first.
+    RetainedIds(Address),
 }
 
 #[contracterror]
@@ -112,7 +118,8 @@ impl HoldRegistry {
         if amount <= 0 {
             panic_with_error!(&env, HoldRegistryError::InvalidAmount);
         }
-        if find_retained_id(&env, &account, &token, &destination, amount).is_some() {
+        let active_key = active_key(&account, &token, &destination, amount);
+        if env.storage().persistent().has(&active_key) {
             panic_with_error!(&env, HoldRegistryError::DuplicateActive);
         }
 
@@ -131,6 +138,10 @@ impl HoldRegistry {
             status: HoldStatus::Retained,
         };
         persist(&env, &DataKey::Hold(account.clone(), id), &record);
+        persist(&env, &active_key, &id);
+        let mut retained = retained_ids(&env, &account);
+        retained.push_back(id);
+        persist(&env, &DataKey::RetainedIds(account.clone()), &retained);
 
         Queued {
             account,
@@ -180,26 +191,9 @@ impl HoldRegistry {
         find_retained_id(&env, &account, &token, &destination, amount)
     }
 
-    /// Ids of retained holds for one account. Read only.
+    /// Ids of retained holds for one account, oldest first. Read only.
     pub fn list_retained(env: Env, account: Address) -> Vec<u64> {
-        let next_id: u64 = env
-            .storage()
-            .persistent()
-            .get(&DataKey::NextId(account.clone()))
-            .unwrap_or(0);
-        let mut ids = Vec::new(&env);
-        for id in 0..next_id {
-            if let Some(record) = env
-                .storage()
-                .persistent()
-                .get::<_, HoldRecord>(&DataKey::Hold(account.clone(), id))
-            {
-                if record.status == HoldStatus::Retained {
-                    ids.push_back(id);
-                }
-            }
-        }
-        ids
+        retained_ids(&env, &account)
     }
 }
 
@@ -215,10 +209,34 @@ fn set_terminal(env: &Env, account: &Address, id: u64, status: HoldStatus) {
     if record.status != HoldStatus::Retained {
         panic_with_error!(env, HoldRegistryError::InvalidStatus);
     }
+    env.storage().persistent().remove(&active_key(
+        account,
+        &record.token,
+        &record.destination,
+        record.amount,
+    ));
+    let mut retained = retained_ids(env, account);
+    if let Some(index) = retained.first_index_of(id) {
+        retained.remove(index);
+    }
+    persist(env, &DataKey::RetainedIds(account.clone()), &retained);
     let updated = HoldRecord { status, ..record };
     persist(env, &DataKey::Hold(account.clone(), id), &updated);
 }
 
+fn active_key(account: &Address, token: &Address, destination: &Address, amount: i128) -> DataKey {
+    DataKey::Active(account.clone(), token.clone(), destination.clone(), amount)
+}
+
+fn retained_ids(env: &Env, account: &Address) -> Vec<u64> {
+    env.storage()
+        .persistent()
+        .get(&DataKey::RetainedIds(account.clone()))
+        .unwrap_or_else(|| Vec::new(env))
+}
+
+/// One index read plus the record it names: the cost does not depend on how many
+/// records the account has.
 fn find_retained_id(
     env: &Env,
     account: &Address,
@@ -226,25 +244,21 @@ fn find_retained_id(
     destination: &Address,
     amount: i128,
 ) -> Option<u64> {
-    let next_id: u64 = env
+    let id: u64 = env
         .storage()
         .persistent()
-        .get(&DataKey::NextId(account.clone()))
-        .unwrap_or(0);
-    for id in 0..next_id {
-        if let Some(record) = env
-            .storage()
-            .persistent()
-            .get::<_, HoldRecord>(&DataKey::Hold(account.clone(), id))
-        {
-            if record.status == HoldStatus::Retained
-                && record.token == *token
-                && record.destination == *destination
-                && record.amount == amount
-            {
-                return Some(id);
-            }
-        }
+        .get(&active_key(account, token, destination, amount))?;
+    let record = load_hold(env, account, id);
+    if record.status == HoldStatus::Retained
+        && record.token == *token
+        && record.destination == *destination
+        && record.amount == amount
+    {
+        Some(id)
+    } else {
+        None
     }
-    None
 }
+
+#[cfg(test)]
+mod tests;
