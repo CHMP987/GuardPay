@@ -40,9 +40,9 @@ Hallazgos principales:
 
 | ID | Severidad | Título | Estado |
 | --- | --- | --- | --- |
-| [F-01](#f-01) | ALTA | Un pago retenido a un contacto de confianza nunca se libera por el registro | Confirmado en una copia aislada |
+| [F-01](#f-01) | ALTA | Un pago retenido a un contacto de confianza nunca se libera por el registro | Corregido en el código (rama `fix-f01`); los contratos desplegados en testnet no se han redesplegado |
 | [F-02](#f-02) | ALTA | El registro recorre todos los registros de la cuenta en cada `queue` y cada liberación | Por lectura de código; umbral sin medir |
-| [F-03](#f-03) | MEDIA | La simulación libera retenciones a contactos que el contrato rechaza | Por lectura de código |
+| [F-03](#f-03) | MEDIA | La simulación libera retenciones a contactos que el contrato rechaza | Corregido junto con F-01 (rama `fix-f01`) |
 | [F-04](#f-04) | MEDIA | Un solo guardián fijo, sin cambio ni recuperación | Documentado en el repositorio |
 | [F-05](#f-05) | MEDIA | Contratos sin auditoría profesional y OpenZeppelin fijado a un pre-release | Documentado en el repositorio |
 
@@ -78,7 +78,7 @@ Cada hallazgo indica su estado de verificación y su confianza. Los hallazgos BA
 | --- | --- |
 | Categoría | Integridad funcional (contrato y cliente) |
 | Severidad | ALTA |
-| Estado | Confirmado en una copia aislada de los contratos (prueba local, entorno de pruebas de Soroban). No reproducido en testnet. |
+| Estado | Confirmado en una copia aislada de los contratos (prueba local, entorno de pruebas de Soroban). No reproducido en testnet. **Corregido en el código** después de la auditoría ([ver abajo](#f-01-correccion)); los contratos desplegados siguen con el comportamiento anterior. |
 | Confianza | Alta |
 | Dependencias | F-03 (la simulación oculta el caso) |
 
@@ -99,6 +99,24 @@ Cada hallazgo indica su estado de verificación y su confianza. Los hallazgos BA
 
 **Recomendación.** [RECOMMENDATION] Decidir el comportamiento esperado (por ejemplo: que la política busque primero una retención madurada para cualquier destino, y que la rama del tope aplique solo si no hay retención; o que la app no permita retener pagos a contactos) y cubrirlo con pruebas GH nuevas para ambos montos. Como la cuenta no tiene `upgrade`, un cambio de contrato exige redesplegar cuentas.
 
+<a id="f-01-correccion"></a>
+**Corrección (12 oct 2026, rama `fix-f01`).** Las líneas citadas arriba son las de `19da401`, antes del cambio.
+
+- [FACT] Comportamiento elegido: el que describe el security spike (línea 206). Un pago a un contacto que supera el tope se rechaza, la app ofrece retenerlo, y esa retención tiene que poder salir cuando madura.
+- [FACT] Cambio en `try_enforce_usdc_transfer` (`contracts/guardian_hold/src/lib.rs:187-222`): la política consulta primero `find_retained` para **cualquier** destino.
+  - Si hay una retención `Retained` para esa cuenta, token, destino y monto, exige `ready_at` (si no, `HoldNotReady`), llama a `mark_executed` y autoriza **sin gastar tope**.
+  - Si no hay retención, un contacto pasa por el tope diario como antes, y cualquier otro destino se rechaza.
+- [FACT] Pruebas nuevas en `contracts/guardian_hold/tests/must.rs` (`f01_*`; las 39 pasan):
+  - una retención madurada sobre el tope sale y queda `Executed`, sin gastar tope y sin poder salir sin la firma de la dueña;
+  - una retención madurada dentro del tope queda `Executed`; el guardián ya no puede cancelarla; se puede volver a retener el mismo pago; el tope sigue entero;
+  - antes de `ready_at`, ese mismo pago se rechaza aunque quepa en el tope, mientras que otro monto al mismo contacto sigue pasando por el tope;
+  - una retención detenida (`Stopped`) no se libera, y sobre el tope se rechaza.
+- [FACT] Tres de esas cuatro pruebas fallan con el contrato anterior (`git show HEAD:…/lib.rs`). La cuarta (retención detenida) pasa con ambos: protege contra una regresión.
+- [INFERENCE] Efecto secundario: un pago dentro del tope a un contacto con una retención aún no madurada **del mismo monto** se rechaza hasta que madure. Es coherente con que la dueña eligió retenerlo.
+- [INFERENCE] Costo: ahora **todo** `transfer` de USDC recorre el registro, también los pagos a contactos. Eso agrava [F-02](#f-02).
+- [FACT] Solo cambia `guardian_hold`. `account.wasm` y `hold_registry.wasm` no cambian. Pero ni la cuenta ni la política tienen `upgrade`, así que las cuentas desplegadas (`evidence/stellar/deployment.md`, política `b36588…85ce`) mantienen el comportamiento anterior. Hace falta desplegar una política nueva y cuentas nuevas que la usen. **No redesplegado**.
+- No corrido: `stellar contract build` (esta máquina no tiene `stellar` ni el target `wasm32v1-none`). El hash del wasm nuevo no se conoce.
+
 <a id="f-02"></a>
 ### F-02 · El registro recorre todos los registros de la cuenta en cada `queue` y cada liberación
 
@@ -116,7 +134,7 @@ Cada hallazgo indica su estado de verificación y su confianza. Los hallazgos BA
 - [FACT] Los registros nunca se borran: `Stopped` y `Executed` siguen contando en el recorrido.
 - [FACT] La cuenta no tiene `upgrade`, y el registro tampoco.
 
-**Impacto.** [INFERENCE] Cada retención creada aumenta el costo de todas las siguientes. Con suficientes registros, `queue` y la liberación de retenciones superarían los límites de lecturas o instrucciones por transacción de Soroban, y la cuenta ya no podría pagar a destinos nuevos. Los pagos a contactos dentro del tope no consultan el registro y seguirían funcionando. [UNVERIFIED] El número de registros que lo dispara y el efecto de las entradas archivadas no se midieron (INDETERMINADA).
+**Impacto.** [INFERENCE] Cada retención creada aumenta el costo de todas las siguientes. Con suficientes registros, `queue` y la liberación de retenciones superarían los límites de lecturas o instrucciones por transacción de Soroban, y la cuenta ya no podría pagar a destinos nuevos. Antes de la corrección de F-01, los pagos a contactos dentro del tope no consultaban el registro y habrían seguido funcionando. Con la corrección, todo `transfer` de USDC consulta el registro, así que también esos pagos dejarían de funcionar. [UNVERIFIED] El número de registros que lo dispara y el efecto de las entradas archivadas no se midieron (INDETERMINADA).
 
 **Recomendación.** [RECOMMENDATION] Medir el costo de `queue` y de una liberación con 10, 50, 100 y 200 registros en una prueba local o en testnet. Si el límite es alcanzable en un uso normal, indexar las retenciones activas por `(token, destino, monto)` en lugar de recorrer.
 
@@ -127,7 +145,7 @@ Cada hallazgo indica su estado de verificación y su confianza. Los hallazgos BA
 | --- | --- |
 | Categoría | Fidelidad de la simulación |
 | Severidad | MEDIA |
-| Estado | Por lectura de código; no ejecutado |
+| Estado | Por lectura de código durante la auditoría. **Corregido** junto con F-01 |
 | Confianza | Alta |
 | Dependencias | F-01 |
 
@@ -136,6 +154,8 @@ Cada hallazgo indica su estado de verificación y su confianza. Los hallazgos BA
 **Impacto.** La app en simulación (iOS en CI y Android sin `testnet.json`) muestra como enviable una retención a un contacto sobre el tope que en testnet fallaría. Las pruebas de UI y los XCUITest no detectan F-01.
 
 **Recomendación.** [RECOMMENDATION] Alinear la simulación con el contrato después de decidir F-01, y añadir una prueba que compare ambos para ese caso.
+
+**Corrección (12 oct 2026, rama `fix-f01`).** [FACT] `SimulatedStellarGateway.submitTransfer` y el modelo de pruebas `FakeStellarGateway` siguen ahora el mismo orden que el contrato. Primero buscan una retención activa para ese pago exacto: si no maduró, la rechazan; si maduró, la ejecutan sin gastar tope. Si no hay retención, aplican el tope solo a contactos. Pruebas nuevas: `SimulatedStellarGatewayTest` (4) y dos casos en `GatewayFlowTest`. [FACT] Los fakes conservan un vencimiento (`expiryWindowSeconds`) que el contrato no tiene (A-2 del roadmap).
 
 <a id="f-04"></a>
 ### F-04 · Un solo guardián fijo, sin cambio ni recuperación
@@ -195,7 +215,7 @@ Cada hallazgo indica su estado de verificación y su confianza. Los hallazgos BA
 
 **Evidencia.** [FACT] `SubmitClassifier.kt:46` tiene `TODO(day 4): read the contract error code from the result meta` y devuelve `Rejected(hash, null)`.
 
-**Impacto.** La app no puede decirle a la dueña si el rechazo fue por tope, por retención no madurada o por destino. Combinado con F-01, un pago a contacto sobre el tope falla sin explicación.
+**Impacto.** La app no puede decirle a la dueña si el rechazo fue por tope, por retención no madurada o por destino. Combinado con F-01, un pago a contacto sobre el tope falla sin explicación. Con la corrección de F-01 aparece un motivo más: el pago tiene una retención que aún no maduró (`HoldNotReady`).
 
 **Recomendación.** [RECOMMENDATION] Decodificar el error del contrato del result meta y mostrar un mensaje por código.
 
@@ -290,7 +310,7 @@ Cada hallazgo indica su estado de verificación y su confianza. Los hallazgos BA
 | Estado | Confirmado (0 pruebas en el crate) |
 | Confianza | Alta |
 
-**Evidencia.** [FACT] `cargo test -p hold_registry` corre 0 pruebas. El registro se ejercita a través de `contracts/guardian_hold/tests/must.rs` (35 pruebas).
+**Evidencia.** [FACT] `cargo test -p hold_registry` corre 0 pruebas. El registro se ejercita a través de `contracts/guardian_hold/tests/must.rs` (35 pruebas en la auditoría; 39 desde la corrección de F-01).
 
 **Recomendación.** [RECOMMENDATION] Pruebas unitarias directas de `queue`, `cancel`, `mark_executed` y del recorrido con muchos registros (ver F-02).
 
@@ -376,6 +396,8 @@ Entorno: Windows 11, cargo 1.98.0, Gradle 8.14.3 (wrapper), JDK 17.
 | `./gradlew :app:shared:jvmTest --rerun :app:shared:testDebugUnitTest --rerun :app:shared:testReleaseUnitTest --rerun` + las cuatro tareas `check*` con `--rerun` | `BUILD SUCCESSFUL`. jvmTest: 127 pruebas, 0 fallos. testDebugUnitTest: 113, 0 fallos. testReleaseUnitTest: 113, 0 fallos. Las cuatro comprobaciones corrieron y pasaron | REAL |
 | `./gradlew :app:android:assembleDebug :app:android:compileReleaseKotlin` | Salida 0, desde la caché | Compila; no se recompiló desde cero |
 | Reproducción F-01 en copia aislada: `cargo test --locked -p guardian_hold --test must audit_repro -- --nocapture` | 2 pasaron, 0 fallaron | REAL; las pruebas añadidas no están en el repositorio |
+| Corrección F-01 (rama `fix-f01`): `cargo test --locked -p account -p guardian_hold -p hold_registry` | Salida 0. `account`: 1. `guardian_hold`: 39 (35 + 4 `f01_*`). `hold_registry`: 0 | REAL, 12 oct 2026 |
+| Corrección F-01: `./gradlew :app:shared:jvmTest --rerun`, `:app:shared:testDebugUnitTest --rerun`, `:app:shared:allTests`, `:app:android:assembleDebug :app:android:compileReleaseKotlin` | Todo `BUILD SUCCESSFUL`. jvmTest: 133, 0 fallos. testDebugUnitTest: 119, 0 fallos. Las cuatro comprobaciones pasaron | REAL, 12 oct 2026; `testReleaseUnitTest` no corrido |
 | Consulta de 5 hashes en Horizon testnet | 5 existen, `successful: true` | REAL, solo lectura |
 
 **No ejecutadas** (no corrido):
@@ -409,10 +431,10 @@ Comprobados por lectura de código y, cuando se indica, por pruebas que corriero
 | --- | --- | --- | --- | --- | --- | --- |
 | T-01 | Contrato | La cuenta tiene una sola regla `Default` (dueña + política) | IMPLEMENTADA Y VERIFICADA | `contracts/account/src/lib.rs`; `evidence/smart-account/rules-onchain.md` | `cargo test` (GH) | Lectura en cadena no repetida aquí |
 | T-02 | Contrato | Sin `execute`, `upgrade` ni administración | IMPLEMENTADA Y VERIFICADA | `contracts/account/src/lib.rs` | `cargo test` (GH) | — |
-| T-03 | Contrato | Pago inmediato a contacto dentro del tope diario | IMPLEMENTADA Y VERIFICADA | `guardian_hold/src/lib.rs:187-202`; `evidence/demo/scene-1.md` | `cargo test` (`gh_14_transfer_lanes`); Horizon | — |
-| T-04 | Contrato | Destino nuevo exige retención madurada | IMPLEMENTADA Y VERIFICADA | `guardian_hold/src/lib.rs:205-217` | `cargo test` | — |
-| T-05 | Contrato | Monto de contacto sobre el tope queda retenido y luego sale | PARCIALMENTE IMPLEMENTADA | F-01 | Reproducción aislada (falla con `CapExceeded`) | Contradice el README anterior |
-| T-06 | Contrato | Retención a contacto dentro del tope se marca ejecutada | NO ENCONTRADA | F-01 | Reproducción aislada (queda `Retained`) | — |
+| T-03 | Contrato | Pago inmediato a contacto dentro del tope diario | IMPLEMENTADA Y VERIFICADA | `guardian_hold/src/lib.rs:205-220` (187-202 antes de `fix-f01`); `evidence/demo/scene-1.md` | `cargo test` (`gh_14_transfer_lanes`); Horizon | — |
+| T-04 | Contrato | Destino nuevo exige retención madurada | IMPLEMENTADA Y VERIFICADA | `guardian_hold/src/lib.rs:187-203` (205-217 antes de `fix-f01`) | `cargo test` | — |
+| T-05 | Contrato | Monto de contacto sobre el tope queda retenido y luego sale | IMPLEMENTADA Y VERIFICADA en el código (`fix-f01`) | F-01 | `f01_matured_trusted_hold_over_cap_releases` | No desplegado en testnet |
+| T-06 | Contrato | Retención a contacto dentro del tope se marca ejecutada | IMPLEMENTADA Y VERIFICADA en el código (`fix-f01`) | F-01 | `f01_matured_trusted_hold_within_cap_is_executed_and_closed` | No desplegado en testnet |
 | T-07 | Contrato | Solo el guardián cancela | IMPLEMENTADA Y VERIFICADA | `hold_registry/src/lib.rs`; `evidence/demo/scene-3.md` | `cargo test`; Horizon | — |
 | T-08 | Contrato | Un pago detenido no sale | IMPLEMENTADA Y VERIFICADA | `evidence/demo/scene-4.md` | `cargo test`; Horizon (cola) | El `transfer` fallido no se consultó |
 | T-09 | Contrato | `ready_at` lo calcula el registro (120 s) | IMPLEMENTADA Y VERIFICADA | `hold_registry/src/lib.rs:12`, `:124` | `cargo test` | — |
@@ -424,7 +446,7 @@ Comprobados por lectura de código y, cuando se indica, por pruebas que corriero
 | T-15 | Cliente | Firma solo de la llamada construida | IMPLEMENTADA Y VERIFICADA | `AuthEntryGuard.kt` | `AuthEntryGuardTest` | — |
 | T-16 | Cliente | Construcción y simulación de transacciones | IMPLEMENTADA, NO VERIFICADA en esta auditoría | `KmpStellarGateway.kt`; `KmpStellarGatewayLiveTest` | Piezas: `AuthEntryGuardTest`, `ChainDecodersTest` | La prueba de extremo a extremo envía a testnet; no corrida |
 | T-17 | Cliente | Código de error del contrato en un rechazo | PARCIALMENTE IMPLEMENTADA | F-07 | `SubmitClassifierTest` | TODO en el código |
-| T-18 | Cliente | Simulación en memoria fiel al contrato | PARCIALMENTE IMPLEMENTADA | F-03 | `OwnerSessionTest` | Diverge en retenciones a contactos sobre el tope |
+| T-18 | Cliente | Simulación en memoria fiel al contrato | IMPLEMENTADA Y VERIFICADA para F-01 (`fix-f01`) | F-03 | `SimulatedStellarGatewayTest`, `GatewayFlowTest` | Los fakes tienen un vencimiento que el contrato no tiene |
 | T-19 | Android | Clave ed25519 en Keystore con huella o PIN | IMPLEMENTADA, NO VERIFICADA en esta auditoría | `KeystoreSigner.kt`; evidencia previa | No corrida (instrumentada) | Requiere dispositivo |
 | T-20 | Android | Aviso local al guardián sin servidor | IMPLEMENTADA, NO VERIFICADA en esta auditoría | `HoldWatchService.kt`; `evidence/guardian/notification.md` | `HoldWatcherTest` (lógica) | Servicio no ejecutado aquí |
 | T-21 | Android | Build de release conectado | PLANIFICADA | `src/release/Wiring.kt` | `compileReleaseKotlin` (caché) | Sesiones nulas |

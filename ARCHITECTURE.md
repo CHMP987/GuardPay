@@ -69,8 +69,9 @@ Dependencias: `soroban-sdk = 28.0.0`; OpenZeppelin `stellar-contracts` vendoriza
 2. Para cada contexto autorizado:
    - llamada a la propia cuenta → rechazo;
    - `transfer` del token configurado (`usdc`) desde la cuenta:
-     - destino **de confianza** (hasta 3) → solo rama de **tope diario** (día UTC, `checked_add`, `CapExceeded` si se pasa). **No consulta el registro** (ver F-01);
-     - cualquier otro destino → `registry.find_retained(cuenta, token, destino, monto)`, exige `ready_at` cumplido y llama a `mark_executed`;
+     - primero, para **cualquier** destino, `registry.find_retained(cuenta, token, destino, monto)`. Si hay una retención activa para ese pago, exige `ready_at` cumplido (si no, `HoldNotReady`), llama a `mark_executed` y autoriza sin gastar tope (corrección de F-01; los contratos desplegados en testnet tienen la versión anterior);
+     - sin retención y destino **de confianza** (hasta 3) → rama de **tope diario** (día UTC, `checked_add`, `CapExceeded` si se pasa);
+     - sin retención y cualquier otro destino → rechazo;
    - `hold_registry.queue` con la propia cuenta como argumento y monto > 0 (no comprueba el token, ver F-06);
    - cualquier otra cosa (incluidos `approve`, `transfer_from`, otros tokens y contextos que no son de contrato) → rechazo.
 3. La política nunca llama a un token **[FACT]**.

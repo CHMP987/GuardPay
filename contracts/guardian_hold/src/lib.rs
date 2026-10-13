@@ -184,6 +184,24 @@ fn try_enforce_usdc_transfer(
         panic_with_error!(e, GuardianHoldError::InvalidAmount);
     }
 
+    // A retained hold for this exact payment is consulted first, for any
+    // destination: a held payment to a trusted contact must release through
+    // the registry (and be marked Executed) instead of the daily-cap branch,
+    // and must not count against the cap.
+    let registry = HoldRegistryClient::new(e, &config.registry);
+    if let Some(hold_id) = registry.find_retained(smart_account, &config.usdc, &to, &amount) {
+        let record = registry.get_hold(smart_account, &hold_id);
+        if record.token != config.usdc
+            || record.destination != to
+            || record.amount != amount
+            || e.ledger().timestamp() < record.ready_at
+        {
+            panic_with_error!(e, GuardianHoldError::HoldNotReady);
+        }
+        registry.mark_executed(smart_account, &hold_id);
+        return true;
+    }
+
     if is_trusted(config, &to) {
         let day = e.ledger().timestamp() / SECONDS_PER_DAY;
         if config.spent_day != day {
@@ -201,21 +219,7 @@ fn try_enforce_usdc_transfer(
         return true;
     }
 
-    let registry = HoldRegistryClient::new(e, &config.registry);
-    let hold_id = match registry.find_retained(smart_account, &config.usdc, &to, &amount) {
-        Some(id) => id,
-        None => reject_not_allowed(e),
-    };
-    let record = registry.get_hold(smart_account, &hold_id);
-    if record.token != config.usdc
-        || record.destination != to
-        || record.amount != amount
-        || e.ledger().timestamp() < record.ready_at
-    {
-        panic_with_error!(e, GuardianHoldError::HoldNotReady);
-    }
-    registry.mark_executed(smart_account, &hold_id);
-    true
+    reject_not_allowed(e)
 }
 
 fn try_enforce_queue(

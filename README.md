@@ -80,7 +80,7 @@ En Costa Rica, el estudio de mercado del proyecto no encontró protecciones que 
 GuardPay es una billetera móvil sobre Stellar que **separa los pagos habituales de los riesgosos**, y deja que una persona de confianza frene los riesgosos.
 
 - **Los pagos de siempre salen al momento.** Si el destino es un contacto de confianza y el monto cabe en el tope diario, el pago sale sin espera.
-- **Lo inusual espera.** Un destino nuevo queda **retenido 120 segundos** por el propio contrato. Un pago a un contacto que supera el tope diario no sale al momento; la app ofrece retenerlo, pero hoy el contrato no libera esa retención ([F-01](AUDIT_REPORT.md#f-01)).
+- **Lo inusual espera.** Un destino nuevo queda **retenido 120 segundos** por el propio contrato. Un pago a un contacto que supera el tope diario no sale al momento; la app ofrece retenerlo y, cuando la retención madura, sale por el registro. Esto se corrigió en el código después de la auditoría; las cuentas desplegadas en testnet todavía no lo tienen ([F-01](AUDIT_REPORT.md#f-01)).
 - **El guardián puede detenerlo.** La dueña elige a esa persona, que recibe un aviso en su teléfono y puede detener el pago mientras está retenido.
 - **El guardián no puede mover el dinero.** No es firmante de la cuenta. Solo puede detener.
 - **Las reglas no dependen de la app.** Las aplica un contrato en Stellar, así que una app modificada o una firma robada no las saltan.
@@ -98,7 +98,8 @@ flowchart TD
     A["La dueña escribe el pago<br/>y lo firma con huella o PIN"] --> B{"Política GuardianHold<br/>(contrato en Stellar)"}
     B -->|"Contacto de confianza<br/>dentro del tope diario"| C["✅ Enviado al momento"]
     B -->|"Destino nuevo"| D["⏳ Retenido 120 s<br/>en el registro"]
-    B -->|"Contacto de confianza<br/>sobre el tope diario"| X["⛔ Rechazado<br/>(ver F-01 en AUDIT_REPORT.md)"]
+    B -->|"Contacto de confianza<br/>sobre el tope diario"| X["⛔ Rechazado al momento<br/>la app ofrece retenerlo"]
+    X -->|"La dueña lo retiene"| D
     B -->|"Cualquier otra operación"| R["⛔ Rechazado por el contrato"]
     D --> E["El teléfono del guardián<br/>lo detecta y avisa"]
     E -->|"El guardián toca Detener"| F["✋ Detenido<br/>el dinero no sale"]
@@ -109,7 +110,7 @@ flowchart TD
 2. **El contrato decide.** Cada operación de la cuenta pasa por la política `GuardianHold`, que solo admite:
    - un pago a un contacto de confianza (hasta 3) dentro del tope diario;
    - poner un pago en espera en el registro;
-   - enviar un pago retenido que ya cumplió su espera y coincide exactamente en cuenta, moneda, destino y monto, si el destino no es un contacto de confianza (para un contacto solo aplica el tope; ver [F-01](AUDIT_REPORT.md#f-01));
+   - enviar un pago retenido que ya cumplió su espera y coincide exactamente en cuenta, moneda, destino y monto, a cualquier destino, también a un contacto; ese envío no gasta tope y el registro queda `Executed` ([F-01](AUDIT_REPORT.md#f-01), corregido en el código, no desplegado en testnet);
    - que el guardián cancele un pago retenido.
 
    Todo lo demás se rechaza.
@@ -134,7 +135,7 @@ flowchart TD
 | --- | --- |
 | Pago inmediato a contactos de confianza dentro de un tope diario | ✅ Implementado y probado en testnet |
 | Retención de 120 s para destinos nuevos | ✅ Implementado y probado en testnet |
-| Retener y después enviar un pago a un contacto (sobre el tope, o porque la dueña eligió retenerlo) | 🟡 La app lo ofrece, pero el contrato no libera la retención por el registro: sobre el tope se rechaza y, dentro del tope, el registro queda abierto ([F-01](AUDIT_REPORT.md#f-01)). No probado en testnet. |
+| Retener y después enviar un pago a un contacto (sobre el tope, o porque la dueña eligió retenerlo) | 🟡 Corregido en el código ([F-01](AUDIT_REPORT.md#f-01)): la retención madurada sale por el registro y queda `Executed`, con pruebas de contrato y de simulación. Las cuentas desplegadas en testnet usan la política anterior; no redesplegado ni probado en testnet. |
 | El guardián detiene un pago desde el aviso en su teléfono | ✅ Probado entre dos dispositivos: un teléfono y un emulador |
 | El guardián no es firmante y no puede mover fondos | ✅ Comprobado en cadena y con ataques ([escena 5](evidence/demo/scene-5.md)) |
 | El contrato rechaza `approve`, pagos retenidos sin esperar y pagos detenidos | ✅ Rechazos registrados en testnet ([ensayo completo](evidence/demo/full-rehearsal.md)) |
@@ -269,8 +270,8 @@ Las firmas de revisión humana CP-3, CP-7 y CP-9 siguen pendientes. La revisión
 - **El aviso depende de que el servicio siga vivo.** No hay servidor, FCM ni APNs. El teléfono del guardián consulta la red cada 30 s desde un servicio en primer plano. Si el sistema lo detiene (ahorro de batería, restricciones del fabricante, cierre forzado o el tope de unas 6 h/día de `dataSync` en Android 15+), el aviso llega cuando se abra la app o se toque "Actualizar". Consultar cada 30 s no es aceptable en batería para producción.
 - **Configuración por dispositivo.** En el build de depuración, cada teléfono crea las claves de dueña y de guardián, y un archivo `testnet.json` decide su rol: ambos, solo dueña o solo guardián.
 - **Las pruebas cubren poco hardware.** Se probó en un emulador Android (API 37) y en un teléfono. El ciclo retener → esperar → enviar y los casos GH-01/GH-24 no se repitieron en el teléfono físico.
-- **Retenciones a contactos.** Ver [F-01](AUDIT_REPORT.md#f-01): una retención a un contacto de confianza no se libera por el registro.
-- **El registro crece sin límite.** Cada `queue` y cada envío de un pago retenido recorren todos los registros de la cuenta; con muchos, podrían superar los límites de Soroban. No se midió ([F-02](AUDIT_REPORT.md#f-02)).
+- **Retenciones a contactos.** Ver [F-01](AUDIT_REPORT.md#f-01): corregido en el código, pero las cuentas desplegadas en testnet siguen sin liberar una retención a un contacto de confianza hasta que se redespliegue la política.
+- **El registro crece sin límite.** Cada `queue` y cada `transfer` de USDC (también a contactos, desde la corrección de F-01) recorren todos los registros de la cuenta; con muchos, podrían superar los límites de Soroban. No se midió ([F-02](AUDIT_REPORT.md#f-02)).
 - **Los pagos inmediatos no se releen.** Un pago a un contacto queda en la cadena, pero desaparece de "Recientes" si se reinicia la app. Los pagos retenidos sí se vuelven a leer del registro.
 - **La demo cronometrada no usó una sola cuenta.** Las escenas de app y las de terminal corrieron sobre cuentas distintas, y las manejó un guion, no una persona presentando.
 - **El build de release no se conecta a nada todavía.**
@@ -357,7 +358,7 @@ No se demuestra:
 - mainnet;
 - iOS en un dispositivo;
 - la IA en iOS;
-- enviar una retención a un contacto de confianza ([F-01](AUDIT_REPORT.md#f-01));
+- enviar una retención a un contacto de confianza en testnet (corregido en el código, no desplegado; [F-01](AUDIT_REPORT.md#f-01));
 - que el aviso llegue con la app cerrada;
 - que el guardián se pueda cambiar;
 - un vencimiento a los 600 s.

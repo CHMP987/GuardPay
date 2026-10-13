@@ -105,6 +105,49 @@ class GatewayFlowTest {
     }
 
     @Test
+    fun contactHeldOverCapIsReleasedThroughTheHold() = runTest {
+        // F-01: the cap rejects it, the owner holds it, and once matured it is executed.
+        val g = gateway()
+        val intent = PaymentIntent(ANA.address, usdc(60))
+        assertIs<LanePrediction.MustHold>(g.laneFor(intent))
+        assertIs<SubmitResult.Rejected>(g.submitTransfer(ACCOUNT, intent, owner))
+
+        assertIs<SubmitResult.Confirmed>(g.submitQueue(ACCOUNT, intent, owner))
+        g.advance(60)
+        assertIs<SubmitResult.Rejected>(g.submitTransfer(ACCOUNT, intent, owner))
+        assertEquals(HoldStatus.Held, g.readHolds(ACCOUNT).single().status)
+
+        g.advance(61)
+        assertIs<SubmitResult.Confirmed>(g.submitTransfer(ACCOUNT, intent, owner))
+        assertEquals(HoldStatus.Executed, g.readHolds(ACCOUNT).single().status)
+        assertEquals(usdc(0), g.readDailySpent(ACCOUNT))
+        assertEquals(usdc(940), g.readBalance(ACCOUNT))
+        assertIs<SubmitResult.Rejected>(g.submitCancel(ACCOUNT, 0, guardian))
+    }
+
+    @Test
+    fun contactHeldWithinCapIsExecutedAndLeavesTheCapWhole() = runTest {
+        // F-01: the owner chose to hold a payment the cap would allow.
+        val g = gateway()
+        val intent = PaymentIntent(ANA.address, usdc(10))
+        assertIs<SubmitResult.Confirmed>(g.submitQueue(ACCOUNT, intent, owner))
+
+        // Before readyAt the held payment is not sent through the cap either.
+        assertIs<SubmitResult.Rejected>(g.submitTransfer(ACCOUNT, intent, owner))
+        assertEquals(usdc(0), g.readDailySpent(ACCOUNT))
+
+        g.advance(121)
+        assertIs<SubmitResult.Confirmed>(g.submitTransfer(ACCOUNT, intent, owner))
+        assertEquals(HoldStatus.Executed, g.readHolds(ACCOUNT).single().status)
+        assertEquals(usdc(0), g.readDailySpent(ACCOUNT))
+        assertIs<SubmitResult.Rejected>(g.submitCancel(ACCOUNT, 0, guardian))
+
+        // Not a duplicate any more, and the whole cap is still there.
+        assertIs<SubmitResult.Confirmed>(g.submitQueue(ACCOUNT, intent, owner))
+        assertIs<SubmitResult.Confirmed>(g.submitTransfer(ACCOUNT, PaymentIntent(ANA.address, usdc(50)), owner))
+    }
+
+    @Test
     fun guardianStopsAndTheReleaseIsRejected() = runTest {
         val g = gateway()
         val intent = PaymentIntent(STRANGER, usdc(150))
