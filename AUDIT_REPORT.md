@@ -41,7 +41,7 @@ Hallazgos principales:
 | ID | Severidad | Título | Estado |
 | --- | --- | --- | --- |
 | [F-01](#f-01) | ALTA | Un pago retenido a un contacto de confianza nunca se libera por el registro | Corregido en el código (rama `fix-f01`). Política nueva desplegada en testnet el 12 oct y probada con una cuenta nueva; las cuentas anteriores siguen con la política vieja |
-| [F-02](#f-02) | ALTA | El registro recorre todos los registros de la cuenta en cada `queue` y cada liberación | Por lectura de código; umbral sin medir |
+| [F-02](#f-02) | ALTA | El registro recorre todos los registros de la cuenta en cada `queue` y cada liberación | Medido el 13 oct: pasa el límite de 400 entradas hacia los 390 registros. Corregido en el código con un índice (rama `registry-cost`); el registro nuevo no está desplegado |
 | [F-03](#f-03) | MEDIA | La simulación libera retenciones a contactos que el contrato rechaza | Corregido junto con F-01 (rama `fix-f01`) |
 | [F-04](#f-04) | MEDIA | Un solo guardián fijo, sin cambio ni recuperación | Documentado en el repositorio |
 | [F-05](#f-05) | MEDIA | Contratos sin auditoría profesional y OpenZeppelin fijado a un pre-release | Documentado en el repositorio |
@@ -127,7 +127,7 @@ Cada hallazgo indica su estado de verificación y su confianza. Los hallazgos BA
 | --- | --- |
 | Categoría | Disponibilidad / límites de recursos |
 | Severidad | ALTA |
-| Estado | IMPLEMENTADA, NO VERIFICADA (el umbral no se midió) |
+| Estado | Medido en el entorno de pruebas local con el wasm desplegado (13 oct 2026). **Corregido en el código** ([ver abajo](#f-02-correccion)); el registro desplegado sigue recorriendo. |
 | Confianza | Media |
 | Dependencias | Riesgo R6 del plan (recursos dentro de `__check_auth`) |
 
@@ -140,6 +140,26 @@ Cada hallazgo indica su estado de verificación y su confianza. Los hallazgos BA
 **Impacto.** [INFERENCE] Cada retención creada aumenta el costo de todas las siguientes. Con suficientes registros, `queue` y la liberación de retenciones superarían los límites de lecturas o instrucciones por transacción de Soroban, y la cuenta ya no podría pagar a destinos nuevos. Antes de la corrección de F-01, los pagos a contactos dentro del tope no consultaban el registro y habrían seguido funcionando. Con la corrección, todo `transfer` de USDC consulta el registro, así que también esos pagos dejarían de funcionar. [UNVERIFIED] El número de registros que lo dispara y el efecto de las entradas archivadas no se midieron (INDETERMINADA).
 
 **Recomendación.** [RECOMMENDATION] Medir el costo de `queue` y de una liberación con 10, 50, 100 y 200 registros en una prueba local o en testnet. Si el límite es alcanzable en un uso normal, indexar las retenciones activas por `(token, destino, monto)` en lugar de recorrer.
+
+<a id="f-02-correccion"></a>
+**Medición y corrección (13 oct 2026, rama `registry-cost`).** Las líneas citadas arriba son las de `aae640f`, antes del cambio. Detalle en [`evidence/stellar/registry-cost.md`](evidence/stellar/registry-cost.md).
+
+- [FACT] Medición (REAL, entorno de pruebas local, wasm del CI que está en testnet): cada registro previo suma una entrada de ledger a `queue`, a la liberación y a un pago a contacto. El límite de 400 entradas por transacción se supera desde 390 registros en el pago a contacto y en la liberación, y desde 400 en `queue`. Las instrucciones quedan por debajo de 65 M con 500 registros; el límite es de 400 M.
+- [INFERENCE] En una transacción real el umbral es algo menor, porque se suman las entradas del SAC y de la autorización. Pasado el umbral, la cuenta no podría pagar a nadie ni retener, y sin `upgrade` no hay arreglo para esa cuenta. Unas 385 retenciones en la vida de una cuenta es un uso plausible, así que se aplicó el índice.
+- [FACT] Cambio en `contracts/hold_registry/src/lib.rs`: dos claves nuevas, `Active(cuenta, token, destino, monto) → id` y `RetainedIds(cuenta) → [id]`.
+  - `queue` rechaza duplicados con una lectura de `Active` y escribe las dos claves.
+  - `cancel` y `mark_executed` las quitan.
+  - `find_retained` lee `Active` y comprueba el registro que nombra.
+  - `list_retained` devuelve `RetainedIds`.
+  - Ninguna función recorre los registros.
+  - `NextId`, `Hold`, las firmas públicas y los errores no cambian, así que la política y la app siguen compatibles.
+- [FACT] Con el registro de esta rama (nativo, misma prueba), las entradas quedan fijas entre 0 y 500 registros: 14 en el pago a contacto, 13 en `queue` y 20 en la liberación. `queue` y la liberación escriben 5 entradas en lugar de 3.
+- [FACT] Pruebas: 10 pruebas propias del registro ([F-13](#f-13)), entre ellas `lookups_do_not_grow_with_history`. Las 39 de `must.rs` siguen pasando.
+- No corrido:
+  - la medición de instrucciones con el wasm del registro nuevo;
+  - la lectura de los límites reales de testnet;
+  - el despliegue del registro nuevo.
+- [FACT] Las cuentas existentes siguen con el registro anterior y mantienen el límite. `TestnetProvisioner.HOLD_REGISTRY_WASM` sigue fijado al wasm anterior.
 
 <a id="f-03"></a>
 ### F-03 · La simulación libera retenciones a contactos que el contrato rechaza
@@ -310,12 +330,23 @@ Cada hallazgo indica su estado de verificación y su confianza. Los hallazgos BA
 | --- | --- |
 | Categoría | Cobertura de pruebas |
 | Severidad | INFORMATIVA |
-| Estado | Confirmado (0 pruebas en el crate) |
+| Estado | Confirmado (0 pruebas en el crate). **Corregido** el 13 oct (rama `registry-cost`): 10 pruebas propias |
 | Confianza | Alta |
 
-**Evidencia.** [FACT] `cargo test -p hold_registry` corre 0 pruebas. El registro se ejercita a través de `contracts/guardian_hold/tests/must.rs` (35 pruebas en la auditoría; 39 desde la corrección de F-01).
+**Evidencia.** [FACT] En la auditoría, `cargo test -p hold_registry` corría 0 pruebas. El registro se ejercita a través de `contracts/guardian_hold/tests/must.rs` (35 pruebas en la auditoría; 39 desde la corrección de F-01).
 
 **Recomendación.** [RECOMMENDATION] Pruebas unitarias directas de `queue`, `cancel`, `mark_executed` y del recorrido con muchos registros (ver F-02).
+
+**Corrección (13 oct 2026).** [FACT] `contracts/hold_registry/src/tests.rs` tiene 10 pruebas, y las 10 pasan. Cubren:
+
+- que `queue` calcula `ready_at` y numera las retenciones;
+- que `queue` exige la autorización de la cuenta y rechaza montos ≤ 0;
+- que un duplicado se rechaza mientras la retención siga activa;
+- que solo el guardián cancela y solo la política marca `Executed`;
+- que los estados terminales son definitivos;
+- que un id inexistente da `HoldNotFound`;
+- que el índice sigue a los registros, también entre cuentas;
+- que `queue` y `find_retained` tocan las mismas entradas con 0 y con 60 retenciones terminadas.
 
 <a id="f-14"></a>
 ### F-14 · El aislamiento de la IA se comprueba de forma textual
@@ -400,6 +431,8 @@ Entorno: Windows 11, cargo 1.98.0, Gradle 8.14.3 (wrapper), JDK 17.
 | `./gradlew :app:android:assembleDebug :app:android:compileReleaseKotlin` | Salida 0, desde la caché | Compila; no se recompiló desde cero |
 | Reproducción F-01 en copia aislada: `cargo test --locked -p guardian_hold --test must audit_repro -- --nocapture` | 2 pasaron, 0 fallaron | REAL; las pruebas añadidas no están en el repositorio |
 | Corrección F-01 (rama `fix-f01`): `cargo test --locked -p account -p guardian_hold -p hold_registry` | Salida 0. `account`: 1. `guardian_hold`: 39 (35 + 4 `f01_*`). `hold_registry`: 0 | REAL, 12 oct 2026 |
+| B-2 (rama `registry-cost`): `cargo test --locked -p account -p guardian_hold -p hold_registry` | Salida 0. `account`: 1. `guardian_hold`: 39. `hold_registry`: 10. `registry_cost`: 1 ignorada (opt-in) | REAL, 13 oct 2026 |
+| B-2: `registry_cost` con el wasm desplegado y con `GP_REGISTRY=source` | 33 filas cada una; ver `evidence/stellar/registry-cost.md` | REAL, entorno local, 13 oct 2026 |
 | Corrección F-01: `./gradlew :app:shared:jvmTest --rerun`, `:app:shared:testDebugUnitTest --rerun`, `:app:shared:allTests`, `:app:android:assembleDebug :app:android:compileReleaseKotlin` | Todo `BUILD SUCCESSFUL`. jvmTest: 133, 0 fallos. testDebugUnitTest: 119, 0 fallos. Las cuatro comprobaciones pasaron | REAL, 12 oct 2026; `testReleaseUnitTest` no corrido |
 | Consulta de 5 hashes en Horizon testnet | 5 existen, `successful: true` | REAL, solo lectura |
 
@@ -442,7 +475,7 @@ Comprobados por lectura de código y, cuando se indica, por pruebas que corriero
 | T-08 | Contrato | Un pago detenido no sale | IMPLEMENTADA Y VERIFICADA | `evidence/demo/scene-4.md` | `cargo test`; Horizon (cola) | El `transfer` fallido no se consultó |
 | T-09 | Contrato | `ready_at` lo calcula el registro (120 s) | IMPLEMENTADA Y VERIFICADA | `hold_registry/src/lib.rs:12`, `:124` | `cargo test` | — |
 | T-10 | Contrato | El guardián no puede mover fondos | IMPLEMENTADA Y VERIFICADA | `evidence/demo/scene-5.md`; código | `cargo test` | — |
-| T-11 | Contrato | Escala del registro con muchas retenciones | INDETERMINADA | F-02 | Ninguna | Sin medir |
+| T-11 | Contrato | Escala del registro con muchas retenciones | IMPLEMENTADA Y VERIFICADA en el código (`registry-cost`) | F-02; `evidence/stellar/registry-cost.md` | `registry_cost` (opt-in); `lookups_do_not_grow_with_history` | El registro desplegado sigue recorriendo; registro nuevo sin desplegar |
 | T-12 | Contrato | Cambio de guardián / recuperación | NO ENCONTRADA | F-04 | — | Documentado como limitación |
 | T-13 | Cliente | 9 estados de pago y transiciones | IMPLEMENTADA Y VERIFICADA | `domain/` | `PaymentStateTest` | — |
 | T-14 | Cliente | Predicción de carril | IMPLEMENTADA Y VERIFICADA | `domain/Lane.kt` | `LaneTest` | Informativa; el contrato decide |
