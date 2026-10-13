@@ -124,3 +124,43 @@ shape     contextRuleCount=1, signers=[dueña], policies=[guardian_hold]
 - [FACT] Los hashes se tomaron de la salida del test. Después se consultaron con `getTransaction` en el RPC: los Confirmed dan `SUCCESS` y los tres a la red de GH-01/GH-24 dan `FAILED`.
 - [FACT] El resultado es el mismo que el de la corrida 4.
 
+
+## Corrida 6: política F-01 (12 oct)
+
+| | |
+| --- | --- |
+| Etiqueta | **REAL** (testnet, salida literal) |
+| Fecha | 2026-10-12, 22:27–22:31 hora local (2026-10-13 04:27:42–04:31:32 UTC), ledgers 5168415–5168461, 1 test, 0 fallos |
+| Contratos | wasm del CI (corrida 38343802866). `guardian_hold` es `CBTIF2BF…FMW`, el de la [release F-01](deployment.md#release-f-01-12-oct-2026). La cuenta y el registro son nuevos, de esta corrida. |
+| Comando | `./gradlew :app:shared:testDebugUnitTest -PliveTestnet --tests "*KmpStellarGatewayLiveTest"` |
+
+```
+account   CA6VCI3OTWVAZ4B5OH6S5SEBZX6DWNP5YYCCORBAMS4QXPGVU2GKJBJQ
+registry  CC7L2OHZ27ADZMKO4ODRAKNFCLVCFQ3V53XIDEJ52VD3P7SVXQKSMTW3
+usdc      CAXTAHMM2LKPDQ5U5B6UT5HFBJCYZWUEVYQ6OL7K4AOZTU244QIN4NWM   (SAC de prueba)
+shape     contextRuleCount=1, signers=[dueña], policies=[CBTIF2BF…FMW]
+```
+
+| Caso | Resultado | Hash |
+| --- | --- | --- |
+| La dueña transfiere 10 a un contacto | Confirmed | `28152fb988fba289a8dcee4b4de733d8e056c8c906c6e181d6fca86f7f38a189` |
+| GH-01: el atacante firma por el gateway | `Rejected(code=3016)` en la simulación | — |
+| GH-01: mapa de firmantes vacío, a la red | FAILED | `13b50ce8d5a13050e66644b60cddb169660b899eb808cd28d0a93b2c7e25370f` |
+| La dueña encola 150 a un destino nuevo (hold 0) | Confirmed | `dad2ffcaea92e02360af454444212f1028f760693b0c1480950083c77e27a50e` |
+| La dueña encola 60 a un destino nuevo (hold 1) | Confirmed | `cacd36335b47aa4c8534f09caed5811bea6b7505bf0d20110c724881ea4c92b8` |
+| La dueña encola 60 al contacto, más de lo que queda del tope (40) (hold 2, F-01) | Confirmed | `beeb1c779d8efc05e7baaffe966ece98047a4c45bdd02e19d36374c8d1bc1674` |
+| `transfer` del hold 0 antes de madurar | `Rejected(code=7)` en la simulación | — |
+| F-01: `transfer` de 60 al contacto antes de que madure el hold 2 | `Rejected(code=7)` en la simulación | — |
+| La dueña intenta `cancel` | Rejected en la simulación | — |
+| El guardián cancela el hold 1 | Confirmed | `9b650dbe57ef6a942266bbdb94ade6cac52ab2f658da05f9aa5243fe2b176c55` |
+| GH-24: `transfer` sin firma de la dueña, a la red | FAILED | `9e959e036c12ea92ef07f8a46c6999dc06b128bb43dfacbe13b9d94f9ce20dff` |
+| GH-24: `transfer` con firma del atacante, a la red | FAILED | `053141b4fd74f0e568bc9d8935d7944123f723743a90700c6f3054fd0f21decd` |
+| La dueña envía el hold 0 madurado | Confirmed | `aefee699ef19cdb326be3aefbe182d29fd2886812a1576073caacc067e68ed45` |
+| F-01: la dueña envía el hold 2 madurado al contacto | Confirmed | `ab668c038bf03fe2748cc98ac3a108b1df94f6acad81c94b6c3ca90721b26e57` |
+| `transfer` del hold 1 ya detenido | `Rejected(code=3)` en la simulación | — |
+
+- [FACT] Los hashes se tomaron de la salida del test. Después se consultaron con `getTransaction` en el RPC: los Confirmed dan `SUCCESS` y los tres a la red de GH-01/GH-24 dan `FAILED`.
+- [FACT] Después del envío del hold 2, el test leyó: estados `[Executed, Cancelled, Executed]`, gasto del día 10 (el hold 2 no gastó tope), saldo de la cuenta 280 y saldo del contacto 70.
+- [FACT] El caso probado es el de sobre el tope. Con la política del 6 oct, ese envío se rechazaba aun con el hold madurado ([F-01](../../AUDIT_REPORT.md#f-01)). Esta corrida es la primera en testnet con la política corregida.
+- No corrido en testnet: una retención a un contacto dentro del tope.
+- [FACT] En cada hold, `readyAt − createdAt = 120` s.

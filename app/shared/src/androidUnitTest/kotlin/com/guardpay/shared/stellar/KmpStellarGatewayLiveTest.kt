@@ -97,16 +97,23 @@ class KmpStellarGatewayLiveTest {
         // Held lane: 150 to a stranger is queued, not paid.
         confirmed("owner queue 150", gw.submitQueue(account, PaymentIntent(stranger, UsdcAmount(150 * UNIT)), keySigner(owner)))
         confirmed("owner queue 60", gw.submitQueue(account, PaymentIntent(stranger, UsdcAmount(60 * UNIT)), keySigner(owner)))
+        // F-01: a contact payment over what is left of the cap (40) goes through a hold too.
+        confirmed("owner queue 60 to contact", gw.submitQueue(account, PaymentIntent(contact, UsdcAmount(60 * UNIT)), keySigner(owner)))
         val holds = gw.readHolds(account)
         log("holds: $holds")
-        assertEquals(listOf(HoldStatus.Held, HoldStatus.Held), holds.map { it.status })
-        assertEquals(listOf(stranger, stranger), holds.map { it.destination })
+        assertEquals(listOf(HoldStatus.Held, HoldStatus.Held, HoldStatus.Held), holds.map { it.status })
+        assertEquals(listOf(stranger, stranger, contact), holds.map { it.destination })
         assertEquals(ContractAbi.HOLD_DURATION_SECS, holds[0].readyAt.epochSeconds - holds[0].createdAt.epochSeconds)
 
         // GH-05: too early, the contract refuses (code 7, HoldNotReady).
         val early = gw.submitTransfer(account, PaymentIntent(stranger, UsdcAmount(150 * UNIT)), keySigner(owner))
         log("early transfer: $early")
         assertEquals(SubmitResult.Rejected(null, 7), early)
+
+        // F-01: the unmatured contact hold refuses that payment as not ready (7), not as over the cap (5).
+        val earlyContact = gw.submitTransfer(account, PaymentIntent(contact, UsdcAmount(60 * UNIT)), keySigner(owner))
+        log("F-01 early contact transfer: $earlyContact")
+        assertEquals(SubmitResult.Rejected(null, 7), earlyContact)
 
         // Only the guardian stops: the owner's cancel needs the guardian's authorization,
         // which the owner cannot give, so it is refused before sending; the guardian's lands.
@@ -118,8 +125,8 @@ class KmpStellarGatewayLiveTest {
         assertEquals(HoldStatus.Cancelled, stopped.status)
         assertEquals(Party.Guardian, stopped.cancelledBy)
 
-        // Wait for hold 0 to mature on the ledger clock.
-        while (gw.latestLedgerTime() < holds[0].readyAt) delay(5_000)
+        // Wait for holds 0 and 2 to mature on the ledger clock.
+        while (gw.latestLedgerTime() < holds[2].readyAt) delay(5_000)
 
         // GH-24: hold 0 is mature, but without the owner's signature nothing executes.
         val matured = transferOp(c, stranger.value, 150 * UNIT)
@@ -135,8 +142,15 @@ class KmpStellarGatewayLiveTest {
         // The owner releases it.
         confirmed("owner transfer matured hold 0", gw.submitTransfer(account, PaymentIntent(stranger, UsdcAmount(150 * UNIT)), keySigner(owner)))
         assertEquals(UsdcAmount(340 * UNIT), gw.readBalance(account))
-        assertEquals(listOf(HoldStatus.Executed, HoldStatus.Cancelled), gw.readHolds(account).map { it.status })
+        assertEquals(listOf(HoldStatus.Executed, HoldStatus.Cancelled, HoldStatus.Held), gw.readHolds(account).map { it.status })
         assertEquals(UsdcAmount(150 * UNIT), gw.readBalance(stranger))
+
+        // F-01: the matured contact hold is released through the registry and leaves the cap alone.
+        confirmed("owner transfer matured contact hold 2", gw.submitTransfer(account, PaymentIntent(contact, UsdcAmount(60 * UNIT)), keySigner(owner)))
+        assertEquals(UsdcAmount(280 * UNIT), gw.readBalance(account))
+        assertEquals(UsdcAmount(10 * UNIT), gw.readDailySpent(account))
+        assertEquals(listOf(HoldStatus.Executed, HoldStatus.Cancelled, HoldStatus.Executed), gw.readHolds(account).map { it.status })
+        assertEquals(UsdcAmount(70 * UNIT), gw.readBalance(contact))
 
         // The stopped hold can never be released.
         val afterStop = gw.submitTransfer(account, PaymentIntent(stranger, UsdcAmount(60 * UNIT)), keySigner(owner))

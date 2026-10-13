@@ -1,10 +1,56 @@
 # Deploy en testnet
 
-6 oct 2026. Datos REAL leídos de Horizon y del RPC de testnet. Red: Test SDF Network ; September 2015. Sin mainnet.
+Red: Test SDF Network ; September 2015. Sin mainnet. Hay dos releases. Las cuentas no tienen `upgrade`, así que cada cuenta queda con la política con la que se desplegó.
+
+## Release F-01 (12 oct 2026)
+
+| | |
+| --- | --- |
+| Etiqueta | **REAL** (testnet; hashes de la salida del test, consultados después con `getTransaction` en el RPC) |
+| Fecha | 2026-10-12, 22:25 hora local (2026-10-13 04:25 UTC), ledgers 5168386–5168389 |
+| Origen del wasm | Artefacto `wasm` del job `wasm` de [`ci.yml`](../../.github/workflows/ci.yml), corrida 38343802866 (Linux, Rust 1.99.0, stellar-cli 28.1.0) |
+| Comando | `./gradlew :app:shared:testDebugUnitTest -PliveTestnet -Pgp.wasmDir=<artefacto> --tests "*PolicyReleaseLiveTest"` |
+
+`PolicyReleaseLiveTest` compara cada archivo con el `wasm.sha256` del artefacto, sube los tres wasm desde una cuenta desechable fondeada con FriendBot (clave en memoria, nunca impresa) y despliega un `guardian_hold` nuevo. No despliega cuentas ni registros: cada cuenta nueva trae el suyo.
+
+### Wasm
+
+`[FACT]` sha256 del artefacto. En Soroban el id del wasm subido es su sha256.
+
+| Contrato | sha256 | Tamaño |
+| --- | --- | --- |
+| `account.wasm` | `d60dd1d299a98f886ad48027dd0499aaee07742fb7dd7051ada355e852cf40f9` | 35752 B |
+| `guardian_hold.wasm` | `ceec440aa12011e2f30c38c4ae77d2cf26afc4c88966164300068da6404abe34` | 19687 B |
+| `hold_registry.wasm` | `a57f01b70e0583fb7abf8ff30ce4414094dd08c27c53349ad8c89bb0438f93d0` | 11493 B |
+
+`[FACT]` Los hashes no coinciden con los del 6 oct aunque `account` y `hold_registry` no cambiaron en el código: el build del 6 oct se hizo en Windows y el wasm guarda las rutas de los `panic`.
+
+### Transacciones
+
+| Paso | Hash | Ledger |
+| --- | --- | --- |
+| Upload de `account` | `e28bfe37e8485f5bd58781f110beafa1dd697b435aebe46d4ffcde16e37811ef` | 5168386 |
+| Upload de `guardian_hold` | `0f0d1e5f1f20490cfdea501310f542383b70ddae00159367f035907bcf0a63f6` | 5168387 |
+| Upload de `hold_registry` | `d4b89d4bb3309d73a29aedee6dac0c1cd8d525d3623bab288085fad66943dce6` | 5168388 |
+| Deploy de `guardian_hold` | `de3ad52476197165e5a68c37faed6f3afd2b78568bb4a989b9f79aed384ee331` | 5168389 |
+
+| Rol | Dirección |
+| --- | --- |
+| `guardian_hold` (F-01) | `CBTIF2BF7YGCR6OT7TQMHGGMY6BVHKPOAJV5BYZQ2P3IWKSEXYHLWFMW` |
+
+- [FACT] `getLedgerEntries` sobre la instancia de `CBTIF2…` devuelve el ejecutable `ceec440a…be34`, no el `b3658878…85ce` de la política del 6 oct.
+- [FACT] `TestnetProvisioner` usa desde ahora esta política y estos wasm (`GUARDIAN_HOLD`, `ACCOUNT_WASM`, `HOLD_REGISTRY_WASM`). Lo usan `KmpStellarGatewayLiveTest`, `DeviceProvisioningLiveTest` y `DemoTerminal`.
+- [FACT] El ciclo completo con F-01 se corrió contra esta política: [`gateway-live.md`, corrida 6](gateway-live.md#corrida-6-política-f-01-12-oct).
+- [FACT] Siguen con la política anterior `CCGIEMIU…`: la cuenta publicada `CDBJMS…`, la de ataques `CC6FFXGG…`, la del emulador `CDWPPT…` y la de dos dispositivos `CA5Z7J…`.
+- No corrido: reprovisionar las cuentas de los teléfonos con `DeviceProvisioningLiveTest`. Hace falta el `keys.json` de cada teléfono.
+
+## Release del 6 oct (política anterior a F-01)
+
+6 oct 2026. Datos REAL leídos de Horizon y del RPC de testnet.
 
 `[FACT]` El activo es un SAC de prueba. El emisor es la dueña de la demo. No es el USDC de Circle (emisor `GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5`). Escala 10^7. Tope diario 50 = `500000000` en unidades crudas. Fondo de la cuenta 500 = `5000000000`. La retención es la constante del registro, 120 segundos. No existe un parámetro de caducidad de 600 segundos.
 
-## Direcciones
+### Direcciones
 
 | Rol | Dirección |
 | --- | --- |
@@ -21,7 +67,7 @@
 
 Las semillas están en `scripts/.testnet/`, ignorado por git. El guardián no es firmante de la cuenta.
 
-## Wasm
+### Wasm
 
 `[FACT]` sha256 de los archivos construidos con `stellar contract build`. El ejecutable de la cuenta en el ledger coincide con el hash de `account.wasm`.
 
@@ -31,7 +77,7 @@ Las semillas están en `scripts/.testnet/`, ignorado por git. El guardián no es
 | `guardian_hold.wasm` | `b36588780d05c900d891f63cbbade21bdf6b6db4a3b12554c0124c2e7a2a85ce` |
 | `hold_registry.wasm` | `031173c212bdec97626a952c7edc5d624cf30434295d3b48d162bd678d60d0cb` |
 
-## Transacciones de deploy
+### Transacciones de deploy
 
 `[FACT]` Hashes de la cuenta de la dueña en Horizon, en este orden.
 
@@ -50,7 +96,7 @@ Las semillas están en `scripts/.testnet/`, ignorado por git. El guardián no es
 
 Los destinos `G...` necesitaron trustline del SAC antes de poder recibir. Esas trustlines no son ensayos ★.
 
-## Ensayos ★
+### Ensayos ★
 
 `[FACT]` Un hash de ledger por ensayo. Los que dicen falla están en Horizon con `successful=false` y el contrato atrapó la llamada. La CLI de Stellar 28.1.0 no firma una cuenta contrato; `scripts/sign-delegated.mjs` arma la autorización delegada de la dueña y, si la simulación rechaza, envía igual para que el rechazo quede en el ledger.
 

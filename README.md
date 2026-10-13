@@ -52,7 +52,7 @@
 > [!IMPORTANT]
 > GuardPay es un **MVP que corre solo en Stellar Testnet**, con dinero de prueba. Los contratos **no están auditados**. No es un producto listo para usar con fondos reales.
 >
-> La política desplegada en testnet es **anterior al código actual**: le falta la corrección [F-01](AUDIT_REPORT.md#f-01), que permite enviar un pago retenido a un contacto de confianza.
+> La corrección [F-01](AUDIT_REPORT.md#f-01) (enviar un pago retenido a un contacto de confianza) está desplegada en testnet desde el 12 oct, pero solo la usan las cuentas nuevas. Las cuentas de los teléfonos y la publicada siguen con la política anterior.
 
 <details>
   <summary><b>Contenido</b></summary>
@@ -149,10 +149,10 @@ flowchart TD
 
 | Capacidad | Estado | Dónde | Evidencia |
 | --- | --- | --- | --- |
-| Tres contratos desplegados (`account`, `guardian_hold`, `hold_registry`) | 🟡 | Testnet, desplegados el 6 oct. Desde entonces la política cambió en el código (F-01) y no se redesplegó. | [`deployment.md`](evidence/stellar/deployment.md) |
+| Tres contratos desplegados (`account`, `guardian_hold`, `hold_registry`) | ✅ | Testnet. Release del 6 oct y release F-01 del 12 oct, con el wasm del CI. Las cuentas creadas antes de la release F-01 siguen con la política del 6 oct. | [`deployment.md`](evidence/stellar/deployment.md) |
 | Pago inmediato a contactos de confianza dentro del tope diario | ✅ | Testnet | [`scene-1.md`](evidence/demo/scene-1.md) |
 | Retención de 120 s para destinos nuevos | ✅ | Testnet | [`scene-2.md`](evidence/demo/scene-2.md) |
-| Retener un pago a un contacto y enviarlo después (sobre el tope, o porque la dueña eligió retenerlo) | 🟡 | Corregido en el código y probado en los contratos y en la simulación. **No desplegado ni probado en testnet.** | [F-01](AUDIT_REPORT.md#f-01) |
+| Retener un pago a un contacto y enviarlo después (sobre el tope, o porque la dueña eligió retenerlo) | 🟡 | Testnet, sobre el tope, con una cuenta desechable de la prueba en vivo. Dentro del tope, solo en los contratos y en la simulación. Las cuentas de los teléfonos aún no lo tienen. | [F-01](AUDIT_REPORT.md#f-01), [`gateway-live.md`, corrida 6](evidence/stellar/gateway-live.md#corrida-6-política-f-01-12-oct) |
 | El guardián detiene un pago desde el aviso | ✅ | Testnet, entre un teléfono y un emulador | [`scene-3.md`](evidence/demo/scene-3.md), [`two-devices-android.md`](evidence/demo/two-devices-android.md) |
 | El guardián no es firmante y no puede mover fondos | ✅ | Testnet, comprobado en la cadena y con ataques | [`scene-5.md`](evidence/demo/scene-5.md), [`rules-onchain.md`](evidence/smart-account/rules-onchain.md) |
 | El contrato rechaza `approve`, los envíos retenidos sin esperar y los pagos detenidos | ✅ | Testnet | [`full-rehearsal.md`](evidence/demo/full-rehearsal.md), [`bypass-matrix.md`](evidence/security/bypass-matrix.md) |
@@ -177,7 +177,7 @@ Lo pendiente está en [`ROADMAP.md`](ROADMAP.md) y el detalle por fase en [`docs
 
 - **Solo testnet.** El activo es un token de prueba (un SAC emitido por la dueña), no el USDC de Circle. La dueña es la administradora de ese token. `mint` y `clawback` no pasan por la política, y no se ejecutaron con esa clave.
 - **Contratos sin auditar.** OpenZeppelin está fijado a un commit previo a una versión estable (`b40c5ea`), no al tag v0.7.2.
-- **Testnet corre una política anterior.** Hasta que se redespliegue, las cuentas de testnet no pueden enviar un pago retenido a un contacto de confianza ([F-01](AUDIT_REPORT.md#f-01)).
+- **Las cuentas creadas antes de la release F-01 corren la política anterior.** La cuenta publicada, la de ataques y las de los teléfonos no pueden enviar un pago retenido a un contacto de confianza ([F-01](AUDIT_REPORT.md#f-01)). Las cuentas no tienen `upgrade`: hay que reprovisionar cada teléfono con la política nueva.
 - **Si el guardián no mira, nadie detiene nada.** La espera es fija, de 120 segundos. Un pago retenido que ya maduró no caduca dentro del contrato.
 - **El guardián no se puede cambiar**, y no hay recuperación de cuenta.
 - **El diálogo de firma no muestra el pago.** El sistema muestra "Firmar en Stellar", pero la clave firma un hash sin ver el destino ni el monto. Eso lo cubren la retención en cadena y la vista del guardián; la clave no lo cubre.
@@ -474,7 +474,7 @@ No se demuestra:
 - mainnet;
 - iOS en un dispositivo;
 - la IA en iOS;
-- enviar una retención a un contacto de confianza en testnet ([F-01](AUDIT_REPORT.md#f-01));
+- enviar desde la app en un teléfono una retención a un contacto de confianza, o en testnet una que quepa en el tope ([F-01](AUDIT_REPORT.md#f-01));
 - que el aviso llegue con la app cerrada;
 - que el guardián se pueda cambiar;
 - un vencimiento a los 600 s.
@@ -497,6 +497,7 @@ Cada hash pertenece a la cuenta de su columna, y el wasm va con la cuenta.
 - Los ataques con destino distinto, monto distinto, dirección *muxed*, contrato intermedio y GH-28 tienen hash solo en `CC6FFXGG…`.
 - La cuenta del emulador no se usó para firmar ataques, porque la clave del Keystore no sale del teléfono.
 - Las escenas de terminal de la demo cronometrada usaron una quinta cuenta desechable, `CBE2VJ37…`.
+- Todas estas cuentas usan la política del 6 oct, `CCGIEMIU…`. La política F-01, `CBTIF2BF…`, la usan solo las cuentas creadas después de la release F-01 (12 oct, 22:25 hora local); la primera es `CA6VCI3O…` ([`gateway-live.md`, corrida 6](evidence/stellar/gateway-live.md#corrida-6-política-f-01-12-oct)).
 
 </details>
 
@@ -515,6 +516,8 @@ Para redesplegar en testnet hay dos scripts: [`scripts/deploy-testnet.ps1`](scri
 Antes de correrlos hay que tener en cuenta dos cosas:
 - Los scripts leen los wasm de `target/wasm/`. [COMANDO PENDIENTE DE VALIDAR: `stellar contract build --package <account|guardian_hold|hold_registry>` deja los wasm en `target/wasm32v1-none/release/`; falta documentar y probar cómo se copian a `target/wasm/`.]
 - Si ya existe `scripts/.testnet/state.json`, los scripts terminan sin desplegar.
+
+La release F-01 (12 oct) no usó esos scripts. Se subió el artefacto `wasm` del CI con `./gradlew :app:shared:testDebugUnitTest -PliveTestnet -Pgp.wasmDir=<artefacto> --tests "*PolicyReleaseLiveTest"`, que compara cada archivo con `wasm.sha256`, sube los tres wasm y despliega la política. Después hay que copiar los ids que imprime a las constantes de `TestnetProvisioner`. Ver [`deployment.md`](evidence/stellar/deployment.md#release-f-01-12-oct-2026).
 
 </details>
 
@@ -575,7 +578,7 @@ Esto es un resumen. Los criterios de aceptación están en [`ROADMAP.md`](ROADMA
   - hacer entrevistas con usuarios (A-4);
   - conectar el build de release (A-7).
 - **Recomendaciones del auditor (parte B):**
-  - liberar las retenciones a contactos en testnet (B-1, F-01);
+  - reprovisionar las cuentas de los teléfonos con la política F-01 (B-1);
   - acotar el registro (B-2);
   - cambiar de guardián y recuperar la cuenta (B-3);
   - una auditoría externa (B-4);

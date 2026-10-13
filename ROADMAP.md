@@ -89,7 +89,7 @@ Criterios de aceptación:
 - `SimulatedStellarGateway` se comporta igual que el contrato en esos casos, con una prueba que lo compare.
 - Si cambia el contrato, las cuentas desplegadas se redespliegan en testnet y la evidencia se actualiza.
 
-Estado (12 oct 2026, rama `fix-f01`): los cuatro primeros criterios están cumplidos en el código. Ver la corrección en [F-01](AUDIT_REPORT.md#f-01-correccion). Falta el último: compilar el wasm, desplegar la política nueva y cuentas nuevas en testnet, y actualizar `evidence/stellar/deployment.md`. Con la corrección, todo `transfer` de USDC recorre el registro, lo que hace más urgente B-2.
+Estado (12 oct 2026, rama `fix-f01`): los cuatro primeros criterios están cumplidos en el código. Ver la corrección en [F-01](AUDIT_REPORT.md#f-01-correccion). El último está cumplido en parte (12 oct): el CI compiló el wasm, la política nueva `CBTIF2BF…` está en testnet, una cuenta nueva corrió el ciclo con F-01 y `evidence/stellar/deployment.md` está actualizado. Falta reprovisionar las cuentas de los teléfonos, que siguen con la política anterior. Con la corrección, todo `transfer` de USDC recorre el registro, lo que hace más urgente B-2.
 
 ### B-2 · Medir y acotar el recorrido lineal del registro (F-02)
 

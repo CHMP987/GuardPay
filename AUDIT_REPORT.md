@@ -40,7 +40,7 @@ Hallazgos principales:
 
 | ID | Severidad | Título | Estado |
 | --- | --- | --- | --- |
-| [F-01](#f-01) | ALTA | Un pago retenido a un contacto de confianza nunca se libera por el registro | Corregido en el código (rama `fix-f01`); los contratos desplegados en testnet no se han redesplegado |
+| [F-01](#f-01) | ALTA | Un pago retenido a un contacto de confianza nunca se libera por el registro | Corregido en el código (rama `fix-f01`). Política nueva desplegada en testnet el 12 oct y probada con una cuenta nueva; las cuentas anteriores siguen con la política vieja |
 | [F-02](#f-02) | ALTA | El registro recorre todos los registros de la cuenta en cada `queue` y cada liberación | Por lectura de código; umbral sin medir |
 | [F-03](#f-03) | MEDIA | La simulación libera retenciones a contactos que el contrato rechaza | Corregido junto con F-01 (rama `fix-f01`) |
 | [F-04](#f-04) | MEDIA | Un solo guardián fijo, sin cambio ni recuperación | Documentado en el repositorio |
@@ -114,8 +114,9 @@ Cada hallazgo indica su estado de verificación y su confianza. Los hallazgos BA
 - [FACT] Tres de esas cuatro pruebas fallan con el contrato anterior (`git show HEAD:…/lib.rs`). La cuarta (retención detenida) pasa con ambos: protege contra una regresión.
 - [INFERENCE] Efecto secundario: un pago dentro del tope a un contacto con una retención aún no madurada **del mismo monto** se rechaza hasta que madure. Es coherente con que la dueña eligió retenerlo.
 - [INFERENCE] Costo: ahora **todo** `transfer` de USDC recorre el registro, también los pagos a contactos. Eso agrava [F-02](#f-02).
-- [FACT] Solo cambia `guardian_hold`. `account.wasm` y `hold_registry.wasm` no cambian. Pero ni la cuenta ni la política tienen `upgrade`, así que las cuentas desplegadas (`evidence/stellar/deployment.md`, política `b36588…85ce`) mantienen el comportamiento anterior. Hace falta desplegar una política nueva y cuentas nuevas que la usen. **No redesplegado**.
-- No corrido: `stellar contract build` (esta máquina no tiene `stellar` ni el target `wasm32v1-none`). El hash del wasm nuevo no se conoce.
+- [FACT] Solo cambia `guardian_hold`. `account.wasm` y `hold_registry.wasm` no cambian. Pero ni la cuenta ni la política tienen `upgrade`, así que las cuentas desplegadas (`evidence/stellar/deployment.md`, política `b36588…85ce`) mantienen el comportamiento anterior. Hace falta desplegar una política nueva y cuentas nuevas que la usen.
+- [FACT] Redespliegue (12 oct, REAL): el job `wasm` del CI construyó el wasm (`guardian_hold.wasm` `ceec440a…be34`) y se desplegó la política `CBTIF2BF7YGCR6OT7TQMHGGMY6BVHKPOAJV5BYZQ2P3IWKSEXYHLWFMW` (`evidence/stellar/deployment.md`, release F-01). `KmpStellarGatewayLiveTest` corrió el ciclo con una cuenta nueva: retuvo 60 para un contacto cuando quedaban 40 de tope; el envío antes de madurar dio `Rejected(code=7)`, y después de madurar salió (`ab668c03…6e57`) y quedó `Executed` sin gastar tope (`evidence/stellar/gateway-live.md`, corrida 6).
+- No corrido: el caso dentro del tope en testnet, y reprovisionar las cuentas de los teléfonos (`CDWPPT…`, `CA5Z7J…`), que siguen con `CCGIEMIU…`.
 
 <a id="f-02"></a>
 ### F-02 · El registro recorre todos los registros de la cuenta en cada `queue` y cada liberación
@@ -433,8 +434,8 @@ Comprobados por lectura de código y, cuando se indica, por pruebas que corriero
 | T-02 | Contrato | Sin `execute`, `upgrade` ni administración | IMPLEMENTADA Y VERIFICADA | `contracts/account/src/lib.rs` | `cargo test` (GH) | — |
 | T-03 | Contrato | Pago inmediato a contacto dentro del tope diario | IMPLEMENTADA Y VERIFICADA | `guardian_hold/src/lib.rs:205-220` (187-202 antes de `fix-f01`); `evidence/demo/scene-1.md` | `cargo test` (`gh_14_transfer_lanes`); Horizon | — |
 | T-04 | Contrato | Destino nuevo exige retención madurada | IMPLEMENTADA Y VERIFICADA | `guardian_hold/src/lib.rs:187-203` (205-217 antes de `fix-f01`) | `cargo test` | — |
-| T-05 | Contrato | Monto de contacto sobre el tope queda retenido y luego sale | IMPLEMENTADA Y VERIFICADA en el código (`fix-f01`) | F-01 | `f01_matured_trusted_hold_over_cap_releases` | No desplegado en testnet |
-| T-06 | Contrato | Retención a contacto dentro del tope se marca ejecutada | IMPLEMENTADA Y VERIFICADA en el código (`fix-f01`) | F-01 | `f01_matured_trusted_hold_within_cap_is_executed_and_closed` | No desplegado en testnet |
+| T-05 | Contrato | Monto de contacto sobre el tope queda retenido y luego sale | IMPLEMENTADA Y VERIFICADA en el código (`fix-f01`) | F-01 | `f01_matured_trusted_hold_over_cap_releases`; `KmpStellarGatewayLiveTest` (corrida 6) | Probado en testnet solo con una cuenta desechable |
+| T-06 | Contrato | Retención a contacto dentro del tope se marca ejecutada | IMPLEMENTADA Y VERIFICADA en el código (`fix-f01`) | F-01 | `f01_matured_trusted_hold_within_cap_is_executed_and_closed` | Política desplegada en testnet el 12 oct; este caso no se corrió en testnet |
 | T-07 | Contrato | Solo el guardián cancela | IMPLEMENTADA Y VERIFICADA | `hold_registry/src/lib.rs`; `evidence/demo/scene-3.md` | `cargo test`; Horizon | — |
 | T-08 | Contrato | Un pago detenido no sale | IMPLEMENTADA Y VERIFICADA | `evidence/demo/scene-4.md` | `cargo test`; Horizon (cola) | El `transfer` fallido no se consultó |
 | T-09 | Contrato | `ready_at` lo calcula el registro (120 s) | IMPLEMENTADA Y VERIFICADA | `hold_registry/src/lib.rs:12`, `:124` | `cargo test` | — |
