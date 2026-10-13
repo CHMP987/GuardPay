@@ -116,7 +116,8 @@ Cada hallazgo indica su estado de verificación y su confianza. Los hallazgos BA
 - [INFERENCE] Costo: ahora **todo** `transfer` de USDC recorre el registro, también los pagos a contactos. Eso agrava [F-02](#f-02).
 - [FACT] Solo cambia `guardian_hold`. `account.wasm` y `hold_registry.wasm` no cambian. Pero ni la cuenta ni la política tienen `upgrade`, así que las cuentas desplegadas (`evidence/stellar/deployment.md`, política `b36588…85ce`) mantienen el comportamiento anterior. Hace falta desplegar una política nueva y cuentas nuevas que la usen.
 - [FACT] Redespliegue (12 oct, REAL): el job `wasm` del CI construyó el wasm (`guardian_hold.wasm` `ceec440a…be34`) y se desplegó la política `CBTIF2BF7YGCR6OT7TQMHGGMY6BVHKPOAJV5BYZQ2P3IWKSEXYHLWFMW` (`evidence/stellar/deployment.md`, release F-01). `KmpStellarGatewayLiveTest` corrió el ciclo con una cuenta nueva: retuvo 60 para un contacto cuando quedaban 40 de tope; el envío antes de madurar dio `Rejected(code=7)`, y después de madurar salió (`ab668c03…6e57`) y quedó `Executed` sin gastar tope (`evidence/stellar/gateway-live.md`, corrida 6).
-- No corrido: el caso dentro del tope en testnet, y reprovisionar las cuentas de los teléfonos (`CDWPPT…`, `CA5Z7J…`), que siguen con `CCGIEMIU…`.
+- [FACT] Reprovisión (13 oct, REAL): el teléfono (dueña) y el emulador (guardián) apuntan a la cuenta nueva `CB4PUYVY…`, con `CBTIF2BF…` (`evidence/demo/two-devices-f01.md`). `CDWPPT…` y `CA5Z7J…` siguen en testnet con `CCGIEMIU…`, pero ningún dispositivo las usa.
+- No corrido: el caso dentro del tope en testnet, y enviar desde el teléfono una retención a un contacto en la cuenta nueva.
 
 <a id="f-02"></a>
 ### F-02 · El registro recorre todos los registros de la cuenta en cada `queue` y cada liberación

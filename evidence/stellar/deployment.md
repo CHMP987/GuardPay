@@ -42,7 +42,7 @@ Red: Test SDF Network ; September 2015. Sin mainnet. Hay dos releases. Las cuent
 - [FACT] `TestnetProvisioner` usa desde ahora esta política y estos wasm (`GUARDIAN_HOLD`, `ACCOUNT_WASM`, `HOLD_REGISTRY_WASM`). Lo usan `KmpStellarGatewayLiveTest`, `DeviceProvisioningLiveTest` y `DemoTerminal`.
 - [FACT] El ciclo completo con F-01 se corrió contra esta política: [`gateway-live.md`, corrida 6](gateway-live.md#corrida-6-política-f-01-12-oct).
 - [FACT] Siguen con la política anterior `CCGIEMIU…`: la cuenta publicada `CDBJMS…`, la de ataques `CC6FFXGG…`, la del emulador `CDWPPT…` y la de dos dispositivos `CA5Z7J…`.
-- No corrido: reprovisionar las cuentas de los teléfonos con `DeviceProvisioningLiveTest`. Hace falta el `keys.json` de cada teléfono.
+- [FACT] 13 oct: `DeviceProvisioningLiveTest` creó `CB4PUYVY…` con esta política, con la dueña en el teléfono y el guardián en el emulador. Los dos dispositivos apuntan ahora a esa cuenta: [`two-devices-f01.md`](../demo/two-devices-f01.md).
 
 ## Release del 6 oct (política anterior a F-01)
 

@@ -52,7 +52,7 @@
 > [!IMPORTANT]
 > GuardPay es un **MVP que corre solo en Stellar Testnet**, con dinero de prueba. Los contratos **no están auditados**. No es un producto listo para usar con fondos reales.
 >
-> La corrección [F-01](AUDIT_REPORT.md#f-01) (enviar un pago retenido a un contacto de confianza) está desplegada en testnet desde el 12 oct, pero solo la usan las cuentas nuevas. Las cuentas de los teléfonos y la publicada siguen con la política anterior.
+> La corrección [F-01](AUDIT_REPORT.md#f-01) (enviar un pago retenido a un contacto de confianza) está desplegada en testnet desde el 12 oct, pero solo la usan las cuentas nuevas. Desde el 13 oct, el teléfono (dueña) y el emulador (guardián) apuntan a una cuenta nueva con F-01, pero el envío de una retención a un contacto todavía no se probó desde ellos. La cuenta publicada y la de ataques siguen con la política anterior.
 
 <details>
   <summary><b>Contenido</b></summary>
@@ -149,10 +149,10 @@ flowchart TD
 
 | Capacidad | Estado | Dónde | Evidencia |
 | --- | --- | --- | --- |
-| Tres contratos desplegados (`account`, `guardian_hold`, `hold_registry`) | ✅ | Testnet. Release del 6 oct y release F-01 del 12 oct, con el wasm del CI. Las cuentas creadas antes de la release F-01 siguen con la política del 6 oct. | [`deployment.md`](evidence/stellar/deployment.md) |
+| Tres contratos desplegados (`account`, `guardian_hold`, `hold_registry`) | ✅ | Testnet. Release del 6 oct y release F-01 del 12 oct, con el wasm del CI. Las cuentas creadas antes de la release F-01 siguen con la política del 6 oct. El teléfono y el emulador se reprovisionaron con F-01 el 13 oct. | [`deployment.md`](evidence/stellar/deployment.md) |
 | Pago inmediato a contactos de confianza dentro del tope diario | ✅ | Testnet | [`scene-1.md`](evidence/demo/scene-1.md) |
 | Retención de 120 s para destinos nuevos | ✅ | Testnet | [`scene-2.md`](evidence/demo/scene-2.md) |
-| Retener un pago a un contacto y enviarlo después (sobre el tope, o porque la dueña eligió retenerlo) | 🟡 | Testnet, sobre el tope, con una cuenta desechable de la prueba en vivo. Dentro del tope, solo en los contratos y en la simulación. Las cuentas de los teléfonos aún no lo tienen. | [F-01](AUDIT_REPORT.md#f-01), [`gateway-live.md`, corrida 6](evidence/stellar/gateway-live.md#corrida-6-política-f-01-12-oct) |
+| Retener un pago a un contacto y enviarlo después (sobre el tope, o porque la dueña eligió retenerlo) | 🟡 | Testnet, sobre el tope, con una cuenta desechable de la prueba en vivo. Dentro del tope, solo en los contratos y en la simulación. El teléfono y el emulador ya tienen una cuenta con F-01 (13 oct), pero el caso no se probó desde ellos. | [F-01](AUDIT_REPORT.md#f-01), [`gateway-live.md`, corrida 6](evidence/stellar/gateway-live.md#corrida-6-política-f-01-12-oct) |
 | El guardián detiene un pago desde el aviso | ✅ | Testnet, entre un teléfono y un emulador | [`scene-3.md`](evidence/demo/scene-3.md), [`two-devices-android.md`](evidence/demo/two-devices-android.md) |
 | El guardián no es firmante y no puede mover fondos | ✅ | Testnet, comprobado en la cadena y con ataques | [`scene-5.md`](evidence/demo/scene-5.md), [`rules-onchain.md`](evidence/smart-account/rules-onchain.md) |
 | El contrato rechaza `approve`, los envíos retenidos sin esperar y los pagos detenidos | ✅ | Testnet | [`full-rehearsal.md`](evidence/demo/full-rehearsal.md), [`bypass-matrix.md`](evidence/security/bypass-matrix.md) |
@@ -177,7 +177,7 @@ Lo pendiente está en [`ROADMAP.md`](ROADMAP.md) y el detalle por fase en [`docs
 
 - **Solo testnet.** El activo es un token de prueba (un SAC emitido por la dueña), no el USDC de Circle. La dueña es la administradora de ese token. `mint` y `clawback` no pasan por la política, y no se ejecutaron con esa clave.
 - **Contratos sin auditar.** OpenZeppelin está fijado a un commit previo a una versión estable (`b40c5ea`), no al tag v0.7.2.
-- **Las cuentas creadas antes de la release F-01 corren la política anterior.** La cuenta publicada, la de ataques y las de los teléfonos no pueden enviar un pago retenido a un contacto de confianza ([F-01](AUDIT_REPORT.md#f-01)). Las cuentas no tienen `upgrade`: hay que reprovisionar cada teléfono con la política nueva.
+- **Las cuentas creadas antes de la release F-01 corren la política anterior.** La cuenta publicada, la de ataques y las cuentas anteriores de los dispositivos no pueden enviar un pago retenido a un contacto de confianza ([F-01](AUDIT_REPORT.md#f-01)). Las cuentas no tienen `upgrade`, así que cada dispositivo se reprovisiona con una cuenta nueva. El teléfono y el emulador ya se reprovisionaron el 13 oct ([`two-devices-f01.md`](evidence/demo/two-devices-f01.md)).
 - **Si el guardián no mira, nadie detiene nada.** La espera es fija, de 120 segundos. Un pago retenido que ya maduró no caduca dentro del contrato.
 - **El guardián no se puede cambiar**, y no hay recuperación de cuenta.
 - **El diálogo de firma no muestra el pago.** El sistema muestra "Firmar en Stellar", pero la clave firma un hash sin ver el destino ni el monto. Eso lo cubren la retención en cadena y la vista del guardián; la clave no lo cubre.
@@ -498,6 +498,7 @@ Cada hash pertenece a la cuenta de su columna, y el wasm va con la cuenta.
 - La cuenta del emulador no se usó para firmar ataques, porque la clave del Keystore no sale del teléfono.
 - Las escenas de terminal de la demo cronometrada usaron una quinta cuenta desechable, `CBE2VJ37…`.
 - Todas estas cuentas usan la política del 6 oct, `CCGIEMIU…`. La política F-01, `CBTIF2BF…`, la usan solo las cuentas creadas después de la release F-01 (12 oct, 22:25 hora local); la primera es `CA6VCI3O…` ([`gateway-live.md`, corrida 6](evidence/stellar/gateway-live.md#corrida-6-política-f-01-12-oct)).
+- El 13 oct, el teléfono (dueña) y el emulador (guardián) pasaron a la cuenta `CB4PUYVY…`, con la política F-01. Ya ningún dispositivo apunta a `CDWPPTDM…` ni a `CA5Z7JZS…` ([`two-devices-f01.md`](evidence/demo/two-devices-f01.md)).
 
 </details>
 
@@ -578,7 +579,7 @@ Esto es un resumen. Los criterios de aceptación están en [`ROADMAP.md`](ROADMA
   - hacer entrevistas con usuarios (A-4);
   - conectar el build de release (A-7).
 - **Recomendaciones del auditor (parte B):**
-  - reprovisionar las cuentas de los teléfonos con la política F-01 (B-1);
+  - probar desde el teléfono el envío de una retención a un contacto con la política F-01 (B-1);
   - acotar el registro (B-2);
   - cambiar de guardián y recuperar la cuenta (B-3);
   - una auditoría externa (B-4);
