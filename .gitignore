@@ -25,3 +25,8 @@ Thumbs.db
 # Contract builds and testnet demo keys. Addresses go in evidence/, not here.
 /target/
 scripts/.testnet/
+
+# Brand originals and the motion project, kept locally. The repo uses the copies in docs/marca/.
+/docs/GuardPay_Logo.png
+/docs/GuardPay_Eslogan.png
+/guardpay-motion/
