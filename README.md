@@ -2,17 +2,19 @@
 
 <div align="center">
 
-[![Red: Stellar Testnet][testnet-shield]][testnet-url]
-[![Estado: MVP en testnet][estado-shield]](#estado-actual)
-[![Contratos sin auditar][auditoria-shield]](#limitaciones-conocidas)
-[![CI: contratos y app][ci-main-shield]][ci-main-url]
-[![CI iOS (simulador)][ci-shield]][ci-url]
-
-<img src="docs/marca/simbolo.svg" alt="Logo de GuardPay" width="96" height="96" />
+<img src="docs/marca/logo.png" alt="Logo de GuardPay" width="160" height="160" />
 
 <h1>GuardPay</h1>
 
-<h3>Lo inusual espera. Tu guardián puede detenerlo.</h3>
+<img src="docs/marca/eslogan.png" alt="Lo inusual espera. Tu guardián puede detenerlo." width="720" />
+
+<br /><br />
+
+[![Red: Stellar Testnet][testnet-shield]][testnet-url]
+[![Estado: MVP en testnet][estado-shield]](#capacidades-y-estado)
+[![Contratos sin auditar][auditoria-shield]](#limitaciones-conocidas)
+[![CI: contratos y app][ci-main-shield]][ci-main-url]
+[![CI iOS (simulador)][ci-shield]][ci-url]
 
 <p><strong>Una billetera que le da tiempo a alguien de confianza para detener un pago sospechoso antes de que salga.</strong></p>
 
@@ -21,11 +23,13 @@
 <p>
   <a href="#cómo-funciona"><strong>Cómo funciona »</strong></a>
   <br /><br />
-  <a href="evidence/demo/full-rehearsal.md">Ver la demo cronometrada</a>
+  <a href="#inicio-rápido">Inicio rápido</a>
   &middot;
-  <a href="#estado-actual">Estado actual</a>
+  <a href="evidence/demo/full-rehearsal.md">Demo cronometrada</a>
   &middot;
-  <a href="docs/ESTADO-FASES.md">Detalle por fase</a>
+  <a href="#capacidades-y-estado">Estado</a>
+  &middot;
+  <a href="https://github.com/CHMP987/GuardPay/issues">Reportar un problema</a>
 </p>
 
 </div>
@@ -43,10 +47,12 @@
   </tr>
 </table>
 
-<p align="center"><sub>Capturas reales del 8 oct 2026, en Stellar Testnet: dueña en un teléfono Android y guardián en un emulador. Fuente: <a href="evidence/demo/full-rehearsal.md"><code>evidence/demo/full-rehearsal.md</code></a>.</sub></p>
+<p align="center"><sub>Capturas reales del 8 oct 2026 en Stellar Testnet. La dueña usó un teléfono Android y el guardián un emulador. Fuente: <a href="evidence/demo/full-rehearsal.md"><code>evidence/demo/full-rehearsal.md</code></a>.</sub></p>
 
 > [!IMPORTANT]
 > GuardPay es un **MVP que corre solo en Stellar Testnet**, con dinero de prueba. Los contratos **no están auditados**. No es un producto listo para usar con fondos reales.
+>
+> La política desplegada en testnet es **anterior al código actual**: le falta la corrección [F-01](AUDIT_REPORT.md#f-01), que permite enviar un pago retenido a un contacto de confianza.
 
 <details>
   <summary><b>Contenido</b></summary>
@@ -54,40 +60,48 @@
     <li><a href="#el-problema">El problema</a></li>
     <li><a href="#la-solución">La solución</a></li>
     <li><a href="#cómo-funciona">Cómo funciona</a></li>
-    <li><a href="#características">Características</a></li>
-    <li><a href="#demostración">Demostración</a></li>
-    <li><a href="#cómo-está-construido">Cómo está construido</a></li>
-    <li><a href="#estado-actual">Estado actual</a></li>
+    <li><a href="#capacidades-y-estado">Capacidades y estado</a></li>
     <li><a href="#limitaciones-conocidas">Limitaciones conocidas</a></li>
-    <li><a href="#probarlo">Probarlo</a></li>
+    <li><a href="#demostración">Demostración</a></li>
+    <li><a href="#pantallas-y-estados-de-pago">Pantallas y estados de pago</a></li>
+    <li><a href="#ia-en-el-teléfono">IA en el teléfono</a></li>
+    <li><a href="#privacidad-y-datos">Privacidad y datos</a></li>
+    <li><a href="#cómo-está-construido">Cómo está construido</a></li>
+    <li><a href="#inicio-rápido">Inicio rápido</a></li>
+    <li><a href="#desarrollo-y-calidad">Desarrollo y calidad</a></li>
+    <li><a href="#estructura-del-repositorio">Estructura del repositorio</a></li>
     <li><a href="#para-revisión-técnica">Para revisión técnica</a></li>
     <li><a href="#documentación">Documentación</a></li>
+    <li><a href="#próximos-pasos">Próximos pasos</a></li>
+    <li><a href="#contribuir-seguridad-y-soporte">Contribuir, seguridad y soporte</a></li>
+    <li><a href="#licencia">Licencia</a></li>
+    <li><a href="#créditos">Créditos</a></li>
   </ol>
 </details>
 
 ## El problema
 
-En muchas estafas por mensaje, quien pierde el dinero es quien **autoriza el pago**. Llega un mensaje urgente: un familiar en apuros, un supuesto banco o un premio que hay que cobrar ya. Bajo presión, la persona transfiere a una cuenta que nunca había visto.
+En muchas estafas por mensaje, quien pierde el dinero es la misma persona que **autoriza el pago**. El mensaje es urgente: un familiar en apuros, un supuesto banco, un premio que hay que cobrar ya. Bajo presión, la persona transfiere a una cuenta que nunca había visto.
 
-En ese momento la víctima tiene la clave y la intención de pagar, así que las protecciones habituales no ayudan. Y cuando alguien de confianza se entera, el dinero ya salió y no hay vuelta atrás.
+En ese momento la víctima tiene la clave y quiere pagar, así que las protecciones habituales no sirven. Cuando alguien de confianza se entera, el dinero ya salió y no hay vuelta atrás.
 
-En Costa Rica, el estudio de mercado del proyecto no encontró protecciones que permitan a otra persona intervenir antes de que el pago sea irreversible ([`docs/GuardPay — MVP Proposal.md`](docs/GuardPay%20—%20MVP%20Proposal.md)).
+En Costa Rica, el estudio de mercado del proyecto no encontró ninguna protección que permita a otra persona intervenir antes de que el pago sea irreversible ([`docs/GuardPay — MVP Proposal.md`](docs/GuardPay%20—%20MVP%20Proposal.md)).
 
 <p align="right">(<a href="#readme-top">volver arriba</a>)</p>
 
 ## La solución
 
-GuardPay es una billetera móvil sobre Stellar que **separa los pagos habituales de los riesgosos**, y deja que una persona de confianza frene los riesgosos.
+GuardPay es una billetera móvil sobre Stellar que **separa los pagos habituales de los riesgosos** y deja que una persona de confianza frene los riesgosos.
 
-- **Los pagos de siempre salen al momento.** Si el destino es un contacto de confianza y el monto cabe en el tope diario, el pago sale sin espera.
-- **Lo inusual espera.** Un destino nuevo queda **retenido 120 segundos** por el propio contrato. Un pago a un contacto que supera el tope diario no sale al momento; la app ofrece retenerlo y, cuando la retención madura, sale por el registro. Esto se corrigió en el código después de la auditoría; las cuentas desplegadas en testnet todavía no lo tienen ([F-01](AUDIT_REPORT.md#f-01)).
-- **El guardián puede detenerlo.** La dueña elige a esa persona, que recibe un aviso en su teléfono y puede detener el pago mientras está retenido.
-- **El guardián no puede mover el dinero.** No es firmante de la cuenta. Solo puede detener.
-- **Las reglas no dependen de la app.** Las aplica un contrato en Stellar, así que una app modificada o una firma robada no las saltan.
+- **Los pagos habituales salen al momento.** Si el destino es un contacto de confianza y el monto cabe en el tope diario, el pago sale sin espera.
+- **Lo inusual espera.** El propio contrato **retiene 120 segundos** cualquier pago a un destino nuevo.
+- **El guardián puede detenerlo.** La dueña elige a esa persona. El guardián recibe un aviso en su teléfono y puede detener el pago mientras sigue retenido.
+- **El guardián no puede mover el dinero.** No es firmante de la cuenta; solo puede detener.
+- **Las reglas no dependen de la app.** Las aplica un contrato en Stellar, así que una app modificada no se las salta. Quien robe la clave de la dueña sigue sujeto a esas mismas reglas: puede pagar a los contactos dentro del tope, pero cualquier otro pago espera 120 s y el guardián puede detenerlo.
 
-**Qué lo diferencia de una billetera convencional.** En una billetera común, una firma de la dueña basta para mover todo. En GuardPay esa firma pasa además por una política en cadena que decide si el pago sale, espera o se rechaza. Y existe un tercero que puede frenarlo sin tener poder sobre los fondos.
+**Qué lo diferencia de una billetera convencional.** En una billetera común, la firma de la dueña basta para mover todo. En GuardPay, esa firma pasa además por una política en cadena que decide si el pago sale, espera o se rechaza. Además, hay un tercero que puede frenar el pago sin tener poder sobre los fondos.
 
-Ninguna pieza es nueva por separado: retención con tiempo (como `TimelockController` de OpenZeppelin), guardianes (Argent/Ready) y avisos de pagos (Yandex Pay, Monzo). GuardPay las combina en una cuenta de Stellar construida con piezas de OpenZeppelin. En EVM se podría hacer algo parecido con Safe, un módulo de retraso y un *guard*.
+Ninguna de estas piezas es nueva por separado: la retención con tiempo (como `TimelockController` de OpenZeppelin), los guardianes (Argent/Ready) y los avisos de pago (Yandex Pay, Monzo) ya existen. GuardPay las combina en una cuenta de Stellar construida con piezas de OpenZeppelin. En EVM se podría hacer algo parecido con Safe, un módulo de retraso y un *guard*.
 
 <p align="right">(<a href="#readme-top">volver arriba</a>)</p>
 
@@ -106,61 +120,88 @@ flowchart TD
     D -->|"Pasan los 120 s<br/>y nadie lo detuvo"| G["La dueña firma el envío<br/>→ ✅ Enviado"]
 ```
 
-1. **La dueña paga.** Elige destino y monto. La app le muestra antes de firmar si el pago sale ahora ("Sale ahora") o con espera ("Con espera"). Ella firma con huella o PIN, y la clave nunca sale del teléfono.
-2. **El contrato decide.** Cada operación de la cuenta pasa por la política `GuardianHold`, que solo admite:
+1. **La dueña paga.** Elige el destino y el monto. Antes de firmar, la app le dice si el pago saldrá ahora ("Sale ahora") o con espera ("Con espera"). Firma con huella o PIN; la clave nunca sale del teléfono.
+2. **El contrato decide.** Cada operación de la cuenta pasa por la política `GuardianHold`, que solo admite cuatro casos:
    - un pago a un contacto de confianza (hasta 3) dentro del tope diario;
    - poner un pago en espera en el registro;
-   - enviar un pago retenido que ya cumplió su espera y coincide exactamente en cuenta, moneda, destino y monto, a cualquier destino, también a un contacto; ese envío no gasta tope y el registro queda `Executed` ([F-01](AUDIT_REPORT.md#f-01), corregido en el código, no desplegado en testnet);
+   - enviar un pago retenido que ya cumplió su espera y coincide exactamente en cuenta, moneda, destino y monto;
    - que el guardián cancele un pago retenido.
 
    Todo lo demás se rechaza.
-3. **El guardián se entera.** Su teléfono consulta la red cada 30 segundos y avisa cuando aparece un pago retenido. No hay servidor de por medio.
-4. **El guardián decide.** Desde el aviso ve el destino y el monto, y puede detener el pago. Si lo detiene, ese pago no puede salir, aunque la dueña vuelva a firmar.
-5. **Si nadie lo detiene**, a los 120 segundos la dueña puede enviarlo.
+3. **El guardián se entera.** Su teléfono consulta la red cada 30 segundos y le avisa cuando aparece un pago retenido. No hay ningún servidor de por medio.
+4. **El guardián decide.** Desde el aviso ve el destino y el monto, y puede detener el pago. Un pago detenido ya no puede salir, aunque la dueña vuelva a firmar.
+5. **Si nadie lo detiene**, la dueña puede enviarlo cuando pasan los 120 segundos.
 
 ### Quién puede hacer qué
 
 | | Puede | No puede |
 | --- | --- | --- |
 | **Dueña** | Pagar a sus contactos, retener pagos a destinos nuevos y enviarlos tras la espera | Saltarse la espera, aprobar a terceros (`approve`) ni usar otras monedas desde la cuenta |
-| **Guardián** | Ver y detener los pagos retenidos de la dueña | Firmar pagos, mover fondos, cambiar reglas. No es firmante de la cuenta. |
+| **Guardián** | Ver y detener los pagos retenidos de la dueña | Firmar pagos, mover fondos ni cambiar reglas. No es firmante de la cuenta. |
 | **Contrato** | Decidir si una operación sale, espera o se rechaza | Mover dinero por su cuenta: el registro no tiene ninguna función que transfiera fondos |
-| **IA** *(solo Android)* | Leer un mensaje y sugerir precaución, en el teléfono | Firmar, rellenar destino o monto, ni ver saldos, contactos o claves. El mensaje no sale del teléfono. |
+| **IA** *(solo Android)* | Leer un mensaje en el teléfono y sugerir precaución | Firmar, rellenar el destino o el monto, ni ver saldos, contactos o claves |
 
 <p align="right">(<a href="#readme-top">volver arriba</a>)</p>
 
-## Características
+## Capacidades y estado
 
-| Característica | Estado |
-| --- | --- |
-| Pago inmediato a contactos de confianza dentro de un tope diario | ✅ Implementado y probado en testnet |
-| Retención de 120 s para destinos nuevos | ✅ Implementado y probado en testnet |
-| Retener y después enviar un pago a un contacto (sobre el tope, o porque la dueña eligió retenerlo) | 🟡 Corregido en el código ([F-01](AUDIT_REPORT.md#f-01)): la retención madurada sale por el registro y queda `Executed`, con pruebas de contrato y de simulación. Las cuentas desplegadas en testnet usan la política anterior; no redesplegado ni probado en testnet. |
-| El guardián detiene un pago desde el aviso en su teléfono | ✅ Probado entre dos dispositivos: un teléfono y un emulador |
-| El guardián no es firmante y no puede mover fondos | ✅ Comprobado en cadena y con ataques ([escena 5](evidence/demo/scene-5.md)) |
-| El contrato rechaza `approve`, pagos retenidos sin esperar y pagos detenidos | ✅ Rechazos registrados en testnet ([ensayo completo](evidence/demo/full-rehearsal.md)) |
-| Clave de firma en el Android Keystore con huella o PIN | ✅ Implementado. Probado en emulador y en un teléfono. |
-| Pantalla "Reglas de esta cuenta" leída de la cadena | ✅ Implementado |
-| Aviso al guardián sin servidor (consulta local cada 30 s) | 🟡 Funciona con la app activa. Puede llegar tarde si el sistema detiene el servicio. |
-| App en iOS | 🟡 Solo en simulación, en el simulador del CI de macOS |
-| Análisis de mensajes con IA en el teléfono | ✅ Android (P7, 12 oct): Gemma 4 E2B con LiteRT-LM, descargado dentro de la app. En iOS dice que no está disponible. |
-| Cambiar de guardián o recuperar la cuenta | ❌ No existe |
-| Avisos push (FCM/APNs) o con la app cerrada | ❌ No existe; no hay backend por diseño |
+✅ hecho y con evidencia · 🟡 parcial · ❌ no existe. La columna "Dónde" dice dónde se comprobó cada cosa.
+
+| Capacidad | Estado | Dónde | Evidencia |
+| --- | --- | --- | --- |
+| Tres contratos desplegados (`account`, `guardian_hold`, `hold_registry`) | 🟡 | Testnet, desplegados el 6 oct. Desde entonces la política cambió en el código (F-01) y no se redesplegó. | [`deployment.md`](evidence/stellar/deployment.md) |
+| Pago inmediato a contactos de confianza dentro del tope diario | ✅ | Testnet | [`scene-1.md`](evidence/demo/scene-1.md) |
+| Retención de 120 s para destinos nuevos | ✅ | Testnet | [`scene-2.md`](evidence/demo/scene-2.md) |
+| Retener un pago a un contacto y enviarlo después (sobre el tope, o porque la dueña eligió retenerlo) | 🟡 | Corregido en el código y probado en los contratos y en la simulación. **No desplegado ni probado en testnet.** | [F-01](AUDIT_REPORT.md#f-01) |
+| El guardián detiene un pago desde el aviso | ✅ | Testnet, entre un teléfono y un emulador | [`scene-3.md`](evidence/demo/scene-3.md), [`two-devices-android.md`](evidence/demo/two-devices-android.md) |
+| El guardián no es firmante y no puede mover fondos | ✅ | Testnet, comprobado en la cadena y con ataques | [`scene-5.md`](evidence/demo/scene-5.md), [`rules-onchain.md`](evidence/smart-account/rules-onchain.md) |
+| El contrato rechaza `approve`, los envíos retenidos sin esperar y los pagos detenidos | ✅ | Testnet | [`full-rehearsal.md`](evidence/demo/full-rehearsal.md), [`bypass-matrix.md`](evidence/security/bypass-matrix.md) |
+| Clave de firma en el Android Keystore, con huella o PIN | ✅ | Emulador y teléfono: `transfer`, `queue` y `cancel` | [`physical-phone.md`](evidence/demo/physical-phone.md) |
+| Las cuatro pantallas (Inicio, Pagar, Detalle, Guardián) con datos de testnet | ✅ | Emulador y teléfono | [`rehearsal.md`](evidence/demo/rehearsal.md) |
+| Pantalla "Reglas de esta cuenta", leída de la cadena | ✅ | Testnet | [`r1-6-reglas.png`](evidence/demo/full-rehearsal/r1-6-reglas.png) |
+| Aviso al guardián sin servidor (consulta cada 30 s) | 🟡 | Emulador con la app viva: 5 medidas, de 1,9 a 21,3 s. No se midió con la app cerrada ni en un teléfono físico. | [`notification.md`](evidence/guardian/notification.md) |
+| Análisis de mensajes con IA en el teléfono | ✅ en Android · ❌ en iOS | Teléfono (12 oct). Ver [IA en el teléfono](#ia-en-el-teléfono). | [`benchmark.md`](evidence/ai/benchmark.md) |
+| App en iOS | 🟡 | Solo el simulador del CI de macOS, con la simulación en memoria | [`simulator.md`](evidence/ios/simulator.md) |
+| Ataques adversarios GH-01…GH-33 | 🟡 | GH-29, GH-30 y GH-33 sin correr | [`bypass-matrix.md`](evidence/security/bypass-matrix.md) |
+| Demo completa de seis escenas | ✅ | Testnet, dos corridas por debajo de 5 min | [`full-rehearsal.md`](evidence/demo/full-rehearsal.md) |
+| Entrevistas con usuarios | ❌ | No corridas | [`interviews.md`](evidence/interviews.md) |
+| Cambiar de guardián o recuperar la cuenta | ❌ | No existe | — |
+| Avisos push (FCM/APNs) o con la app cerrada | ❌ | No existe; por diseño no hay backend | — |
+| Build de release conectado | ❌ | El build de release no se conecta a nada | — |
+
+Lo pendiente está en [`ROADMAP.md`](ROADMAP.md) y el detalle por fase en [`docs/ESTADO-FASES.md`](docs/ESTADO-FASES.md). La revisión del 12 oct 2026 está en [`AUDIT_REPORT.md`](AUDIT_REPORT.md); no es una auditoría profesional. Las firmas de revisión humana CP-3, CP-7 y CP-9 siguen pendientes.
+
+<p align="right">(<a href="#readme-top">volver arriba</a>)</p>
+
+## Limitaciones conocidas
+
+- **Solo testnet.** El activo es un token de prueba (un SAC emitido por la dueña), no el USDC de Circle. La dueña es la administradora de ese token. `mint` y `clawback` no pasan por la política, y no se ejecutaron con esa clave.
+- **Contratos sin auditar.** OpenZeppelin está fijado a un commit previo a una versión estable (`b40c5ea`), no al tag v0.7.2.
+- **Testnet corre una política anterior.** Hasta que se redespliegue, las cuentas de testnet no pueden enviar un pago retenido a un contacto de confianza ([F-01](AUDIT_REPORT.md#f-01)).
+- **Si el guardián no mira, nadie detiene nada.** La espera es fija, de 120 segundos. Un pago retenido que ya maduró no caduca dentro del contrato.
+- **El guardián no se puede cambiar**, y no hay recuperación de cuenta.
+- **El diálogo de firma no muestra el pago.** El sistema muestra "Firmar en Stellar", pero la clave firma un hash sin ver el destino ni el monto. Eso lo cubren la retención en cadena y la vista del guardián; la clave no lo cubre.
+- **El aviso depende de que el servicio siga vivo.** El teléfono del guardián consulta la red cada 30 s desde un servicio en primer plano. El sistema puede detenerlo por ahorro de batería, restricciones del fabricante, un cierre forzado o el tope de unas 6 h al día de los servicios `dataSync` en Android 15+. Si lo detiene, el aviso llega cuando se abre la app o se toca "Actualizar". Una consulta cada 30 s gasta demasiada batería para producción.
+- **El registro crece sin límite.** Cada `queue` y cada `transfer` de USDC recorre todos los registros de la cuenta. Con muchos registros, podría superar los límites de Soroban. No se midió ([F-02](AUDIT_REPORT.md#f-02)).
+- **Los pagos inmediatos no se releen.** Un pago a un contacto queda en la cadena, pero desaparece de "Recientes" si se reinicia la app. Los pagos retenidos sí se vuelven a leer del registro.
+- **Las pruebas cubren poco hardware.** Se probó en un emulador Android (API 37) y en un teléfono. El ciclo retener → esperar → enviar y los casos GH-01 y GH-24 no se repitieron en el teléfono físico. No hubo dos teléfonos físicos.
+- **La demo cronometrada usó dos cuentas.** Las escenas de app y las de terminal corrieron sobre cuentas distintas, y las manejó un guion, no una persona presentando.
+- **El build de release no se conecta a nada todavía.**
 
 <p align="right">(<a href="#readme-top">volver arriba</a>)</p>
 
 ## Demostración
 
-Las seis escenas de la demo corrieron **dos veces seguidas, sin fallos, en 3:46 y 3:35 minutos**, el 8 oct 2026 en Stellar Testnet. Cada transacción tiene su hash comprobado en Horizon. Detalle completo: [`evidence/demo/full-rehearsal.md`](evidence/demo/full-rehearsal.md).
+Las seis escenas de la demo corrieron **dos veces seguidas, sin fallos, en 3:46 y 3:35 minutos**, el 8 oct 2026 en Stellar Testnet. El hash de cada transacción se comprobó en Horizon. El detalle está en [`evidence/demo/full-rehearsal.md`](evidence/demo/full-rehearsal.md).
 
 | # | Escena | Resultado |
 | --- | --- | --- |
 | 1 | Pagar 10 USDC de prueba a "Mamá", un contacto de confianza | Enviado al momento |
-| 2 | Pagar 150 a una cuenta nueva, e intentar enviarlo sin esperar | Retenido; el envío inmediato se rechaza |
+| 2 | Pagar 150 a una cuenta nueva e intentar enviarlo sin esperar | Retenido; el envío inmediato se rechaza |
 | 3 | El guardián lo detiene desde el aviso | Detenido, también en el teléfono de la dueña |
 | 4 | La dueña intenta enviar el pago detenido | Rechazado por el contrato |
 | 5 | El guardián intenta transferirse dinero a sí mismo | Rechazado: no es firmante |
-| 6 | Aprobar a un tercero (`approve`) o añadir una regla nueva | `approve` rechazado; la cuenta no tiene función para añadir reglas y sigue con 1 regla |
+| 6 | Aprobar a un tercero (`approve`) o añadir una regla nueva | `approve` rechazado. La cuenta no tiene ninguna función para añadir reglas y sigue con 1 regla. |
 
 <table>
   <tr>
@@ -175,14 +216,59 @@ Las seis escenas de la demo corrieron **dos veces seguidas, sin fallos, en 3:46 
   </tr>
 </table>
 
-Las escenas de terminal (2, 4, 5 y 6) usaron otra cuenta de testnet con claves desechables, porque las claves del Keystore no salen del teléfono. Un guion manejó los dispositivos; una persona puso la huella.
+Las escenas de terminal (2, 4, 5 y 6) usaron otra cuenta de testnet, con claves desechables, porque las claves del Keystore no salen del teléfono. Un guion manejó los dispositivos; una persona puso la huella.
 
 Más material:
-
-- [Los 9 estados de pago a 360 dp](evidence/demo/screens/): Borrador, Firmando, Retenido, Listo para enviar, Enviado, Detenido, Vencido, Rechazado y Error de red. Son **simulados**: la interfaz real dibujada sin red.
-- [Dos dispositivos](evidence/demo/two-devices-android.md): dueña en el teléfono y guardián en el emulador. Es **real**.
-- [Teléfono físico](evidence/demo/physical-phone.md): escenas 1, 2, 3 y 6 en el teléfono. Es **real**.
+- [Dos dispositivos](evidence/demo/two-devices-android.md): la dueña en el teléfono y el guardián en el emulador. **Real**.
+- [Teléfono físico](evidence/demo/physical-phone.md): las escenas 1, 2, 3 y 6 en el teléfono. **Real**.
 - [Vídeos de los ensayos](evidence/demo/video.md).
+
+<p align="right">(<a href="#readme-top">volver arriba</a>)</p>
+
+## Pantallas y estados de pago
+
+La app tiene cuatro pantallas:
+- **Inicio:** el saldo, una línea de estado de las reglas en Stellar, la tarjeta del guardián, los pagos en espera, los recientes y los contactos de confianza con lo que queda del tope de hoy.
+- **Pagar:** el destino, el monto, el carril previsto ("Sale ahora" o "Con espera") y la lectura opcional del mensaje.
+- **Detalle:** el estado de un pago, la línea de espera (Retenido → Listo → Enviado) con el guardián sobre el tramo de espera, y la acción que permite ese estado.
+- **Guardián:** los pagos retenidos de la cuenta que vigila, con la opción de detenerlos.
+
+Cada pago está siempre en uno de **nueve estados**: Borrador, Firmando, Retenido, Listo para enviar, Enviado, Detenido, Vencido, Rechazado y Error de red. La app solo muestra "Retenido" cuando existe un registro en la cadena. Hay capturas de los nueve estados a 360 dp en [`evidence/demo/screens/`](evidence/demo/screens/). Son **simuladas**: es la interfaz real, pero dibujada sin red.
+
+El diseño (paleta, contraste, estados y pantallas) lo define [`docs/GuardPay — Propuesta visual.md`](docs/GuardPay%20—%20Propuesta%20visual.md).
+
+<p align="right">(<a href="#readme-top">volver arriba</a>)</p>
+
+## IA en el teléfono
+
+La IA **advierte; no decide**. Lee el mensaje que acompaña un pago y puede sugerir retenerlo. La retención la impone el contrato, no la IA.
+
+| | |
+| --- | --- |
+| Qué hace | Una sola función: lee el texto y devuelve "sugerir retener" o "sin señales claras" |
+| Qué no puede hacer | Firmar, rellenar destino o monto, ni ver saldos, contactos, reglas o claves. No tiene acceso a la conexión con Stellar. Una prueba automática (`checkDependencyGraph`) lo comprueba. |
+| Dónde corre | En el teléfono Android, con Gemma 4 E2B sobre LiteRT-LM 0.17.1 (GPU, con CPU como respaldo). El mensaje no sale del teléfono. |
+| Modelo | 2,6 GB. No viene en el APK: la app lo descarga la primera vez que se abre la lectura de mensajes en Pagar, y comprueba su tamaño y su SHA-256. |
+| Rendimiento (teléfono, 12 oct) | Con el motor cargado, una lectura tarda 6,2–10,1 s. La primera, mientras se carga el modelo, tarda 21–64 s. |
+| Calidad | Marcó las 10 estafas de prueba. De 3 mensajes normales, marcó 1 (un falso positivo). Tres corridas dieron salidas idénticas. |
+| Resistencia | Cinco inyecciones de prompt no cambiaron el carril del pago. |
+| iOS | Dice que no está disponible. |
+| No medido | Consumo de batería |
+
+Evidencia:
+- [`evidence/ai/benchmark.md`](evidence/ai/benchmark.md)
+- [`evidence/ai/prompt-injection.md`](evidence/ai/prompt-injection.md)
+- [`evidence/demo/physical-phone-reinstall.md`](evidence/demo/physical-phone-reinstall.md) (descarga desde cero tras reinstalar la app)
+
+<p align="right">(<a href="#readme-top">volver arriba</a>)</p>
+
+## Privacidad y datos
+
+- **Claves:** la clave de firma se crea dentro del Android Keystore y no sale del teléfono. Ningún paso de configuración usa una semilla.
+- **Mensajes:** el texto que analiza la IA se procesa en el teléfono y no se envía a ningún sitio.
+- **Red:** la app lee y envía transacciones a la RPC pública de Stellar Testnet. El teléfono del guardián la consulta cada 30 s. GuardPay no tiene servidor propio, base de datos ni push.
+- **Descarga del modelo:** la primera vez, la app descarga el modelo desde un commit fijado de Hugging Face.
+- **Datos en la cadena:** los contactos de confianza, los pagos retenidos y las transferencias quedan en Stellar Testnet, que es pública, como cualquier dato de esa red.
 
 <p align="right">(<a href="#readme-top">volver arriba</a>)</p>
 
@@ -210,98 +296,79 @@ flowchart LR
     G -->|"cancela"| HR
 ```
 
-**En la cadena** hay tres contratos Soroban escritos en Rust:
+### En la cadena
+
+Hay tres contratos Soroban escritos en Rust:
 
 | Contrato | Qué hace |
 | --- | --- |
-| `account` | La cuenta de la dueña, armada con piezas de OpenZeppelin. Tiene **una sola regla** (firmante: la dueña; política: `guardian_hold`). No tiene funciones para ejecutar código arbitrario, actualizarse ni añadir firmantes o reglas. |
-| `guardian_hold` | La política. Admite solo la lista cerrada de operaciones descrita arriba y rechaza todo lo demás. Nunca llama a un token. |
-| `hold_registry` | Guarda los pagos retenidos y calcula por su cuenta cuándo maduran. Solo el guardián puede cancelar. No tiene funciones que muevan fondos. |
+| `account` | La cuenta de la dueña, armada con piezas de OpenZeppelin. Tiene **una sola regla**: firmante, la dueña; política, `guardian_hold`. No tiene funciones para ejecutar código arbitrario, actualizarse ni añadir firmantes o reglas. |
+| `guardian_hold` | La política. Solo admite la lista cerrada de operaciones de [Cómo funciona](#cómo-funciona) y rechaza todo lo demás. Nunca llama a un token. |
+| `hold_registry` | Guarda los pagos retenidos y calcula por su cuenta cuándo maduran. Solo el guardián puede cancelar. No tiene ninguna función que mueva fondos. |
 
-**En el teléfono:**
+### En el teléfono
 
-- **Kotlin Multiplatform y Compose Multiplatform.** Una sola base de código para la lógica y la interfaz. Android es la plataforma de la demo. iOS compila y abre en el simulador, solo en simulación.
+- **Kotlin Multiplatform y Compose Multiplatform.** La lógica y la interfaz comparten una sola base de código. Android es la plataforma de la demo. iOS compila y abre en el simulador, pero solo con la simulación.
 - **Android Keystore.** Guarda la clave ed25519 y pide huella o PIN en cada firma.
-- **Stellar SDK para Kotlin** (`com.soneso.stellar:stellar-sdk` 1.14.0). Construye las transacciones y lee la red.
+- **Stellar SDK para Kotlin.** Construye las transacciones y lee la red.
 - **Firma acotada.** La app firma solo la llamada exacta que ella misma construyó (`AuthEntryGuard`).
-- **IA aislada.** El módulo de IA tiene una única función y, por diseño, no puede ver claves, saldos ni la conexión a Stellar. Una prueba automática lo comprueba.
+- **IA aislada.** Ver [IA en el teléfono](#ia-en-el-teléfono).
+- **Guardián.** Un servicio en primer plano consulta el registro cada 30 s y muestra un aviso local.
+
+### Tecnologías y versiones
+
+| Pieza | Versión |
+| --- | --- |
+| OpenZeppelin `stellar-contracts` | Commit `b40c5eaefe6a29f0030f00bd2d730b7a91cce330`. Es una pre-release, vendorizada en `vendor/`. |
+| `soroban-sdk` | 28.0.0 |
+| Rust y target de los contratos | Rust 1.99.0 y `wasm32v1-none` para compilar el wasm: es la versión que declaran los metadatos del wasm desplegado y la que usa el job `wasm` del CI. Las pruebas de contratos del CI usan 1.98.0. Ver [`docs/DEPENDENCIES.md`](docs/DEPENDENCIES.md). |
+| `stellar-cli` | 28.1.0 |
+| `com.soneso.stellar:stellar-sdk` | 1.14.0 |
+| LiteRT-LM | 0.17.1 |
+| Modelo de IA | Gemma 4 E2B (`gemma-4-E2B-it.litertlm`) |
+| JDK | 17 |
+| Gradle | 8.14.3 (wrapper) |
 
 <p align="right">(<a href="#readme-top">volver arriba</a>)</p>
 
-## Estado actual
-
-**Implementado y probado en testnet**
-
-- Los tres contratos, desplegados en Stellar Testnet ([`evidence/stellar/deployment.md`](evidence/stellar/deployment.md)).
-- La entrada y las cuatro pantallas de la app con datos de testnet: Inicio, Pagar, Detalle y Guardián. Probadas en un emulador y en un teléfono.
-- La firma con huella o PIN: `transfer`, `queue` y `cancel` firmados desde el teléfono.
-- El aviso al guardián sin servidor, medido por debajo de 60 s ([`evidence/guardian/notification.md`](evidence/guardian/notification.md)).
-- La demo completa de seis escenas, dos veces por debajo de 5 minutos.
-- Ataques documentados en una matriz por cuenta ([`evidence/security/bypass-matrix.md`](evidence/security/bypass-matrix.md)).
-- **IA en el teléfono (P7, Android):** Gemma 4 E2B lee el mensaje que acompaña un pago y sugiere retenerlo. Corre en el teléfono con LiteRT-LM y GPU; el mensaje no sale del teléfono.
-  - Con el motor cargado, una lectura tarda 6,2–10,1 s. La primera tras abrir Pagar tarda 21–64 s, mientras el modelo se carga.
-  - Las 10 estafas de prueba se marcaron; de 3 mensajes normales, 1 también se marcó (falso positivo).
-  - Tres corridas dieron salidas idénticas ([`evidence/ai/benchmark.md`](evidence/ai/benchmark.md)).
-  - La retención no depende de la IA: cinco inyecciones de prompt no cambiaron el carril ([`evidence/ai/prompt-injection.md`](evidence/ai/prompt-injection.md)).
-  - La app descarga el modelo (2,6 GB) la primera vez y comprueba su SHA-256. El 12 oct se probó desde cero, tras reinstalar la app ([`evidence/demo/physical-phone-reinstall.md`](evidence/demo/physical-phone-reinstall.md)).
-
-**Parcial**
-
-- **iOS:** solo en el simulador del CI de macOS, con la simulación en memoria. Nada se firma con una clave real, nada va contra testnet y nada se probó en un iPhone ([`evidence/ios/simulator.md`](evidence/ios/simulator.md)).
-- **Dispositivos:** la prueba entre dos dispositivos usó un teléfono físico y un emulador, no dos teléfonos físicos.
-- **IA:** no se midió el consumo de batería. En iOS la IA dice que no está disponible.
-- **Ataques:** GH-29, GH-30 y GH-33 están sin correr. Algunos ataques solo tienen hash en una cuenta de pruebas concreta (ver [revisión técnica](#para-revisión-técnica)).
-
-**No iniciado**
-
-- **Entrevistas con usuarios:** sin correr ([`evidence/interviews.md`](evidence/interviews.md)).
-
-Las firmas de revisión humana CP-3, CP-7 y CP-9 siguen pendientes. La revisión del 12 oct está en [`AUDIT_REPORT.md`](AUDIT_REPORT.md) (no es una auditoría profesional), y lo pendiente en [`ROADMAP.md`](ROADMAP.md). El detalle por fase está en [`docs/ESTADO-FASES.md`](docs/ESTADO-FASES.md). Toda la evidencia está en [`evidence/`](evidence/), etiquetada **REAL**, **SIMULATED** o **ILLUSTRATIVE**. Lo que no se corrió está escrito como "no corrido".
-
-<p align="right">(<a href="#readme-top">volver arriba</a>)</p>
-
-## Limitaciones conocidas
-
-- **Solo testnet.** El activo es un token de prueba (un SAC emitido por la dueña), no el USDC de Circle. El administrador de ese token es la dueña. `mint` y `clawback` no pasan por la política, y no se ejecutaron con esa clave.
-- **Contratos sin auditar.** OpenZeppelin está fijado a un commit previo a una versión estable (`b40c5ea`), no al tag v0.7.2.
-- **Si el guardián no mira, nadie detiene nada.** La espera es fija, de 120 segundos. Un pago retenido que ya maduró no caduca dentro del contrato.
-- **El guardián no se puede cambiar**, y no hay recuperación de cuenta.
-- **El diálogo de firma no muestra el pago.** El sistema muestra "Firmar en Stellar", pero la clave firma un hash sin ver destino ni monto. Lo mitigan la retención en cadena y la vista del guardián, no la clave.
-- **El aviso depende de que el servicio siga vivo.** No hay servidor, FCM ni APNs. El teléfono del guardián consulta la red cada 30 s desde un servicio en primer plano. Si el sistema lo detiene (ahorro de batería, restricciones del fabricante, cierre forzado o el tope de unas 6 h/día de `dataSync` en Android 15+), el aviso llega cuando se abra la app o se toque "Actualizar". Consultar cada 30 s no es aceptable en batería para producción.
-- **Configuración por dispositivo.** En el build de depuración, cada teléfono crea las claves de dueña y de guardián, y un archivo `testnet.json` decide su rol: ambos, solo dueña o solo guardián.
-- **Las pruebas cubren poco hardware.** Se probó en un emulador Android (API 37) y en un teléfono. El ciclo retener → esperar → enviar y los casos GH-01/GH-24 no se repitieron en el teléfono físico.
-- **Retenciones a contactos.** Ver [F-01](AUDIT_REPORT.md#f-01): corregido en el código, pero las cuentas desplegadas en testnet siguen sin liberar una retención a un contacto de confianza hasta que se redespliegue la política.
-- **El registro crece sin límite.** Cada `queue` y cada `transfer` de USDC (también a contactos, desde la corrección de F-01) recorren todos los registros de la cuenta; con muchos, podrían superar los límites de Soroban. No se midió ([F-02](AUDIT_REPORT.md#f-02)).
-- **Los pagos inmediatos no se releen.** Un pago a un contacto queda en la cadena, pero desaparece de "Recientes" si se reinicia la app. Los pagos retenidos sí se vuelven a leer del registro.
-- **La demo cronometrada no usó una sola cuenta.** Las escenas de app y las de terminal corrieron sobre cuentas distintas, y las manejó un guion, no una persona presentando.
-- **El build de release no se conecta a nada todavía.**
-
-<p align="right">(<a href="#readme-top">volver arriba</a>)</p>
-
-## Probarlo
+## Inicio rápido
 
 ### Requisitos
 
-- JDK 17 y Gradle por el wrapper incluido (8.14.3).
-- Android SDK, con la ruta en `local.properties`: `sdk.dir=C:/Users/<tú>/AppData/Local/Android/Sdk`.
-- Para los contratos: Rust, con el target `wasm32v1-none`, y `stellar-cli` 28.1.0.
-- Para la app conectada: un Android 13+ con bloqueo de pantalla.
+- Git, para clonar el repositorio.
+- **Para la app:**
+  - JDK 17;
+  - Gradle, por el wrapper incluido (8.14.3);
+  - Android SDK, con la ruta en `local.properties` escrita con barras normales: `sdk.dir=C:/Users/<tú>/AppData/Local/Android/Sdk`.
+- **Para los contratos:**
+  - Rust 1.99.0 con el target `wasm32v1-none` (ver [Tecnologías y versiones](#tecnologías-y-versiones));
+  - `stellar-cli` 28.1.0.
+- **Para conectar la app a testnet:** un Android 13+ con bloqueo de pantalla.
 
-### Compilar y correr las pruebas
+```bash
+git clone https://github.com/CHMP987/GuardPay.git
+```
 
-Pruebas de la lógica compartida y comprobaciones de arquitectura (sin red):
+### Opción A: instalar el APK (simulación)
+
+Es la forma más corta de ver la app: no hace falta compilar ni tocar testnet.
+
+1. Instala [`downloads/android-debug.apk`](downloads/android-debug.apk). En [`downloads/README.md`](downloads/README.md) están el commit del que salió y su SHA-256. Ese commit es anterior a la corrección F-01.
+2. Ábrelo. Sin `testnet.json`, la app corre una **simulación en memoria**, marcada con el aviso "Simulación".
+
+### Opción B: compilar desde el código
+
+Las pruebas de la lógica compartida y las comprobaciones de arquitectura no usan la red:
 
 ```bash
 ./gradlew :app:shared:allTests
 ```
 
-APK de depuración, que queda en `app/android/build/outputs/apk/debug/`:
+APK de depuración (queda en `app/android/build/outputs/apk/debug/`):
 
 ```bash
 ./gradlew :app:android:assembleDebug
 ```
-
-El APK de debug ya armado está en [`downloads/android-debug.apk`](downloads/android-debug.apk). El commit del que salió y su SHA-256 están en [`downloads/README.md`](downloads/README.md). El modelo de IA no viene en el APK: la app lo descarga la primera vez que se abre la lectura de mensajes en Pagar.
 
 Pruebas de los contratos:
 
@@ -309,33 +376,82 @@ Pruebas de los contratos:
 cargo test -p account -p guardian_hold -p hold_registry
 ```
 
-Pruebas instrumentadas del Keystore (Android 13+ con bloqueo de pantalla). Primero:
+### Conectar un teléfono a testnet
+
+Esto se hace con el build de depuración.
+
+1. Instala el APK de depuración y ábrelo una vez. La app crea dos claves en el Keystore y escribe sus direcciones públicas en `/sdcard/Android/data/com.guardpay.android/files/keys.json`.
+2. Lee ese archivo (`adb shell cat …/keys.json`) y despliega una cuenta para esas claves:
+   ```bash
+   ./gradlew :app:shared:testDebugUnitTest -PliveTestnet -Pgp.owner=G... -Pgp.guardian=G... --tests "*DeviceProvisioningLiveTest"
+   ```
+3. Sube el resultado al teléfono y vuelve a abrir la app:
+   ```bash
+   adb push app/shared/build/testnet.json /sdcard/Android/data/com.guardpay.android/files/testnet.json
+   ```
+
+En ningún paso se usa una semilla: solo entran y salen direcciones públicas.
+
+### Modos de ejecución
+
+| Modo | Cómo se activa | Qué hace |
+| --- | --- | --- |
+| Simulación | El build de depuración sin `testnet.json` | Contratos simulados en memoria. Muestra el aviso "Simulación". Es el único modo de iOS. |
+| Testnet, un dispositivo | `testnet.json` nombra las dos claves del teléfono | Dueña y guardián en el mismo teléfono |
+| Testnet, dos dispositivos | Provisionar con la clave de dueña de un dispositivo y la de guardián del otro, y subir el mismo archivo a ambos | Solo el teléfono del guardián consulta la red ([`two-devices-android.md`](evidence/demo/two-devices-android.md)) |
+| Release | `assembleRelease` | Todavía no se conecta a nada |
+
+Más comandos (emulador, instalación, evidencia) en [`app/README.md`](app/README.md).
+
+<p align="right">(<a href="#readme-top">volver arriba</a>)</p>
+
+## Desarrollo y calidad
+
+| Comando | Qué comprueba |
+| --- | --- |
+| `./gradlew :app:shared:allTests` | Pruebas compartidas (Android unit y JVM) más las cuatro comprobaciones de abajo. No usa la red. |
+| `./gradlew :app:shared:checkCommonMainArchitecture` | `commonMain` no importa Android, iOS, LiteRT-LM ni WebAuthn |
+| `./gradlew :app:shared:checkDependencyGraph` | La IA no depende de la firma ni de Stellar, y ningún `Fake*` se usa fuera de las pruebas |
+| `./gradlew :app:shared:checkUiVocabulary` | Los textos de la interfaz no dicen "seguro", "protegido" ni "verificado" |
+| `./gradlew :app:shared:checkGuardianSurface` | Las pantallas del guardián no tocan la firma ni el envío de pagos |
+| `./gradlew :app:shared:jvmTest` | Además dibuja la interfaz a 360 dp y escribe las capturas en `evidence/demo/screens/` |
+| `./gradlew :app:shared:testDebugUnitTest -PliveTestnet --tests "*LiveTest"` | Pruebas opcionales contra Stellar **Testnet** y FriendBot, con claves generadas en cada corrida que nunca se imprimen |
+| `cargo test -p account -p guardian_hold -p hold_registry` | Los contratos y la suite adversaria |
+
+Pruebas instrumentadas del Keystore (Android 13+ con bloqueo de pantalla):
 
 ```bash
 ./gradlew :app:android:installDebugAndroidTest
 ```
 
-Después:
-
 ```bash
 adb shell am instrument -w -r com.guardpay.android.test/androidx.test.runner.AndroidJUnitRunner
 ```
 
-### Conectar un teléfono a testnet (build de depuración)
+**CI.**
+- [`ci.yml`](.github/workflows/ci.yml) corre en Ubuntu en cada push a `main` o a `ios` y en cada PR a `main`. Ejecuta `cargo test` de los contratos, `:app:shared:allTests`, `assembleDebug` y `compileReleaseKotlin`, sin red. El job `wasm` compila los tres contratos con Rust 1.99.0 y `stellar-cli` 28.1.0 y publica los wasm con su sha256 como artefacto. No los compara con testnet: el wasm desplegado se compiló en Windows y lleva rutas de Windows, así que un build en Linux no reproduce su hash.
+- [`ios.yml`](.github/workflows/ios.yml) corre en macOS con cada push a `ios`: enlaza `shared` y abre la app en el simulador, solo en simulación.
 
-1. Instala el APK de depuración y ábrelo una vez. La app crea las dos claves en el Keystore y escribe sus direcciones públicas en `/sdcard/Android/data/com.guardpay.android/files/keys.json`.
-2. Lee ese archivo (`adb shell cat …/keys.json`) y despliega una cuenta para esas claves:
-   ```bash
-   ./gradlew :app:shared:testDebugUnitTest -PliveTestnet -Pgp.owner=G... -Pgp.guardian=G... --tests "*DeviceProvisioningLiveTest"
-   ```
-3. Sube el resultado y vuelve a abrir la app:
-   ```bash
-   adb push app/shared/build/testnet.json /sdcard/Android/data/com.guardpay.android/files/testnet.json
-   ```
+<p align="right">(<a href="#readme-top">volver arriba</a>)</p>
 
-Ningún paso usa una semilla: solo entran y salen direcciones públicas. Sin `testnet.json`, la app corre una simulación en memoria, marcada con el aviso "Simulación".
+## Estructura del repositorio
 
-Para dos dispositivos, provisiona con la clave de dueña de uno y la de guardián del otro, y sube el mismo archivo a ambos ([`evidence/demo/two-devices-android.md`](evidence/demo/two-devices-android.md)). Más comandos en [`app/README.md`](app/README.md) y [`CLAUDE.md`](CLAUDE.md).
+```text
+.
+├── contracts/          Contratos Soroban: account, guardian_hold, hold_registry
+├── vendor/             OpenZeppelin stellar-contracts, vendorizado en b40c5ea
+├── app/
+│   ├── shared/         Lógica e interfaz comunes (Kotlin Multiplatform)
+│   └── android/        App Android: Keystore, servicio del guardián, wiring
+├── iosApp/             Envoltorio SwiftUI y pruebas XCUITest (solo simulación)
+├── scripts/            Despliegue en testnet y scripts de ataque (scripts/attacks/)
+├── evidence/           Evidencia etiquetada REAL / SIMULATED / ILLUSTRATIVE
+├── docs/               Diseño, plan y estado por fase (en español); marca en docs/marca/
+├── downloads/          APK de depuración ya compilado y su procedencia
+├── spikes/             Experimentos fuera del build principal (spikes/ai-bench: benchmark de la IA)
+├── gradle/             Wrapper y catálogo de versiones
+└── .github/workflows/  CI (ci.yml, ios.yml)
+```
 
 <p align="right">(<a href="#readme-top">volver arriba</a>)</p>
 
@@ -344,10 +460,10 @@ Para dos dispositivos, provisiona con la clave de dueña de uno y la de guardiá
 <details>
 <summary><b>Qué se demuestra y qué no</b></summary>
 
-Se demuestra, con un hash o una lectura de la cadena, solo lo que citan estos puntos. Lo que no tiene archivo aquí no se afirma.
+Solo se da por demostrado lo que citan estos puntos, cada uno con un hash o una lectura de la cadena. Lo que no tiene archivo aquí no se afirma.
 
 1. La cuenta publicada tiene una sola regla `Default`: firmante, la dueña; política, `guardian_hold`. El guardián no es firmante. Evidencia: [`evidence/smart-account/rules-onchain.md`](evidence/smart-account/rules-onchain.md) y [`evidence/security/chain-reread.md`](evidence/security/chain-reread.md).
-2. Un pago a un contacto dentro del tope se incluye. Un pago a un destino que no es contacto queda en el registro. Evidencia: [`evidence/demo/rehearsal.md`](evidence/demo/rehearsal.md), [`evidence/demo/scene-1.md`](evidence/demo/scene-1.md) y [`evidence/demo/scene-2.md`](evidence/demo/scene-2.md).
+2. Un pago a un contacto dentro del tope se incluye, y un pago a un destino que no es contacto queda en el registro. Evidencia: [`evidence/demo/rehearsal.md`](evidence/demo/rehearsal.md), [`evidence/demo/scene-1.md`](evidence/demo/scene-1.md) y [`evidence/demo/scene-2.md`](evidence/demo/scene-2.md).
 3. El guardián puede cancelar un pago retenido, y no puede mover el token. Evidencia: [`evidence/demo/scene-3.md`](evidence/demo/scene-3.md) y [`evidence/demo/scene-5.md`](evidence/demo/scene-5.md).
 4. Un pago detenido no sale con una firma de la dueña. Evidencia: [`evidence/demo/scene-4.md`](evidence/demo/scene-4.md).
 5. No hay servidor de pagos, y el aviso es local. Evidencia: [`evidence/guardian/notification.md`](evidence/guardian/notification.md).
@@ -358,7 +474,7 @@ No se demuestra:
 - mainnet;
 - iOS en un dispositivo;
 - la IA en iOS;
-- enviar una retención a un contacto de confianza en testnet (corregido en el código, no desplegado; [F-01](AUDIT_REPORT.md#f-01));
+- enviar una retención a un contacto de confianza en testnet ([F-01](AUDIT_REPORT.md#f-01));
 - que el aviso llegue con la app cerrada;
 - que el guardián se pueda cambiar;
 - un vencimiento a los 600 s.
@@ -370,7 +486,7 @@ GH-29, GH-30 y GH-33 están sin correr. GH-28 está en verde solo para la cuenta
 <details>
 <summary><b>Cuentas de testnet y wasm</b></summary>
 
-Un hash pertenece a la cuenta de su columna, y el wasm va con la cuenta.
+Cada hash pertenece a la cuenta de su columna, y el wasm va con la cuenta.
 
 | | Publicada | Ataques | Emulador | Dos dispositivos y demo cronometrada |
 | --- | --- | --- | --- | --- |
@@ -390,25 +506,30 @@ Un hash pertenece a la cuenta de su columna, y el wasm va con la cuenta.
 Hay un script por caso en [`scripts/attacks/`](scripts/attacks/).
 
 - **Los `.ps1`, `run.mjs` e `invoke.mjs`** leen `scripts/.testnet/state.json`. Con el estado del 6 oct por la noche, enviaron las transacciones de `CC6FFXGG…`. En Linux: `bash scripts/attacks/run.sh held-after-cancel`.
-- **Los `.sh` de `common.sh` y `run-all.sh`** se corrieron contra la cuenta publicada. Log: [`evidence/security/p9-cli-run.log`](evidence/security/p9-cli-run.log).
+- **Los `.sh` de `common.sh` y `run-all.sh`** se corrieron contra la cuenta publicada. El log está en [`evidence/security/p9-cli-run.log`](evidence/security/p9-cli-run.log).
 - **`same-ledger.ps1`** escribió una fila "mismo ledger" a partir de dos lecturas vacías. Esa fila no se usa.
 - Ningún script imprime semillas.
 
-Para redesplegar en testnet hay dos scripts: [`scripts/deploy-testnet.ps1`](scripts/deploy-testnet.ps1) (Windows) y [`scripts/deploy-testnet.sh`](scripts/deploy-testnet.sh). Solo testnet. Las semillas quedan en `scripts/.testnet/`, que git ignora.
+Para redesplegar en testnet hay dos scripts: [`scripts/deploy-testnet.ps1`](scripts/deploy-testnet.ps1) (Windows) y [`scripts/deploy-testnet.sh`](scripts/deploy-testnet.sh). Funcionan solo en testnet. Las semillas quedan en `scripts/.testnet/`, que git ignora.
+
+Antes de correrlos hay que tener en cuenta dos cosas:
+- Los scripts leen los wasm de `target/wasm/`. [COMANDO PENDIENTE DE VALIDAR: `stellar contract build --package <account|guardian_hold|hold_registry>` deja los wasm en `target/wasm32v1-none/release/`; falta documentar y probar cómo se copian a `target/wasm/`.]
+- Si ya existe `scripts/.testnet/state.json`, los scripts terminan sin desplegar.
 
 </details>
 
 <details>
-<summary><b>Versiones fijadas</b></summary>
+<summary><b>Siglas</b></summary>
 
-| Pieza | Versión |
+| Sigla | Significado |
 | --- | --- |
-| OpenZeppelin `stellar-contracts` | commit `b40c5eaefe6a29f0030f00bd2d730b7a91cce330` (pre-release, vendorizado en `vendor/`) |
-| `soroban-sdk` | 28.0.0 |
-| Target de los contratos | `wasm32v1-none` |
-| `stellar-cli` | 28.1.0 |
-| `com.soneso.stellar:stellar-sdk` | 1.14.0 |
-| Gradle | 8.14.3 (wrapper) |
+| GH-01…GH-33 | Pruebas adversarias de los contratos, definidas en el security spike |
+| F-01…F-19 | Hallazgos de [`AUDIT_REPORT.md`](AUDIT_REPORT.md) |
+| P0…P10 | Fases del plan de construcción (P7 es la IA en el teléfono) |
+| CP-3, CP-7, CP-9 | Puntos de control que requieren la firma de una revisión humana |
+| SAC | Stellar Asset Contract: el contrato de un activo de Stellar |
+| `dataSync` | Tipo de servicio en primer plano de Android que usa el guardián |
+| *muxed* | Dirección de Stellar que añade un identificador a una cuenta |
 
 </details>
 
@@ -428,18 +549,62 @@ Toda la documentación de diseño está en español, en [`docs/`](docs/). Alguno
 
 Documentos del repositorio:
 
-- [`ARCHITECTURE.md`](ARCHITECTURE.md): componentes, diagramas y flujo de autorización.
-- [`AUDIT_REPORT.md`](AUDIT_REPORT.md): hallazgos de la revisión del 12 oct, pruebas corridas y matriz de trazabilidad.
-- [`ROADMAP.md`](ROADMAP.md): lo pendiente, con criterios de aceptación.
-- [`CONTRIBUTING.md`](CONTRIBUTING.md): cómo contribuir y qué pruebas correr.
-- [`SECURITY.md`](SECURITY.md): cómo reportar una vulnerabilidad y qué está en el alcance.
+| Documento | Contenido |
+| --- | --- |
+| [`ARCHITECTURE.md`](ARCHITECTURE.md) | Componentes, diagramas y flujo de autorización |
+| [`AUDIT_REPORT.md`](AUDIT_REPORT.md) | Hallazgos de la revisión del 12 oct 2026, pruebas corridas y matriz de trazabilidad |
+| [`ROADMAP.md`](ROADMAP.md) | Lo pendiente, con criterios de aceptación |
+| [`docs/ESTADO-FASES.md`](docs/ESTADO-FASES.md) | El estado de cada fase |
+| [`app/README.md`](app/README.md) | La app: estructura, plataformas, comandos, emulador y limitaciones |
+| [`docs/INTERFACES.md`](docs/INTERFACES.md) | Las firmas de los contratos |
+| [`docs/DEPENDENCIES.md`](docs/DEPENDENCIES.md) | Las dependencias |
+| [`CONTRIBUTING.md`](CONTRIBUTING.md) | Cómo contribuir y qué pruebas correr |
+| [`SECURITY.md`](SECURITY.md) | Cómo reportar una vulnerabilidad y qué está en el alcance |
+| [`docs/marca/`](docs/marca/) | El símbolo (`simbolo.svg`), el logo (`logo.png`) y la imagen del eslogan (`eslogan.png`) |
 
-Otros documentos de referencia:
+<p align="right">(<a href="#readme-top">volver arriba</a>)</p>
 
-- [`docs/INTERFACES.md`](docs/INTERFACES.md): las firmas de los contratos.
-- [`docs/DEPENDENCIES.md`](docs/DEPENDENCIES.md): las dependencias.
-- [`app/README.md`](app/README.md): la app.
-- [`docs/marca/`](docs/marca/): el símbolo (`simbolo.svg`), el logo (`logo.png`) y la imagen del eslogan (`eslogan.png`).
+## Próximos pasos
+
+Esto es un resumen. Los criterios de aceptación están en [`ROADMAP.md`](ROADMAP.md).
+
+- **Requisitos confirmados pendientes (parte A):**
+  - correr GH-29, GH-30 y GH-33 (A-1);
+  - la cancelación por la dueña y el vencimiento (A-2);
+  - firmar las revisiones CP-3, CP-7 y CP-9 (A-3);
+  - hacer entrevistas con usuarios (A-4);
+  - conectar el build de release (A-7).
+- **Recomendaciones del auditor (parte B):**
+  - liberar las retenciones a contactos en testnet (B-1, F-01);
+  - acotar el registro (B-2);
+  - cambiar de guardián y recuperar la cuenta (B-3);
+  - una auditoría externa (B-4);
+  - endurecer el CI (B-8);
+  - publicar una licencia y abrir un canal privado de seguridad (B-9);
+  - probar en más hardware (B-11).
+
+<p align="right">(<a href="#readme-top">volver arriba</a>)</p>
+
+## Contribuir, seguridad y soporte
+
+- **Contribuir:** lee [`CONTRIBUTING.md`](CONTRIBUTING.md). Ahí están el entorno, las ramas, las pruebas obligatorias, las reglas que no se negocian y qué significa "hecho".
+- **Problemas y preguntas:** abre un [issue](https://github.com/CHMP987/GuardPay/issues).
+- **Vulnerabilidades:** sigue [`SECURITY.md`](SECURITY.md). Todavía **no hay un canal privado de reporte**, así que el reporte se hace en un issue público, sin detalles explotables.
+
+<p align="right">(<a href="#readme-top">volver arriba</a>)</p>
+
+## Licencia
+
+El repositorio todavía **no publica un archivo `LICENSE`** ([F-11](AUDIT_REPORT.md#f-11)). [PENDIENTE DE VERIFICAR: qué licencia elegirán los autores.] El código vendorizado en `vendor/` conserva la licencia de su proyecto de origen.
+
+<p align="right">(<a href="#readme-top">volver arriba</a>)</p>
+
+## Créditos
+
+- [OpenZeppelin `stellar-contracts`](https://github.com/OpenZeppelin/stellar-contracts): las piezas de la cuenta inteligente.
+- [Stellar](https://developers.stellar.org/) y Soroban: la red de pruebas, `soroban-sdk` y `stellar-cli`.
+- [Soneso `stellar-sdk` para Kotlin Multiplatform](https://github.com/Soneso/kmp-stellar-sdk).
+- [LiteRT-LM](https://github.com/google-ai-edge/LiteRT-LM) y Gemma 4 E2B, de Google: la IA en el teléfono.
 
 <p align="right">(<a href="#readme-top">volver arriba</a>)</p>
 
