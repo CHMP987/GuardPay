@@ -20,10 +20,11 @@ import com.soneso.stellar.sdk.xdr.ContractIDPreimageXdr
 import com.soneso.stellar.sdk.xdr.CreateContractArgsV2Xdr
 import com.soneso.stellar.sdk.xdr.HostFunctionXdr
 import com.soneso.stellar.sdk.xdr.SCValXdr
+import java.security.MessageDigest
 
 /**
- * Deploys a fresh GuardPay setup on Stellar TESTNET from the wasm Abraham already
- * uploaded (hashes in `evidence/stellar/deployment.md`), so nobody's seed is needed:
+ * Deploys a fresh GuardPay setup on Stellar TESTNET from the wasm already uploaded by
+ * [uploadRelease] (hashes in `evidence/stellar/deployment.md`), so nobody's seed is needed:
  *  - a test token: classic asset `USDC:<random issuer>` wrapped in its SAC. It is
  *    NOT Circle's USDC; the issuer key exists only in this process;
  *  - a `hold_registry` whose guardian is [provision]'s `guardian`;
@@ -44,7 +45,30 @@ internal class TestnetProvisioner(
         val txHashes: List<Pair<String, String>>,
     )
 
+    class Release(
+        /** File name to wasm id (its sha256, hex). */
+        val wasmIds: Map<String, String>,
+        val guardianHold: String,
+        val txHashes: List<Pair<String, String>>,
+    )
+
     private val hashes = mutableListOf<Pair<String, String>>()
+
+    /**
+     * Uploads one contract release ([wasm]: file name to bytes, the three from CI's `wasm`
+     * artifact) and deploys the shared `guardian_hold` from it. Done once per release;
+     * its ids then go in this class's constants. The source key lives only in this call.
+     */
+    suspend fun uploadRelease(wasm: Map<String, ByteArray>): Release {
+        val source = KeyPair.random()
+        fund(source.getAccountId())
+        val ids = wasm.mapValues { (name, bytes) ->
+            run("upload $name", source, InvokeHostFunctionOperation.uploadContractWasm(bytes))
+            sha256Hex(bytes)
+        }
+        val policy = deploy("guardian_hold", source, ids.getValue("guardian_hold.wasm"), emptyList())
+        return Release(ids, policy, hashes.toList())
+    }
 
     suspend fun provision(owner: String, guardian: String, contacts: Int = 1, strangers: Int = 1): Provisioned {
         require(owner != guardian) { "the guardian must not be the owner" }
@@ -114,14 +138,18 @@ internal class TestnetProvisioner(
 
     companion object {
         const val RPC = "https://soroban-testnet.stellar.org"
-        const val GUARDIAN_HOLD = "CCGIEMIU3D7IEGVZUKZTNSQN4UHPHE2RWXKTAVIS4666MDMIH3DZBJJI"
-        const val ACCOUNT_WASM = "986956ccfd0f134bbbd56dfdcfca1def12f4bf61676ef0efd762c2eafd37cf3b"
-        const val HOLD_REGISTRY_WASM = "031173c212bdec97626a952c7edc5d624cf30434295d3b48d162bd678d60d0cb"
+        // From PolicyReleaseLiveTest with CI run 38343802866 (F-01). The Oct 6 release was
+        // guardian_hold CCGIEMIU…, account 986956cc…, hold_registry 031173c2….
+        const val GUARDIAN_HOLD = "CBTIF2BF7YGCR6OT7TQMHGGMY6BVHKPOAJV5BYZQ2P3IWKSEXYHLWFMW"
+        const val ACCOUNT_WASM = "d60dd1d299a98f886ad48027dd0499aaee07742fb7dd7051ada355e852cf40f9"
+        const val HOLD_REGISTRY_WASM = "a57f01b70e0583fb7abf8ff30ce4414094dd08c27c53349ad8c89bb0438f93d0"
         const val UNIT = 10_000_000L // 7 decimals, like USDC on Stellar
         const val DAILY_CAP = 50 * UNIT
         const val FUNDING = 500 * UNIT
 
         fun addr(id: String): SCValXdr = Address(id).toSCVal()
         fun i128(v: Long): SCValXdr = Scv.toInt128(BigInteger.fromLong(v))
+        fun sha256Hex(bytes: ByteArray): String =
+            MessageDigest.getInstance("SHA-256").digest(bytes).joinToString("") { "%02x".format(it) }
     }
 }
