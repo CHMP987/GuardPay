@@ -38,20 +38,21 @@ jobs:
       - name: cargo test (account, guardian_hold, hold_registry)
         run: cargo test --locked -p account -p guardian_hold -p hold_registry
 
-  # Builds the three deployable wasm files and prints their sha256. account and
-  # hold_registry are compared with the hashes on testnet (evidence/stellar/deployment.md):
-  # a match shows this build reproduces the deployed code. A mismatch is reported, not fatal.
+  # Builds the three deployable wasm files and prints their sha256. It does not compare
+  # them with testnet: the deployed wasm (Oct 6) was built on Windows and embeds Windows
+  # paths in its panic locations, so a Linux build cannot reproduce its hash. The next
+  # redeploy should upload this job's artifact, so its hashes become the reference.
   wasm:
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
 
-      # The toolchain the testnet wasm was built with (docs/DEPENDENCIES.md).
-      - name: Rust 1.92.0 + wasm32v1-none
+      # The rustc the testnet wasm reports in its contractmetav0 (rsver 1.99.0).
+      - name: Rust 1.99.0 + wasm32v1-none
         run: |
-          rustup toolchain install 1.92.0 --profile minimal --target wasm32v1-none
-          rustup default 1.92.0
+          rustup toolchain install 1.99.0 --profile minimal --target wasm32v1-none
+          rustup default 1.99.0
           rustc --version
 
       - name: stellar-cli 28.1.0
@@ -73,15 +74,6 @@ jobs:
         run: |
           cd target/wasm32v1-none/release
           sha256sum account.wasm guardian_hold.wasm hold_registry.wasm | tee wasm.sha256
-          check() {
-            if [ "$(sha256sum "$1" | cut -d' ' -f1)" = "$2" ]; then
-              echo "$1 matches testnet"
-            else
-              echo "::warning::$1 does not match the testnet hash $2"
-            fi
-          }
-          check account.wasm 986956ccfd0f134bbbd56dfdcfca1def12f4bf61676ef0efd762c2eafd37cf3b
-          check hold_registry.wasm 031173c212bdec97626a952c7edc5d624cf30434295d3b48d162bd678d60d0cb
 
       - uses: actions/upload-artifact@v4
         with:
