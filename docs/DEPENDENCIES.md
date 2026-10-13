@@ -13,6 +13,8 @@
 | Java | 23.0.1 (2024-10-15) | `[FACT]` | `java -version`. `JAVA_HOME` vacío. |
 | Android SDK | no instalado en esta sesión | `[FACT]` | `ANDROID_HOME` vacío. Bloquea la app Android, no el Spike A. |
 
+`[FACT]` 12 oct 2026: el wasm desplegado en testnet el 6 oct declara `rsver` 1.99.0 en su sección `contractmetav0` (`rustc 1.99.0 (b940084d7 2026-09-28)`), leída de la RPC de testnet. Así que se compiló con 1.99.0, no con el 1.92.0 de la tabla, que es la medición del 5 oct. El job `wasm` del CI compila con 1.99.0; el job `contracts` (`cargo test`) usa 1.98.0.
+
 ## G2 — pin OpenZeppelin
 
 `[FACT]` 5 oct 2026. Commit `b40c5eaefe6a29f0030f00bd2d730b7a91cce330` (`b40c5ea`, mensaje `chore: bump soroban-sdk to v28 (#866)`). Clonado en `.scratch/oz-g2/`, que no se versiona.
