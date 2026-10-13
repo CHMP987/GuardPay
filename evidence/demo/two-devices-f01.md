@@ -2,6 +2,8 @@
 
 **Veredicto: con la política F-01, la dueña retuvo desde el teléfono un pago de 10 USDC a un contacto de confianza (dentro del tope). El guardián lo vio en el emulador y no lo detuvo. Cuando maduró, la dueña lo envió con una segunda firma, y el tope del día siguió en 50.** Con la política del 6 oct ese envío salía por el tope y el registro quedaba `Retained` ([F-01](../../AUDIT_REPORT.md#f-01)).
 
+Desde la release B-2 (13 oct, más tarde) los dispositivos apuntan a otra cuenta: [`two-devices-b2.md`](two-devices-b2.md).
+
 Primero se reprovisionaron los dos dispositivos con una cuenta nueva (abajo) y después se corrió la prueba ([Prueba F-01](#prueba-f-01-retención-a-un-contacto-dentro-del-tope)).
 
 | | |

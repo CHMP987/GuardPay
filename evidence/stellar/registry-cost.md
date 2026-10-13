@@ -93,9 +93,47 @@ La tabla muestra entradas de ledger. Las filas 10, 50, 300, 350, 380 y 400 diero
 - [INFERENCE] Las instrucciones en nativo no son comparables con las del wasm, porque el código nativo no se mide en la VM. Aun así crecieron un poco con N: de 1,49 M a 2,58 M en `contact_payment` entre 0 y 500 registros. Lo más probable es que sea el costo del entorno de pruebas, que mantiene en memoria todas las entradas sembradas. En una transacción real, el footprint incluye solo las entradas declaradas.
 - [FACT] La prueba unitaria `lookups_do_not_grow_with_history` (`contracts/hold_registry/src/tests.rs`) lo comprueba en cada `cargo test`: con 0 retenciones terminadas y con 60, `queue` toca 12 entradas y `find_retained` 3.
 
+## Resultado con el wasm del registro nuevo (13 oct, después del merge)
+
+| | |
+| --- | --- |
+| Etiqueta | **REAL**, entorno de pruebas local, igual que arriba |
+| Wasm | Artefacto `wasm` del CI, corrida 38435932911, sobre `main` en `e3e8b4b` (el merge de B-2) |
+| Comando | `GP_WASM_DIR=<artefacto> cargo test -p guardian_hold --test registry_cost -- --ignored --nocapture` |
+
+`[FACT]` sha256 del artefacto. `account` y `guardian_hold` son los mismos de testnet; solo cambia el registro.
+
+| Contrato | sha256 |
+| --- | --- |
+| `account.wasm` | `d60dd1d2…cf40f9` |
+| `guardian_hold.wasm` | `ceec440a…6404abe34` |
+| `hold_registry.wasm` | `6db027bc…1988ffd4` |
+
+`[FACT]` Columnas: registros previos, instrucciones, entradas de ledger. Las 33 filas dieron `within_limits=true`. Lecturas de disco: 0 en todas. Escrituras: 2 en `contact_payment` y 5 en `queue` y en `release`.
+
+| Registros | `contact_payment` | `queue` | `release` |
+| ---: | --- | --- | --- |
+| 0 | 1,90 M · 15 | 0,69 M · 14 | 3,01 M · 21 |
+| 10 | 1,92 M · 15 | 0,73 M · 14 | 3,07 M · 21 |
+| 50 | 2,01 M · 15 | 0,90 M · 14 | 3,20 M · 21 |
+| 100 | 2,12 M · 15 | 1,10 M · 14 | 3,34 M · 21 |
+| 200 | 2,33 M · 15 | 1,49 M · 14 | 3,62 M · 21 |
+| 300 | 2,55 M · 15 | 1,88 M · 14 | 3,89 M · 21 |
+| 350 | 2,66 M · 15 | 2,08 M · 14 | 4,05 M · 21 |
+| 380 | 2,72 M · 15 | 2,20 M · 14 | 4,14 M · 21 |
+| 390 | 2,74 M · 15 | 2,23 M · 14 | 4,17 M · 21 |
+| 400 | 2,76 M · 15 | 2,27 M · 14 | 4,19 M · 21 |
+| 500 | 2,97 M · 15 | 2,65 M · 14 | 4,46 M · 21 |
+
+- [FACT] Las entradas de ledger no cambian entre 0 y 500 registros. Con el registro desplegado antes, a 500 registros eran 515, 510 y 518.
+- [FACT] Con 500 registros, las instrucciones son 2,97 M, 2,65 M y 4,46 M, contra 62,75 M, 61,95 M y 64,39 M del registro anterior. El límite es de 400 M.
+- [FACT] Cada operación toca una entrada más que en nativo (15, 14 y 21 contra 14, 13 y 20): la del código del registro.
+- [INFERENCE] Las instrucciones aún crecen algo con N (unas 0,2 M a 0,4 M por cada 100 registros). El wasm del registro ya no recorre, así que lo más probable es que sea el costo del entorno de pruebas, que guarda en memoria todas las entradas sembradas. En una transacción real, el host carga solo las entradas del footprint. No se comprobó en testnet.
+
+Este wasm se subió a testnet y es el que usan las cuentas nuevas: [`deployment.md`, release B-2](deployment.md#release-b-2-13-oct-2026).
+
 ## No corrido
 
-- La medición de instrucciones con el **wasm** del registro nuevo. No hay `wasm32v1-none` ni `stellar-cli` en este equipo. El job `wasm` del CI lo compila. Para medirlo, se corre la misma prueba con `GP_WASM_DIR` apuntando a ese artefacto.
 - Los límites reales de testnet. No se leyeron las `ConfigSetting` de la red; los números de arriba son la instantánea del SDK.
-- Una transacción en testnet con muchos registros.
-- El despliegue del registro nuevo. Su wasm no está subido a testnet, y `TestnetProvisioner.HOLD_REGISTRY_WASM` sigue fijado a `a57f01b7…`. Las cuentas existentes siguen con el registro anterior (sin `upgrade`), así que siguen expuestas a este límite. Una cuenta nueva recibe el registro nuevo solo si se sube el wasm y se cambia ese hash.
+- Una transacción en testnet con muchos registros. En testnet se corrió el ciclo completo con el registro nuevo, con 3 retenciones ([`gateway-live.md`, corrida 7](gateway-live.md#corrida-7-registro-con-índice-b-2-13-oct)).
+- [FACT] Las cuentas creadas antes de la release B-2 siguen con el registro anterior, `a57f01b7…` o el del 6 oct, y sin `upgrade` no pueden cambiarlo. Siguen expuestas a este límite: `CB4PUYVY…`, `CA6VCI3O…`, `CA5Z7J…`, `CDWPPT…`, `CDBJMS…` y `CC6FFXGG…`.

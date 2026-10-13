@@ -105,7 +105,13 @@ Estado (13 oct 2026, rama `registry-cost`): los tres criterios están cumplidos 
 - El registro usa ahora un índice de retenciones activas, y el costo ya no crece con los registros.
 - `hold_registry` tiene 10 pruebas propias.
 
-Falta el despliegue: subir el wasm nuevo del registro, cambiar `TestnetProvisioner.HOLD_REGISTRY_WASM` y provisionar cuentas nuevas. Las cuentas actuales mantienen el registro anterior.
+Despliegue (13 oct 2026, rama `registry-deploy`): hecho.
+
+- El wasm del registro nuevo (CI 38435932911) se midió: las entradas quedan fijas entre 0 y 500 registros.
+- Se subió a testnet, y `TestnetProvisioner.HOLD_REGISTRY_WASM` apunta a él ([`deployment.md`, release B-2](evidence/stellar/deployment.md#release-b-2-13-oct-2026)).
+- Una cuenta nueva corrió el ciclo completo con él, y el teléfono y el emulador pasaron a otra cuenta nueva.
+
+Las cuentas creadas antes mantienen el registro anterior, porque no tienen `upgrade`.
 
 ### B-3 · Cambio de guardián y recuperación (F-04)
 
