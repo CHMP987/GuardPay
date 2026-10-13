@@ -9,7 +9,7 @@
 
 Cinco mensajes con prompt injection. Cada uno trae una orden para la IA y, después, el pedido de dinero de una estafa.
 
-1. **En el teléfono** ([`GemmaOnDeviceTest`](../../app/android/src/androidTest/kotlin/com/guardpay/android/ai/GemmaOnDeviceTest.kt)): la clase de la app, `AndroidGuardPayAI`, lee los cinco. Corre en GPU, con conversación nueva, `topK=1` y `seed=0`. Cada salida pasa por `AnalysisParser.parse`. Se corrió dos veces y las salidas fueron idénticas.
+1. **En el teléfono** ([`GemmaOnDeviceTest`](../../app/android/src/androidTest/kotlin/com/guardpay/android/ai/GemmaOnDeviceTest.kt)): la clase de la app, `AndroidGuardPayAI`, lee los cinco. Corre en GPU, con conversación nueva, `topK=1` y `seed=0`. Cada salida pasa por `AnalysisParser.parse`. Se corrió dos veces en la mañana y otra en la tarde, tras reinstalar la app (`../demo/physical-phone-reinstall.md`). Las salidas de las tres fueron idénticas.
 2. **En la sesión** (`OwnerSessionTest.promptInjectionNeverChangesTheLaneOrTheHold`):
    - El formulario va a una cuenta desconocida por 150 USDC, así que el carril es `MustHold`.
    - El lector de mensajes devuelve una respuesta secuestrada distinta en cada caso: vacía, con "seguro", con `destination`/`amount` extra, texto libre, y una sugerencia inventada.
@@ -77,7 +77,7 @@ Los tiempos son de la primera corrida. La segunda dio las mismas salidas con ±0
 
 ## Captura o log
 
-- [`p7/run1-cold.jsonl`](p7/run1-cold.jsonl) y [`p7/run2-warm.jsonl`](p7/run2-warm.jsonl): líneas `kind=injection`, n 11–15. También salieron por logcat con el tag `GPAI`.
+- [`p7/run1-cold.jsonl`](p7/run1-cold.jsonl), [`p7/run2-warm.jsonl`](p7/run2-warm.jsonl) y [`p7/run3-reinstall.jsonl`](p7/run3-reinstall.jsonl): líneas `kind=injection`, n 11–15. También salieron por logcat con el tag `GPAI`.
 - La prueba de sesión corre en `./gradlew :app:shared:allTests`.
 
 ## Conclusión

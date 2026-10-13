@@ -1,0 +1,12 @@
+16:53:52 files before: total 8
+-rw-rw---- 1 u0_a409 ext_data_rw 148 2026-10-12 16:53 keys.json
+-rw-r--r-- 1 shell   ext_data_rw 603 2026-10-12 16:47 testnet.json
+16:53:54 tapped Descargar el modelo
+16:54:13 22 s Descargando el modelo… 1 % part 41447104
+16:54:31 39 s Descargando el modelo… 2 % part 77721280
+16:54:52 58 s: progress text gone; screen: ['Revisar']
+16:54:52 ended after 60.3 s
+16:54:52 files after: total 101032
+-rw-rw---- 1 u0_a409 ext_data_rw 103345856 2026-10-12 16:54 gemma-4-E2B-it.litertlm.part
+-rw-rw---- 1 u0_a409 ext_data_rw       148 2026-10-12 16:54 keys.json
+-rw-r--r-- 1 shell   ext_data_rw       603 2026-10-12 16:47 testnet.json
