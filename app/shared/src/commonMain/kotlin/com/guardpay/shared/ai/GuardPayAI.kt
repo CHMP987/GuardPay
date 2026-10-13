@@ -8,7 +8,7 @@ import com.guardpay.shared.domain.RiskSignal
  * It has no financial authority: no tool calling, no access to balances, contacts,
  * policy, config or keys, and it never drafts a payment or fills in the destination
  * or amount. Nothing in `ai/` may depend on, or share a class with, `Signer` or
- * `StellarGateway` (enforced by `checkCommonMainArchitecture`).
+ * `StellarGateway` (enforced by `checkDependencyGraph`).
  *
  * This is a plain common interface rather than `expect`: the Android implementation
  * (LiteRT-LM, P7) needs a `Context` and a model path, which an `expect` declaration
