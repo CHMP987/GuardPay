@@ -38,6 +38,53 @@ jobs:
       - name: cargo test (account, guardian_hold, hold_registry)
         run: cargo test --locked -p account -p guardian_hold -p hold_registry
 
+  # Builds the three deployable wasm files and prints their sha256. It does not compare
+  # them with testnet: the deployed wasm (Oct 6) was built on Windows and embeds Windows
+  # paths in its panic locations, so a Linux build cannot reproduce its hash. The next
+  # redeploy should upload this job's artifact, so its hashes become the reference.
+  wasm:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      # The rustc the testnet wasm reports in its contractmetav0 (rsver 1.99.0).
+      - name: Rust 1.99.0 + wasm32v1-none
+        run: |
+          rustup toolchain install 1.99.0 --profile minimal --target wasm32v1-none
+          rustup default 1.99.0
+          rustc --version
+
+      - name: stellar-cli 28.1.0
+        run: |
+          curl -fsSL -o stellar.tar.gz https://github.com/stellar/stellar-cli/releases/download/v28.1.0/stellar-cli-28.1.0-x86_64-unknown-linux-gnu.tar.gz
+          echo "c1680deee94301d33ada7a17f98411e642a4248c727afbd2e43050d345746462  stellar.tar.gz" | sha256sum -c -
+          mkdir -p "$HOME/.local/bin"
+          tar -xzf stellar.tar.gz -C "$HOME/.local/bin" stellar
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+          "$HOME/.local/bin/stellar" --version
+
+      - name: stellar contract build
+        run: |
+          for p in account guardian_hold hold_registry; do
+            stellar contract build --package "$p"
+          done
+
+      - name: sha256
+        run: |
+          cd target/wasm32v1-none/release
+          sha256sum account.wasm guardian_hold.wasm hold_registry.wasm | tee wasm.sha256
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: wasm
+          path: |
+            target/wasm32v1-none/release/account.wasm
+            target/wasm32v1-none/release/guardian_hold.wasm
+            target/wasm32v1-none/release/hold_registry.wasm
+            target/wasm32v1-none/release/wasm.sha256
+          retention-days: 30
+
   client:
     runs-on: ubuntu-24.04
     timeout-minutes: 60
