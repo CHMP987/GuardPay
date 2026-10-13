@@ -8,7 +8,11 @@
 [![CI: contratos y app][ci-main-shield]][ci-main-url]
 [![CI iOS (simulador)][ci-shield]][ci-url]
 
+<img src="docs/marca/simbolo.svg" alt="Logo de GuardPay" width="96" height="96" />
+
 <h1>GuardPay</h1>
+
+<h3>Lo inusual espera. Tu guardián puede detenerlo.</h3>
 
 <p><strong>Una billetera que le da tiempo a alguien de confianza para detener un pago sospechoso antes de que salga.</strong></p>
 
@@ -231,16 +235,22 @@ flowchart LR
 - El aviso al guardián sin servidor, medido por debajo de 60 s ([`evidence/guardian/notification.md`](evidence/guardian/notification.md)).
 - La demo completa de seis escenas, dos veces por debajo de 5 minutos.
 - Ataques documentados en una matriz por cuenta ([`evidence/security/bypass-matrix.md`](evidence/security/bypass-matrix.md)).
+- **IA en el teléfono (P7, Android):** Gemma 4 E2B lee el mensaje que acompaña un pago y sugiere retenerlo. Corre en el teléfono con LiteRT-LM y GPU; el mensaje no sale del teléfono.
+  - Con el motor cargado, una lectura tarda 6,2–10,1 s. La primera tras abrir Pagar tarda 21–64 s, mientras el modelo se carga.
+  - Las 10 estafas de prueba se marcaron; de 3 mensajes normales, 1 también se marcó (falso positivo).
+  - Tres corridas dieron salidas idénticas ([`evidence/ai/benchmark.md`](evidence/ai/benchmark.md)).
+  - La retención no depende de la IA: cinco inyecciones de prompt no cambiaron el carril ([`evidence/ai/prompt-injection.md`](evidence/ai/prompt-injection.md)).
+  - La app descarga el modelo (2,6 GB) la primera vez y comprueba su SHA-256. El 12 oct se probó desde cero, tras reinstalar la app ([`evidence/demo/physical-phone-reinstall.md`](evidence/demo/physical-phone-reinstall.md)).
 
 **Parcial**
 
 - **iOS:** solo en el simulador del CI de macOS, con la simulación en memoria. Nada se firma con una clave real, nada va contra testnet y nada se probó en un iPhone ([`evidence/ios/simulator.md`](evidence/ios/simulator.md)).
 - **Dispositivos:** la prueba entre dos dispositivos usó un teléfono físico y un emulador, no dos teléfonos físicos.
+- **IA:** no se midió el consumo de batería. En iOS la IA dice que no está disponible.
 - **Ataques:** GH-29, GH-30 y GH-33 están sin correr. Algunos ataques solo tienen hash en una cuenta de pruebas concreta (ver [revisión técnica](#para-revisión-técnica)).
 
 **No iniciado**
 
-- **IA en el teléfono:** la prueba de viabilidad (Spike B) se midió el 12 oct en un teléfono. Con GPU, el modelo devolvió JSON válido 10 de 10 veces, con el primer token en menos de 3 s y entre 6 y 9 s por análisis ([`evidence/ai/benchmark.md`](evidence/ai/benchmark.md)). P7 se hizo el mismo día. En la app, con el motor cargado, una estafa muestra señales en 7,5–8,2 s. La primera lectura tras abrir Pagar puede tardar 40–60 s, mientras el modelo se carga en la GPU. De 3 mensajes normales, 1 se marcó como sospechoso. La retención no depende de la IA: cinco inyecciones de prompt no cambiaron el carril ([`evidence/ai/prompt-injection.md`](evidence/ai/prompt-injection.md)).
 - **Entrevistas con usuarios:** sin correr ([`evidence/interviews.md`](evidence/interviews.md)).
 
 Las firmas de revisión humana CP-3, CP-7 y CP-9 siguen pendientes. El detalle por fase está en [`docs/ESTADO-FASES.md`](docs/ESTADO-FASES.md). Toda la evidencia está en [`evidence/`](evidence/), etiquetada **REAL**, **SIMULATED** o **ILLUSTRATIVE**. Lo que no se corrió está escrito como "no corrido".
@@ -286,7 +296,7 @@ APK de depuración, que queda en `app/android/build/outputs/apk/debug/`:
 ./gradlew :app:android:assembleDebug
 ```
 
-El APK de debug ya armado está en [`downloads/android-debug.apk`](downloads/android-debug.apk). El commit del que salió y su SHA-256 están en [`downloads/README.md`](downloads/README.md).
+El APK de debug ya armado está en [`downloads/android-debug.apk`](downloads/android-debug.apk). El commit del que salió y su SHA-256 están en [`downloads/README.md`](downloads/README.md). El modelo de IA no viene en el APK: la app lo descarga la primera vez que se abre la lectura de mensajes en Pagar.
 
 Pruebas de los contratos:
 
@@ -415,6 +425,7 @@ Otros documentos de referencia:
 - [`docs/INTERFACES.md`](docs/INTERFACES.md): las firmas de los contratos.
 - [`docs/DEPENDENCIES.md`](docs/DEPENDENCIES.md): las dependencias.
 - [`app/README.md`](app/README.md): la app.
+- [`docs/marca/`](docs/marca/): el símbolo (`simbolo.svg`), el logo (`logo.png`) y la imagen del eslogan (`eslogan.png`).
 
 <p align="right">(<a href="#readme-top">volver arriba</a>)</p>
 
