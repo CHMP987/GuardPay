@@ -1,5 +1,12 @@
 # AGENTS.md — Persona 1 (contratos)
 
+> **Histórico (revisado el 13 oct 2026, F-12).** Este archivo guió a la Persona 1 durante Spike A y P2–P3, antes de que existieran el workspace, la app y el CI. Las convenciones de contratos y los límites siguen vigentes. El estado del repositorio y los comandos actuales están en [`CLAUDE.md`](CLAUDE.md) y [`README.md`](README.md). Lo que ya no aplica:
+>
+> - El workspace de Cargo existe, y los tres contratos están desplegados en testnet (`evidence/stellar/deployment.md`).
+> - Existen el build de Gradle (`app/`) y el CI (`.github/workflows/`).
+> - Desde el 12 oct, el wasm que se despliega lo compila el job `wasm` del CI con Rust 1.99.0, no un toolchain local.
+> - La sección "Cursor Cloud" describe una imagen que no se revisó en esta actualización. [UNVERIFIED]
+
 GuardPay es una billetera en Stellar Testnet: pago inmediato a contactos de confianza bajo un tope; el resto queda retenido y un guardián puede detenerlo sin mover fondos. La regla la aplica el contrato, no la app. Este archivo es solo para la Persona 1: Spike A, contratos, deploy en testnet y arreglos que P9 pida. Tesis: "La IA advierte. Tú firmas. Tu guardián puede detener. El contrato rechaza lo demás."
 
 Autoridad: `docs/WBS.md` (alcance) → `docs/GuardPay — Plan de construcción.md` → `docs/GuardPay — Security spike y propuesta web definitiva.md` (contratos y GH-01…GH-33) → `docs/WBS-AGENTES.md` (la tarea). El pitch está obsoleto: no implementes TrustedPayee, Spending Limit de OZ ni Channels.
@@ -30,15 +37,13 @@ No toques `app/`, `spikes/ai-bench/`, `spikes/kmp-signing/`, `scripts/attacks/` 
 
 ## Comandos
 
-Aún no hay workspace. Cuando exista:
-
 ```text
-cargo test --workspace
+cargo test -p account -p guardian_hold -p hold_registry
 cargo test -p guardian_hold gh_01
-cargo build --target <target de DEPENDENCIES.md>
+stellar contract build
 ```
 
-Deploy y lectura: `scripts/deploy-testnet.ps1` (Windows) y `scripts/read-rules.ps1`. No hay lint de producto. No inventes Gradle ni CI.
+`stellar contract build` compila para `wasm32v1-none` (ver `docs/DEPENDENCIES.md`). Los scripts de despliegue están en `scripts/`. No hay lint de producto.
 
 ## Convenciones
 
