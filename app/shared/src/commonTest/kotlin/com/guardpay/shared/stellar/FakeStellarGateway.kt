@@ -93,19 +93,20 @@ class FakeStellarGateway(
             if (intent.amount > balance) return@submit reject(5)
             rollDay()
 
-            val isContact = contacts.any { it.address == intent.destination }
-            val total = spentToday.plusOrNull(intent.amount)
-            if (isContact && total != null && total <= rules.dailyCap) {
-                spentToday = total
+            // As in guardian_hold: a held record for this exact payment is checked first, for any
+            // destination, so a held payment to a contact is executed and does not use the cap.
+            val i = holds.indexOfFirst { it.status == HoldStatus.Held && it.intent == intent && !it.isExpired(now) }
+            if (i >= 0) {
+                if (!holds[i].isMatured(now)) return@submit reject(7)
+                holds[i] = holds[i].copy(status = HoldStatus.Executed)
                 balance = UsdcAmount(balance.units - intent.amount.units)
                 return@submit confirm()
             }
 
-            val i = holds.indexOfFirst {
-                it.status == HoldStatus.Held && it.intent == intent && it.isMatured(now) && !it.isExpired(now)
-            }
-            if (i < 0) return@submit reject(6)
-            holds[i] = holds[i].copy(status = HoldStatus.Executed)
+            val isContact = contacts.any { it.address == intent.destination }
+            val total = spentToday.plusOrNull(intent.amount)
+            if (!isContact || total == null || total > rules.dailyCap) return@submit reject(6)
+            spentToday = total
             balance = UsdcAmount(balance.units - intent.amount.units)
             confirm()
         }

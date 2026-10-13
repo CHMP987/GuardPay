@@ -1,4 +1,4 @@
-//! MUST suite for the production contracts. GH-01…GH-27, GH-31, GH-32, plus GH-07b, GH-18b, GH-20b.
+//! MUST suite for the production contracts. GH-01…GH-27, GH-31, GH-32, plus GH-07b, GH-18b, GH-20b and the F-01 tests.
 
 extern crate std;
 
@@ -912,4 +912,102 @@ fn daily_window_resets_on_the_next_utc_day() {
         address_transfer(&e, &s.usdc, &s.account, &s.trusted, 1)
     )
     .is_ok());
+}
+
+// F-01: a hold to a trusted contact releases through the registry, is marked
+// Executed and does not count against the daily cap.
+
+#[test]
+fn f01_matured_trusted_hold_over_cap_releases() {
+    let e = Env::default();
+    let s = deploy(&e);
+    let id = seed_hold(&e, &s, &s.trusted, DAILY_CAP + 10);
+    e.ledger().with_mut(|li| li.timestamp = BASE_TS + HOLD_DURATION_SECS + 1);
+    let ctx = address_transfer(&e, &s.usdc, &s.account, &s.trusted, DAILY_CAP + 10);
+    assert_reject(empty_auth(&e, &s, ctx.clone()), "F-01 without owner");
+    assert!(owner_auth(&e, &s, ctx).is_ok(), "F-01 over cap");
+    let record = HoldRegistryClient::new(&e, &s.registry).get_hold(&s.account, &id);
+    assert_eq!(record.status, HoldStatus::Executed);
+    assert_eq!(GuardianHoldClient::new(&e, &s.gh).spent_today(&s.account), 0);
+}
+
+#[test]
+fn f01_matured_trusted_hold_within_cap_is_executed_and_closed() {
+    let e = Env::default();
+    let s = deploy(&e);
+    let reg = HoldRegistryClient::new(&e, &s.registry);
+    let id = seed_hold(&e, &s, &s.trusted, 10);
+    e.ledger().with_mut(|li| li.timestamp = BASE_TS + HOLD_DURATION_SECS + 1);
+    assert!(owner_auth(
+        &e,
+        &s,
+        address_transfer(&e, &s.usdc, &s.account, &s.trusted, 10)
+    )
+    .is_ok());
+    assert_eq!(reg.get_hold(&s.account, &id).status, HoldStatus::Executed);
+    assert_eq!(GuardianHoldClient::new(&e, &s.gh).spent_today(&s.account), 0);
+
+    e.mock_all_auths();
+    assert!(reg.try_cancel(&s.account, &id).is_err(), "cancel after release");
+    e.set_auths(&[]);
+    assert_eq!(reg.get_hold(&s.account, &id).status, HoldStatus::Executed);
+
+    // The same payment can be held again, and the cap is still whole.
+    let again = seed_hold(&e, &s, &s.trusted, 10);
+    assert_ne!(again, id);
+    assert!(owner_auth(
+        &e,
+        &s,
+        address_transfer(&e, &s.usdc, &s.account, &s.trusted, DAILY_CAP)
+    )
+    .is_ok());
+}
+
+#[test]
+fn f01_unmatured_trusted_hold_blocks_that_payment() {
+    let e = Env::default();
+    let s = deploy(&e);
+    let id = seed_hold(&e, &s, &s.trusted, 10);
+    e.ledger().with_mut(|li| li.timestamp = BASE_TS + 60);
+    assert_reject(
+        owner_auth(
+            &e,
+            &s,
+            address_transfer(&e, &s.usdc, &s.account, &s.trusted, 10)
+        ),
+        "F-01 before ready_at",
+    );
+    let reg = HoldRegistryClient::new(&e, &s.registry);
+    assert_eq!(reg.get_hold(&s.account, &id).status, HoldStatus::Retained);
+    assert_eq!(GuardianHoldClient::new(&e, &s.gh).spent_today(&s.account), 0);
+
+    // Another amount to the same contact still goes through the cap.
+    assert!(owner_auth(
+        &e,
+        &s,
+        address_transfer(&e, &s.usdc, &s.account, &s.trusted, 20)
+    )
+    .is_ok());
+    assert_eq!(GuardianHoldClient::new(&e, &s.gh).spent_today(&s.account), 20);
+}
+
+#[test]
+fn f01_stopped_trusted_hold_falls_back_to_the_cap() {
+    let e = Env::default();
+    let s = deploy(&e);
+    let reg = HoldRegistryClient::new(&e, &s.registry);
+    let id = seed_hold(&e, &s, &s.trusted, DAILY_CAP + 10);
+    e.mock_all_auths();
+    reg.cancel(&s.account, &id);
+    e.set_auths(&[]);
+    e.ledger().with_mut(|li| li.timestamp = BASE_TS + HOLD_DURATION_SECS + 1);
+    assert_reject(
+        owner_auth(
+            &e,
+            &s,
+            address_transfer(&e, &s.usdc, &s.account, &s.trusted, DAILY_CAP + 10)
+        ),
+        "F-01 stopped over cap",
+    );
+    assert_eq!(reg.get_hold(&s.account, &id).status, HoldStatus::Stopped);
 }

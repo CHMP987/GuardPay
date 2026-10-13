@@ -34,7 +34,7 @@ Criterios de aceptación:
 
 - La dueña puede detener su propio pago retenido; el guardián sigue sin poder mover fondos ni volverse firmante.
 - Un pago madurado sin enviar vence y la política lo rechaza después del vencimiento (GH-30 en verde).
-- Las 35 pruebas existentes siguen pasando.
+- Las 39 pruebas existentes de `must.rs` siguen pasando.
 
 ### A-3 · Firmas humanas pendientes: CP-3, CP-7 y CP-9
 
@@ -88,6 +88,8 @@ Criterios de aceptación:
 - Después de una liberación, el registro queda `Executed` (o la app ya no permite crear esa retención).
 - `SimulatedStellarGateway` se comporta igual que el contrato en esos casos, con una prueba que lo compare.
 - Si cambia el contrato, las cuentas desplegadas se redespliegan en testnet y la evidencia se actualiza.
+
+Estado (12 oct 2026, rama `fix-f01`): los cuatro primeros criterios están cumplidos en el código. Ver la corrección en [F-01](AUDIT_REPORT.md#f-01-correccion). Falta el último: compilar el wasm, desplegar la política nueva y cuentas nuevas en testnet, y actualizar `evidence/stellar/deployment.md`. Con la corrección, todo `transfer` de USDC recorre el registro, lo que hace más urgente B-2.
 
 ### B-2 · Medir y acotar el recorrido lineal del registro (F-02)
 
